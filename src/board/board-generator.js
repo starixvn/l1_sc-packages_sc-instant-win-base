@@ -15,26 +15,26 @@ export default class BoardGenerator {
     }
 
     buildAnySymbolPosibilities() {
-        const highestPosibilityRange = this.definition.numberOfSymbols;
+        const posibilityRange = this.definition.numberOfSymbols;
 
-        return this.buildSymbolPosibilities(highestPosibilityRange);
+        return this.buildSymbolPosibilities(posibilityRange);
     }
 
     buildLowPrizedSymbolPosibilities() {
-        const highestPosibilityRange = this.definition.numberOfSymbols - this.lowPrizedSymbolPosibilityGap;
+        const posibilityRange = this.definition.numberOfSymbols - this.lowPrizedSymbolPosibilityGap;
 
-        return this.buildSymbolPosibilities(highestPosibilityRange);
+        return this.buildSymbolPosibilities(posibilityRange);
     }
 
-    buildSymbolPosibilities(symbolRange) {
-        if (symbolRange <= 0) {
+    buildSymbolPosibilities(posibilityRange) {
+        if (posibilityRange <= 0) {
             return [];
         }
 
         const posibilityMatrix = [];
 
-        for (let symbol = 0; symbol < symbolRange; symbol++) {
-            const occurrences = symbolRange - symbol;
+        for (let symbol = 0; symbol < posibilityRange; symbol++) {
+            const occurrences = posibilityRange - symbol;
 
             posibilityMatrix.push(...Array(occurrences).fill(symbol));
         }

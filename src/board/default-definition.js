@@ -1,5 +1,6 @@
 export default {
     numberOfColumns: 5,
+    numberOfRows: 3,
     numberOfSymbols: 11,
     specialSymbols: {
         jackpot: 10,

@@ -4,37 +4,37 @@ export default class PaylineCalculator {
     constructor(definition) {
         this.definition = definition ?? defaultDefinition;
         this.specialSymbols = Object.values(this.definition.specialSymbols).map((symbol) => String(symbol));
+        this.ignoringOddsSymbols = [this.definition.specialSymbols.freeSpins, this.definition.specialSymbols.bonus];
     }
 
-    calculate(board, paylineIndices, odds) {
-        const ignoringOddsSymbols = [this.definition.specialSymbols.freeSpins, this.definition.specialSymbols.bonus];
+    calculate(board, selectedPaylines, odds) {
         const occurrences = this.countSymbolsInBoard(board);
-        const matchedPaylines = paylineIndices.map((index) => ({ index, occurrences: occurrences[index] }));
-        const paylinesResult = matchedPaylines.map((occurrencesByPayline) => {
-            const occurrencesByPaylineWithOdds = Object.entries(occurrencesByPayline.occurrences).reduce((occurrencesWithOdds, [symbol, count]) => {
-                const symbolOdds = ignoringOddsSymbols.includes(symbol) ? 0 : odds[symbol][count];
+        const occurrencesInSelectedPaylines = selectedPaylines.map((paylineIndex) => ({ paylineIndex, occurrences: occurrences[paylineIndex] }));
+        const paylinesResult = occurrencesInSelectedPaylines.map((occurrencesByPayline) => {
+            const occurrencesWithOddsByPayline = Object.entries(occurrencesByPayline.occurrences).reduce((occurrencesWithOdds, [symbol, count]) => {
+                const symbolOdds = this.ignoringOddsSymbols.includes(symbol) ? 0 : odds[symbol][count];
 
                 occurrencesWithOdds[symbol] = symbolOdds ?? 0;
 
                 return occurrencesWithOdds;
             }, {});
-            const mostProfitableSymbol = Object.keys(occurrencesByPaylineWithOdds).reduce((highestOddsSymbol, symbol) =>
-                occurrencesByPaylineWithOdds[symbol] > occurrencesByPaylineWithOdds[highestOddsSymbol] ? symbol : highestOddsSymbol
+            const mostProfitableSymbol = Object.keys(occurrencesWithOddsByPayline).reduce((highestOddsSymbol, symbol) =>
+                occurrencesWithOddsByPayline[symbol] > occurrencesWithOddsByPayline[highestOddsSymbol] ? symbol : highestOddsSymbol
             );
 
             return {
-                payline: occurrencesByPayline.index,
+                payline: occurrencesByPayline.paylineIndex,
                 symbol: mostProfitableSymbol,
                 count: occurrencesByPayline.occurrences[mostProfitableSymbol],
-                odds: occurrencesByPaylineWithOdds[mostProfitableSymbol],
+                odds: occurrencesWithOddsByPayline[mostProfitableSymbol],
             };
         });
 
         return {
             paylines: paylinesResult,
-            freeSpins: this.calculateFreeSpins(board, matchedPaylines, odds),
-            bonus: this.calculateBonus(board, matchedPaylines, odds),
-            jackpot: this.checkIfWinJackpot(board, matchedPaylines),
+            freeSpins: this.calculateFreeSpins(board, occurrencesInSelectedPaylines, odds),
+            bonus: this.calculateBonus(board, occurrencesInSelectedPaylines, odds),
+            jackpot: this.checkIfWinJackpot(board, occurrencesInSelectedPaylines),
         };
     }
 
@@ -52,9 +52,9 @@ export default class PaylineCalculator {
         return odds[this.definition.specialSymbols.bonus]?.[numberOfColumns] ?? 0;
     }
 
-    countSpecificSymbolPerColumn(board, countingSymbol) {
+    countSpecificSymbolPerColumn(board, sample) {
         return board.reduce((countingByColumns, symbol, index) => {
-            if (symbol === countingSymbol) {
+            if (symbol === sample) {
                 const column = ~~(index / this.definition.numberOfRows);
 
                 countingByColumns[column] = (countingByColumns[column] ?? 0) + 1;
@@ -65,7 +65,7 @@ export default class PaylineCalculator {
     }
 
     checkIfWinJackpot(board, paylines) {
-        return paylines.some((payline) => payline[this.definition.specialSymbols.jackpot] === this.definition.numberOfColumns);
+        return paylines.some((payline) => payline.occurrences[this.definition.specialSymbols.jackpot] === this.definition.numberOfColumns);
     }
 
     countSymbolsInBoard(board) {
