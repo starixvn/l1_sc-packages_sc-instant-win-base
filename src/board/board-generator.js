@@ -8,43 +8,43 @@ export default class BoardGenerator {
         this.chance = new Chance();
         this.definition = definition ?? defaultDefinition;
 
-        this.lowPrizedSymbolPosibilityGap = Object.keys(this.definition.specialSymbols).length;
+        this.lowPrizedSymbolPossibilityGap = Object.keys(this.definition.specialSymbols).length;
 
-        this.anySymbolPosibilities = this.buildAnySymbolPosibilities();
-        this.lowPrizedSymbolPosibilities = this.buildLowPrizedSymbolPosibilities();
+        this.anySymbolPossibilities = this.buildAnySymbolPossibilities();
+        this.lowPrizedSymbolPossibilities = this.buildLowPrizedSymbolPossibilities();
     }
 
-    buildAnySymbolPosibilities() {
-        const posibilityRange = this.definition.numberOfSymbols;
+    buildAnySymbolPossibilities() {
+        const possibilityRange = this.definition.numberOfSymbols;
 
-        return this.buildSymbolPosibilities(posibilityRange);
+        return this.buildSymbolPossibilities(possibilityRange);
     }
 
-    buildLowPrizedSymbolPosibilities() {
-        const posibilityRange = this.definition.numberOfSymbols - this.lowPrizedSymbolPosibilityGap;
+    buildLowPrizedSymbolPossibilities() {
+        const possibilityRange = this.definition.numberOfSymbols - this.lowPrizedSymbolPossibilityGap;
 
-        return this.buildSymbolPosibilities(posibilityRange);
+        return this.buildSymbolPossibilities(possibilityRange);
     }
 
-    buildSymbolPosibilities(posibilityRange) {
-        if (posibilityRange <= 0) {
+    buildSymbolPossibilities(possibilityRange) {
+        if (possibilityRange <= 0) {
             return [];
         }
 
-        const posibilityMatrix = [];
+        const possibilityMatrix = [];
 
-        for (let symbol = 0; symbol < posibilityRange; symbol++) {
-            const occurrences = posibilityRange - symbol;
+        for (let symbol = 0; symbol < possibilityRange; symbol++) {
+            const occurrences = possibilityRange - symbol;
 
-            posibilityMatrix.push(...Array(occurrences).fill(symbol));
+            possibilityMatrix.push(...Array(occurrences).fill(symbol));
         }
 
-        return posibilityMatrix;
+        return possibilityMatrix;
     }
 
     generate(difficulty) {
-        const fillingStratergy = this.getFillingStrategy(difficulty);
-        const generatedBoard = this.generateByStratergy(fillingStratergy);
+        const fillingStrategy = this.getFillingStrategy(difficulty);
+        const generatedBoard = this.generateByStrategy(fillingStrategy);
         let shuffledBoard = generatedBoard;
 
         shuffledBoard = this.chance.shuffle(shuffledBoard);
@@ -55,21 +55,21 @@ export default class BoardGenerator {
     }
 
     generateForBots() {
-        const maxJackpotPosibility = this.definition.fillingStratergyForBots.jackpotPosibilityRange - 1;
-        const jackpotPosibility = this.chance.natural({ min: 0, max: maxJackpotPosibility });
-        const fillingStratergy =
-            jackpotPosibility === maxJackpotPosibility
-                ? this.definition.fillingStratergyForBots.jackpot
-                : this.definition.fillingStratergyForBots.normal;
-        const generatedBoard = this.generateByStratergy(fillingStratergy);
+        const maxJackpotPossibility = this.definition.fillingStrategyForBots.jackpotPossibilityRange - 1;
+        const jackpotPossibility = this.chance.natural({ min: 0, max: maxJackpotPossibility });
+        const fillingStrategy =
+            jackpotPossibility === maxJackpotPossibility
+                ? this.definition.fillingStrategyForBots.jackpot
+                : this.definition.fillingStrategyForBots.normal;
+        const generatedBoard = this.generateByStrategy(fillingStrategy);
 
         return this.chance.shuffle(generatedBoard);
     }
 
-    generateByStratergy(fillingStratergy) {
+    generateByStrategy(fillingStrategy) {
         const generatedBoard = [];
 
-        fillingStratergy.forEach((literal) => {
+        fillingStrategy.forEach((literal) => {
             const newSymbol = typeof literal === "string" ? this[literal]?.() : literal;
 
             generatedBoard.push(newSymbol);
@@ -79,21 +79,21 @@ export default class BoardGenerator {
     }
 
     randomAnySymbol() {
-        const posibility = this.chance.natural({ min: 0, max: this.anySymbolPosibilities.length - 1 });
+        const possibility = this.chance.natural({ min: 0, max: this.anySymbolPossibilities.length - 1 });
 
-        return this.anySymbolPosibilities[posibility];
+        return this.anySymbolPossibilities[possibility];
     }
 
     randomLowPrizedSymbol() {
-        const posibility = this.chance.natural({ min: 0, max: this.lowPrizedSymbolPosibilities.length - 1 });
+        const possibility = this.chance.natural({ min: 0, max: this.lowPrizedSymbolPossibilities.length - 1 });
 
-        return this.lowPrizedSymbolPosibilities[posibility];
+        return this.lowPrizedSymbolPossibilities[possibility];
     }
 
     randomSpecialSymbol() {
-        const posibility = this.chance.natural({ min: 0, max: 1 });
+        const possibility = this.chance.natural({ min: 0, max: 1 });
 
-        return posibility === 0 ? this.definition.specialSymbols.bonus : this.definition.specialSymbols.freeSpins;
+        return possibility === 0 ? this.definition.specialSymbols.bonus : this.definition.specialSymbols.freeSpins;
     }
 
     getFillingStrategy(difficulty) {

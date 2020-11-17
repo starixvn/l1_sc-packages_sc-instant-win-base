@@ -61,7 +61,7 @@ export default {
             0,
         ],
     },
-    fillingStratergyForBots: {
+    fillingStrategyForBots: {
         jackpot: [
             "randomAnySymbol",
             "randomAnySymbol",
@@ -80,7 +80,7 @@ export default {
             0,
         ],
         normal: ["randomAnySymbol", "randomAnySymbol", "randomAnySymbol", 8, 7, 7, 8, "randomAnySymbol", "randomAnySymbol", 1, 1, 2, 0, 0, 0],
-        jackpotPosibilityRange: 50,
+        jackpotPossibilityRange: 50,
     },
     numberOfShuffles: 3,
     paylines: [
