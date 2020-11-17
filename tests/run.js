@@ -1,7 +1,7 @@
-import BoardGenerator from "../src/board/board-generator";
-import BonusBoardGenerator from "../src/board/bonus-board-generator";
-import difficulties from "../src/board/difficulties";
-import PaylineCalculator from "../src/board/payline-calculator";
+import BoardGenerator from "./../src/board/board-generator";
+import BonusBoardGenerator from "./../src/board/bonus-board-generator";
+import difficulties from "./../src/board/difficulties";
+import PaylineCalculator from "./../src/board/payline-calculator";
 import odds from "./odds";
 
 function formatBoard(board) {
@@ -109,7 +109,7 @@ function runOneMillionsForBots() {
     console.log(summary);
 }
 
-function run() {
+function calculateSettlementResultOfSpecificBoard() {
     const generator = new BoardGenerator();
     const calculator = new PaylineCalculator();
     const paylines = [...Array(25).keys()];
