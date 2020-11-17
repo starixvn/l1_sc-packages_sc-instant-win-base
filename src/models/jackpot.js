@@ -11,8 +11,8 @@ const jackpotSchema = new mongoose.Schema({
     byBots: { type: Number, default: 0 },
     byMembers: { type: Number, default: 0 },
 
-    createdAt: { type: Number }, // ticket's _id from which the jackpot pool was created.
-    hitAt: { type: Number }, // ticket's _id from which the jackpot pool was hit.
+    createdAt: { type: Number }, // ticket's ID from which the jackpot pool was created.
+    hitAt: { type: Number }, // ticket's ID from which the jackpot pool was hit.
 });
 
 export default mongoose.model("Jackpot", jackpotSchema);
