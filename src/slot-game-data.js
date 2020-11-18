@@ -1,6 +1,6 @@
 import { Core } from "sc-game-base";
 
-export default class TableGameData extends Core.GameData {
+export default class SlotGameData extends Core.GameData {
     constructor(remainingTime) {
         super(remainingTime);
     }
