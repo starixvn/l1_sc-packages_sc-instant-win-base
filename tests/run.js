@@ -127,4 +127,4 @@ function generateBonusBonus() {
     console.log(board);
 }
 
-generateBonusBonus();
+generateThreeBoards();

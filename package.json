@@ -30,7 +30,7 @@
         "mongoose": "^5.9.25",
         "sc-base-apis": "^1.7.0",
         "sc-base-database": "^1.4.0",
-        "sc-game-base": "^1.15.4"
+        "sc-game-base": "^1.15.5-beta.1"
     },
     "devDependencies": {
         "@commitlint/cli": "^9.1.2",
