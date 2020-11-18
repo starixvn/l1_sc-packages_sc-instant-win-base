@@ -8,7 +8,7 @@ export default {
         bonus: 8,
         freeSpins: 7,
     },
-    fillingStratergies: {
+    fillingStrategies: {
         hard: [
             "randomAnySymbol",
             "randomAnySymbol",

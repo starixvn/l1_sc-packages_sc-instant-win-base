@@ -99,11 +99,11 @@ export default class BoardGenerator {
     getFillingStrategy(difficulty) {
         switch (difficulty) {
             case difficulties.hard:
-                return this.definition.fillingStratergies.hard;
+                return this.definition.fillingStrategies.hard;
             case difficulties.medium:
-                return this.definition.fillingStratergies.medium;
+                return this.definition.fillingStrategies.medium;
             default:
-                return this.definition.fillingStratergies.easy;
+                return this.definition.fillingStrategies.easy;
         }
     }
 }
