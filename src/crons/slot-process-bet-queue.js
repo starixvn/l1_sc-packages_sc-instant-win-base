@@ -30,8 +30,9 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
         if (this.gameData.ingame[player.profile.name]?.freeSpins) {
             const freeSpins = this.gameData.ingame[player.profile.name]?.freeSpins;
 
-            return Object.values(freeSpins).reduce((total, freeSpin) => (total += freeSpin.count), 0) > 0;
+            return freeSpins.filter((spin) => spin.expiration > Date.now()).reduce((total, freeSpin) => (total += freeSpin.count), 0) > 0;
         }
+
         return false;
     }
 
