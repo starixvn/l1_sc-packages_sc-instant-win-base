@@ -27,28 +27,25 @@ export default class JackpotConsumer {
             pool,
             createdAt: { $gte: roundId },
         };
+        const nearestPoolOrder = {
+            createdAt: -1,
+        };
         const poolAdjustment = {
             amount: contributionAmount,
             byBots: contributedByMember ? 0 : contributionAmount,
             byMembers: contributedByMember ? contributionAmount : 0,
-        };
-        const newPoolInitiations = {
-            createdAt: roundId,
-            createdTime: new Date(),
         };
         const latestJackpotProjection = { _id: false, amount: true };
         const latestJackpotPool = await Jackpot.findOneAndUpdate(
             runningPoolFilter,
             {
                 $inc: poolAdjustment,
-                $setOnInsert: newPoolInitiations,
             },
             {
-                upsert: true,
-                setDefaultsOnInsert: true,
                 new: true,
                 lean: true,
-                projection: latestJackpotProjection,
+                fields: latestJackpotProjection,
+                sort: nearestPoolOrder,
             }
         );
 
@@ -62,6 +59,9 @@ export default class JackpotConsumer {
             game: this.definition.name,
             pool,
             createdAt: { $lt: roundId },
+        };
+        const nearestRunningPoolOrder = {
+            createdAt: -1,
         };
         const winnerAdjustment = {
             winnerName: player.profile.name,
@@ -83,7 +83,8 @@ export default class JackpotConsumer {
             {
                 new: true,
                 lean: true,
-                projection: winnerProjection,
+                fields: winnerProjection,
+                sort: nearestRunningPoolOrder,
             }
         );
 
