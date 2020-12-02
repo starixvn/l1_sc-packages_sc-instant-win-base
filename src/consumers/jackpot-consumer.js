@@ -1,6 +1,6 @@
 import { Core } from "sc-game-base";
 
-import Jackpot from "./../models/jackpot";
+import Jackpots from "./../models/jackpots";
 import JackpotPublisher from "./../publishers/jackpot-publisher";
 
 export default class JackpotConsumer {
@@ -36,7 +36,7 @@ export default class JackpotConsumer {
             byMembers: contributedByMember ? contributionAmount : 0,
         };
         const latestJackpotProjection = { _id: false, amount: true };
-        const latestJackpotPool = await Jackpot.findOneAndUpdate(
+        const latestJackpotPool = await Jackpots.findOneAndUpdate(
             runningPoolFilter,
             {
                 $inc: poolAdjustment,
@@ -75,7 +75,7 @@ export default class JackpotConsumer {
             winnerName: true,
             amount: true,
         };
-        const winningJackpot = await Jackpot.findOneAndUpdate(
+        const winningJackpot = await Jackpots.findOneAndUpdate(
             runningPoolFilter,
             {
                 $set: winnerAdjustment,
@@ -100,7 +100,7 @@ export default class JackpotConsumer {
     async initializeNewPool(pool, roundId) {
         const initAmount = this.gameData.gameConfigs.slotsConfig?.stakeLevels?.find((stakeLevel) => stakeLevel.stake === pool)?.jackpot ?? 0;
 
-        await Jackpot.create({
+        await Jackpots.create({
             game: this.definition.name,
             pool,
             initAmount,
