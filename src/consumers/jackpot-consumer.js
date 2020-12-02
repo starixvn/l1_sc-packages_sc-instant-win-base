@@ -97,7 +97,7 @@ export default class JackpotConsumer {
     }
 
     async initializeNewPool(pool, roundId) {
-        const initAmount = this.gameData.gameConfigs.slotsConfig.stakeLevels.find((stakeLevel) => stakeLevel.stake === pool)?.jackpot ?? 0;
+        const initAmount = this.gameData.gameConfigs.slotsConfig?.stakeLevels?.find((stakeLevel) => stakeLevel.stake === pool)?.jackpot ?? 0;
 
         await Jackpot.create({
             game: this.definition.name,

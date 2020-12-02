@@ -70,13 +70,12 @@ export default class PaylineCalculator {
 
     countSymbolsInBoard(board) {
         const paylinePatterns = this.definition.paylines;
-        const result = paylinePatterns.map((pattern) => {
+
+        return paylinePatterns.map((pattern) => {
             const payline = pattern.map((cellIndex) => board[cellIndex]);
 
             return this.countSymbolsInPayline(payline);
         });
-
-        return result;
     }
 
     countSymbolsInPayline(payline) {

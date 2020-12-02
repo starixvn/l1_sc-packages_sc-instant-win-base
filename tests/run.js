@@ -36,11 +36,11 @@ function generateThreeBoards() {
         console.log(formatBoard(board));
 
         console.log("Paylines");
-        console.log("================================================================");
+        console.log("----------------------------------------------------------------");
         console.log(calculator.countSymbolsInBoard(board));
 
         console.log("Results");
-        console.log("================================================================");
+        console.log("****************************************************************");
         console.log(calculator.calculate(board, paylines, odds));
     }
 }
@@ -110,11 +110,10 @@ function runOneMillionsForBots() {
 }
 
 function calculateSettlementResultOfSpecificBoard() {
-    const generator = new BoardGenerator();
     const calculator = new PaylineCalculator();
     const paylines = [...Array(25).keys()];
 
-    const board = [6, 2, 9, 1, 0, 9, 2, 1, 9, 0, 0, 9, 0, 6, 9]; //generator.generate(difficulties.medium);
+    const board = [6, 2, 9, 1, 0, 9, 2, 1, 9, 0, 0, 9, 0, 6, 9];
     const result = calculator.calculate(board, paylines, odds);
 
     console.log(formatBoard(board));
@@ -127,4 +126,10 @@ function generateBonusBonus() {
     console.log(board);
 }
 
-generateThreeBoards();
+function checkPosibility() {
+    const generator = new BoardGenerator();
+
+    console.log(generator.anySymbolPossibilities);
+}
+
+checkPosibility();
