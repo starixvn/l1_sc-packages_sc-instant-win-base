@@ -88,8 +88,7 @@ export default class JackpotConsumer {
             }
         );
 
-        // TODO: need to correct the field name of rTP?
-        winningJackpot.amount *= this.gameData.gameConfigs.slotsConfig.jackpot.rTP;
+        winningJackpot.amount *= this.gameData.gameConfigs.slotsConfig.jackpot.winningAmount;
 
         this.jackpotPublisher.publishWinner(winningJackpot);
         await this.contribute(player, { pool, totalAmount, roundId });
