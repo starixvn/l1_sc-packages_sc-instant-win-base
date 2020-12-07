@@ -47,10 +47,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         if (settlementResult.bonus == 0) {
             if (settlementResult.jackpot) {
-                finish.jackpotWin = await this.jackpotConsumer.hit(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
-            } else {
-                await this.jackpotConsumer.contribution(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
+                finish.jackpotWin = await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId });
             }
+
+            await this.jackpotConsumer.contribution(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
 
             await this.settleBets(finish);
         } else {
@@ -93,7 +93,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const bet = await this.queryBets(roundId);
 
         if (bet) {
-            const { bigWinRatio } = this.gameData.gameConfigs.slotsConfig;
             const betResult = this.calculatePaylineResult(settlementResult, bet, jackpotWin);
 
             bet.betwin = betResult.totalWin;
@@ -106,14 +105,15 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
             await this.userBetResultPublisher.publish(bet.uid, betResult);
 
-            if (bet.betWin / bigWinRatio > 1) {
-                //TODO publish bigWin
+            if (betResult.bigWin) {
                 //TODO store hall of fame
             }
         }
     }
 
     calculatePaylineResult(paylines, bet, jackpotWin) {
+        const { bigWinRatio } = this.gameData.gameConfigs.slotsConfig;
+
         const betResult = Object.entries(paylines).reduce(
             (result, payline) => {
                 const betAmount = bet.bet;
@@ -137,11 +137,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 netWin: 0,
                 totalLost: 0,
                 winningByChoices: {},
+                bigWin: false,
             }
         );
 
         betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin).toFixed(2));
         betResult.netWin = parseFloat((betResult.netWin + jackpotWin).toFixed(2));
+        betResult.bigWin = betResult.totalWin / bigWinRatio > 1;
 
         return betResult;
     }
