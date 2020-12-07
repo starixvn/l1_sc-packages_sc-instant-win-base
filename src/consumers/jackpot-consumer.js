@@ -25,7 +25,7 @@ export default class JackpotConsumer {
         const runningPoolFilter = {
             game: this.definition.name,
             pool,
-            createdAt: { $gte: roundId },
+            createdAt: { $lte: roundId },
         };
         const nearestPoolOrder = {
             createdAt: -1,
@@ -52,7 +52,7 @@ export default class JackpotConsumer {
         this.jackpotPublisher.publishLatestPool({ pool, amount: latestJackpotPool.amount });
     }
 
-    async hit(player, { pool, totalAmount, roundId }) {
+    async hit(player, { pool, roundId }) {
         await this.initializeNewPool(pool, roundId);
 
         const runningPoolFilter = {
@@ -91,7 +91,6 @@ export default class JackpotConsumer {
         winningJackpot.amount *= this.gameData.gameConfigs.slotsConfig.jackpot.winningAmount;
 
         this.jackpotPublisher.publishWinner(winningJackpot);
-        await this.contribute(player, { pool, totalAmount, roundId });
 
         return winningJackpot;
     }
