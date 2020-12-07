@@ -115,13 +115,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const { bigWinRatio } = this.gameData.gameConfigs.slotsConfig;
 
         const betResult = Object.entries(paylines).reduce(
-            (result, payline) => {
+            (result, paylineItem) => {
                 const betAmount = bet.bet;
-                const winAmount = payline.odds > 0 ? betAmount * payline.odds : 0;
+                const winAmount = paylineItem.odds > 0 ? betAmount * paylineItem.odds : 0;
 
                 result.totalBetAmount = bet.totalAmount;
                 result.totalWin += winAmount;
-                result.winningByChoices[payline] = winAmount;
+                result.winningLines.push(paylineItem.payline);
 
                 if (winAmount > 0) {
                     result.netWin += winAmount - betAmount;
@@ -136,7 +136,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 totalWin: 0,
                 netWin: 0,
                 totalLost: 0,
-                winningByChoices: {},
+                winningLines: [],
                 bigWin: false,
             }
         );
