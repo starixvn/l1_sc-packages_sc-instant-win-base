@@ -1,5 +1,5 @@
 export default {
-    hard: 0,
+    easy: 0,
     medium: 1,
-    easy: 2,
+    hard: 2,
 };
