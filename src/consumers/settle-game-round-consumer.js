@@ -81,7 +81,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 available: settlementResult.freeSpins,
             });
 
-            this.gameData.ingame[player.profile.name].freeSpins.push({
+            this.gameData.ingame[bet.name].freeSpins.push({
                 time: new Date(),
                 expiration: moment.utc().add(expirationHours, "hours").toDate(),
                 count: settlementResult.freeSpins,
