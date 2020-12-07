@@ -12,7 +12,7 @@ export default class JackpotConsumer {
     constructor(definition, gameData, jackpotPublisher = null) {
         this.definition = definition;
         this.gameData = gameData;
-        this.jackpotPublisher = jackpotPublisher;
+        this.jackpotPublisher = jackpotPublisher ?? new JackpotPublisher(definition.name, gameData);
     }
 
     async contribute(player, { pool, totalAmount, roundId }) {
