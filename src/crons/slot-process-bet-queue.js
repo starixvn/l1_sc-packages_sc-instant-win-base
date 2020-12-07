@@ -19,7 +19,8 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             }
 
             const { prevBet } = this.gameData.ingame[player.profile.name];
-            payload.amount = (payload.freeSpin ? prevBet.amount : payload.amount) * payload.betChoice.length;
+            payload.amount = payload.freeSpin ? prevBet.amount : payload.amount;
+            payload.totalAmount = (payload.freeSpin ? prevBet.amount : payload.amount) * payload.betChoice.length;
             payload.betChoice = prevBet.betChoice;
         }
 
@@ -72,6 +73,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             paylines: bet.betChoice,
             freeSpin: bet.freeSpin,
             bet: bet.amount,
+            totalAmount: bet.totalAmount,
         };
 
         if (player.session) {
