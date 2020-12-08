@@ -2,6 +2,7 @@ import moment from "moment";
 import { Core } from "sc-game-base";
 
 import BoardGenerator from "../board/board-generator";
+import BonusBoardGenerator from "../board/bonus-board-generator";
 import PaylineCalculator from "../board/payline-calculator";
 import JackpotConsumer from "./jackpot-consumer";
 
@@ -34,27 +35,43 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const odds = this.gameData.gameConfigs.slotsConfig.icons;
 
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
+        const jackpotWin = settlementResult.jackpot ? await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId }) : 0;
+        const time = new Date();
 
         const finish = {
             settlementResult,
             result,
             roundId,
-            time: new Date(),
-            jackpotWin: 0,
+            time,
+            jackpotWin,
         };
+
+        await this.jackpotConsumer.contribution(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
 
         await this.processFreeSpins(bet, settlementResult);
 
         if (settlementResult.bonus == 0) {
-            if (settlementResult.jackpot) {
-                finish.jackpotWin = await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId });
-            }
-
-            await this.jackpotConsumer.contribution(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
-
             await this.settleBets(finish);
         } else {
-            //TODO check bonus, consider base in bonus round then restart game
+            const { bonus } = this.gameData.gameConfigs.slotsConfig;
+            const bonusChests = new BonusBoardGenerator({ size: this.definition.bonusSize, minRate: bonus.min, maxRate: bonus.max }).generate(
+                bet.bet
+            );
+
+            const existingBetFilter = { uid: player.UID, roundId: roundId };
+
+            const updatedBet = {
+                result,
+                settlementResult,
+                jackpotWin,
+                time,
+                bonusChests,
+            };
+
+            await this.definition.betRepository.updateOne(existingBetFilter, updatedBet);
+
+            this.gameData.ingame[player.profile.name].bonusChests = bonusChests;
+            this.gameData.ingame[player.profile.name].settlementResult = settlementResult;
         }
     }
 
@@ -68,8 +85,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async processFreeSpins(bet, settlementResult) {
-        const expirationHours = 24;
-
         if (settlementResult.freeSpins > 0) {
             await this.definition.freeSpinRepository.create({
                 time: new Date(),
@@ -79,11 +94,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 name: bet.name,
                 total: settlementResult.freeSpins,
                 available: settlementResult.freeSpins,
+                bet: bet.bet,
             });
 
             this.gameData.ingame[bet.name].freeSpins.push({
                 time: new Date(),
-                expiration: moment.utc().add(expirationHours, "hours").toDate(),
+                expiration: moment.utc().add(this.definition.expirationHours, "hours").toDate(),
                 count: settlementResult.freeSpins,
             });
         }

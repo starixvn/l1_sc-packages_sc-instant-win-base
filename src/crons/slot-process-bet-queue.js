@@ -43,6 +43,8 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
         if (bet.freeSpin) {
             await this.updateFreeSpins(player);
         }
+
+        this.gameData.roundId += 1;
     }
 
     async updateFreeSpins(player) {
@@ -56,18 +58,18 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
 
         await this.definition.freeSpinRepository.updateOne(
             { uid: player.UID, time: freeSpin.time },
-            { $inc: -1 },
+            { $inc: { available: -1 } },
             { upsert: true, setDefaultsOnInsert: true }
         );
     }
 
     async upsertBet(player, roundId, bet) {
-        const existingBetFilter = { uid: player.UID, phien: roundId, freeBet: bet.freeBet };
+        const existingBetFilter = { uid: player.UID, roundId: roundId, freeBet: bet.freeBet };
 
         const newBet = {
             uid: player.UID,
             name: player.profile.name,
-            phien: roundId,
+            roundId: roundId,
             time: new Date(),
             freeBet: bet.freeBet,
             paylines: bet.betChoice,
