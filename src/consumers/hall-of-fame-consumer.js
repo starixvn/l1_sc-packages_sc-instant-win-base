@@ -8,7 +8,7 @@ export default class HallOfFameConsumer {
         this.definition = definition;
     }
 
-    async add(player, { roundId, bet, numberOfPaylines, totalAmount }) {
+    async add(player, { roundId, bet, numberOfPaylines, totalAmount, winningAmount }) {
         await this.famesRepository.create({
             uid: player.UID,
             memberId: player.session?.memberId,
@@ -16,6 +16,7 @@ export default class HallOfFameConsumer {
             roundId,
             bet,
             totalAmount,
+            winningAmount,
             numberOfPaylines,
             time: new Date(),
         });

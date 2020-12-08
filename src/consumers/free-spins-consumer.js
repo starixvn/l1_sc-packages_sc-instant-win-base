@@ -27,16 +27,21 @@ export default class FreeSpinsConsumer {
         const currentDateTime = new Date();
         const firstAvailableFreeSpinSet = freeSpinsOfPlayer.find((freeSpin) => freeSpin.available > 0 && freeSpin.expiryDate > currentDateTime);
 
+        await this.definition.freeSpinsRepository.update({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
         firstAvailableFreeSpinSet.available--;
 
-        await this.definition.freeSpinsRepository.update({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
+        return {
+            bet: firstAvailableFreeSpinSet.bet,
+            paylines: firstAvailableFreeSpinSet.paylines,
+        };
     }
 
-    async gainFreeSpin(player, { roundId, bet, numberOfFreeSpins }, timeToLive) {
+    async gainFreeSpin(player, { roundId, bet, paylines, numberOfFreeSpins }, timeToLive) {
         const createdTime = new Date();
         const newlyCachedFreeSpin = {
             roundId,
             bet,
+            paylines,
             total: numberOfFreeSpins,
             available: numberOfFreeSpins,
             time: createdTime,

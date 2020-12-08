@@ -7,7 +7,7 @@ const jackpotSchema = new mongoose.Schema({
     amount: { type: Number, default: 0 },
     winningRatio: { type: Number },
 
-    winnerName: { type: String, default: "" },
+    winnerName: { type: String },
     winnerId: { type: Number },
 
     byBots: { type: Number, default: 0 },
