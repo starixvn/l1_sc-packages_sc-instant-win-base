@@ -20,22 +20,18 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
                 return;
             }
 
-            const betAmount = this.freeSpinsConsumer.getFreeSpinBet(player);
-            payload.amount = payload.freeSpin ? prevBet.amount : payload.amount;
-            payload.totalAmount = (payload.freeSpin ? prevBet.amount : payload.amount) * payload.betChoice.length;
-            payload.betChoice = prevBet.betChoice;
+            const { bet, paylines } = this.freeSpinsConsumer.useFreeSpin(player);
+            payload.betChoice = paylines;
+            payload.amount = bet;
         }
+
+        payload.totalAmount = payload.amount * payload.betChoice.length;
 
         await super.processBet(player, payload);
     }
 
     async handleSuccessBet(player, balance, roundId, bet) {
         await super.handleSuccessBet(player, balance, roundId, bet);
-
-        if (bet.freeSpin) {
-            await this.freeSpinsConsumer.useFreeSpin(player);
-        }
-
         this.gameData.roundId += 1;
     }
 
