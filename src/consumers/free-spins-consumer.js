@@ -29,7 +29,7 @@ export default class FreeSpinsConsumer {
 
         firstAvailableFreeSpinSet.available--;
 
-        await this.definition.freeSpinRepository.update({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
+        await this.definition.freeSpinsRepository.update({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
     }
 
     async gainFreeSpin(player, { roundId, bet, numberOfFreeSpins }, timeToLive) {
@@ -44,11 +44,11 @@ export default class FreeSpinsConsumer {
         };
         const gainedFreeSpin = {
             uid: player.UID,
-            name: player.profile.name,
             memberId: player.session?.memberId,
+            name: player.profile.name,
             ...newlyCachedFreeSpin,
         };
-        const newlyCreatedFreeSpin = await this.definition.freeSpinRepository.create(gainedFreeSpin);
+        const newlyCreatedFreeSpin = await this.definition.freeSpinsRepository.create(gainedFreeSpin);
 
         newlyCachedFreeSpin.id = newlyCreatedFreeSpin.id;
         this.gameData.ingame[bet.name].freeSpins = this.gameData.ingame[bet.name].freeSpins ?? [];
@@ -78,7 +78,7 @@ export default class FreeSpinsConsumer {
             __v: false,
             __archive: false,
         };
-        const freeSpins = await this.definition.freeSpinRepository
+        const freeSpins = await this.definition.freeSpinsRepository
             .find(filter, projection, { sort: { expiryDate: 1 } })
             .lean()
             .exec();

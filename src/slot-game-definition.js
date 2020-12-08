@@ -8,10 +8,12 @@ export default class SlotGameDefinition extends Core.GameDefinition {
         roundRepository,
         betRepository,
         betLogRepository,
-        freeSpinRepository
+        freeSpinsRepository,
+        famesRepository
     ) {
         super({ id, name, durations, choices, choicesMapper }, generateResult, settle, roundRepository, betRepository, betLogRepository);
-        this.freeSpinRepository = freeSpinRepository;
+        this.freeSpinsRepository = freeSpinsRepository;
+        this.famesRepository = famesRepository;
         this.stakeLevels = stakeLevels;
     }
 }
