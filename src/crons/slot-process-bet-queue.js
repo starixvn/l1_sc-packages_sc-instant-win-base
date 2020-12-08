@@ -1,5 +1,6 @@
 import { Core } from "sc-game-base";
 
+import FreeSpinsConsumer from "../consumers/free-spins-consumer";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
@@ -8,17 +9,18 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
      * @param {SlotGameDefinition} definition
      * @param {SlotGameData} gameData
      */
-    constructor(definition, gameData, publisher = null) {
+    constructor(definition, gameData, publisher = null, freeSpinsConsumer = null) {
         super(definition, gameData, publisher);
+        this.freeSpinsConsumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
     }
 
     async proceedBet(player, payload) {
         if (payload.freeSpin) {
-            if (!this.validateFreeSpin(player, payload)) {
+            if (!this.freeSpinsConsumer.hasFreeSpin(player)) {
                 return;
             }
 
-            const { prevBet } = this.gameData.ingame[player.profile.name];
+            const betAmount = this.freeSpinsConsumer.getFreeSpinBet(player);
             payload.amount = payload.freeSpin ? prevBet.amount : payload.amount;
             payload.totalAmount = (payload.freeSpin ? prevBet.amount : payload.amount) * payload.betChoice.length;
             payload.betChoice = prevBet.betChoice;
@@ -27,40 +29,14 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
         await super.processBet(player, payload);
     }
 
-    validateFreeSpin(player, payload) {
-        if (this.gameData.ingame[player.profile.name]?.freeSpins) {
-            const freeSpins = this.gameData.ingame[player.profile.name]?.freeSpins;
-
-            return freeSpins.filter((spin) => spin.expiration > Date.now()).reduce((total, freeSpin) => (total += freeSpin.count), 0) > 0;
-        }
-
-        return false;
-    }
-
     async handleSuccessBet(player, balance, roundId, bet) {
         await super.handleSuccessBet(player, balance, roundId, bet);
 
         if (bet.freeSpin) {
-            await this.updateFreeSpins(player);
+            await this.freeSpinsConsumer.useFreeSpin(player);
         }
 
         this.gameData.roundId += 1;
-    }
-
-    async updateFreeSpins(player) {
-        const freeSpin = this.gameData.ingame[player.profile.name].freeSpins[0];
-
-        if (freeSpin.count > 1) {
-            freeSpin.count--;
-        } else {
-            this.gameData.ingame[player.profile.name].freeSpins.shift();
-        }
-
-        await this.definition.freeSpinRepository.updateOne(
-            { uid: player.UID, time: freeSpin.time },
-            { $inc: { available: -1 } },
-            { upsert: true, setDefaultsOnInsert: true }
-        );
     }
 
     async upsertBet(player, roundId, bet) {

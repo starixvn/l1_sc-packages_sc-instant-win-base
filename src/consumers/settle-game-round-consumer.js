@@ -4,6 +4,7 @@ import { Core } from "sc-game-base";
 import BoardGenerator from "../board/board-generator";
 import BonusBoardGenerator from "../board/bonus-board-generator";
 import PaylineCalculator from "../board/payline-calculator";
+import FreeSpinsConsumer from "./free-spins-consumer";
 import JackpotConsumer from "./jackpot-consumer";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
@@ -18,13 +19,15 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         userBetResultPublisher = null,
         boardGenerator = null,
         paylineCalculator = null,
-        jackpotConsummer = null
+        jackpotConsummer = null,
+        freeSpinsConsumer = null
     ) {
         super(definition, gameData, roundResultPublisher, userBetResultPublisher);
 
         this.boardGenerator = boardGenerator ?? new BoardGenerator(definition);
         this.paylineCalculator = paylineCalculator ?? new PaylineCalculator(definition);
         this.jackpotConsumer = jackpotConsummer ?? new JackpotConsumer(definition, gameData);
+        this.freeSpinsConumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
     }
 
     async settleRound(player, roundId) {
