@@ -57,7 +57,7 @@ export default class FreeSpinsConsumer {
     }
 
     async reload() {
-        const freeSpinsGroupedByNames = await loadMembersFreeSpins();
+        const freeSpinsGroupedByNames = await this.loadMembersFreeSpins();
 
         Object.entries(this.gameData.ingame).forEach(([name, ingameData]) => {
             delete ingameData.freeSpin;

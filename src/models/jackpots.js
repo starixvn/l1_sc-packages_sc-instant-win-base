@@ -5,6 +5,7 @@ const jackpotSchema = new mongoose.Schema({
     pool: { type: Number, required: true }, // pool associated with each bet amount, such as 100, 100, etc.
     initAmount: { type: Number, required: true },
     amount: { type: Number, default: 0 },
+    winningRatio: { type: Number },
 
     winnerName: { type: String, default: "" },
     winnerId: { type: Number },

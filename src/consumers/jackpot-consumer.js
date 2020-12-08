@@ -55,6 +55,7 @@ export default class JackpotConsumer {
     async hit(player, { pool, roundId }) {
         await this.initializeNewPool(pool, roundId);
 
+        const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningAmount;
         const runningPoolFilter = {
             game: this.definition.name,
             pool,
@@ -64,6 +65,7 @@ export default class JackpotConsumer {
             createdAt: -1,
         };
         const winnerAdjustment = {
+            winningRatio,
             winnerName: player.profile.name,
             winnerId: player.session?.memberId,
             hitAt: roundId,
@@ -88,7 +90,7 @@ export default class JackpotConsumer {
             }
         );
 
-        winningJackpot.amount *= this.gameData.gameConfigs.slotsConfig.jackpot.winningAmount;
+        winningJackpot.amount *= winningRatio;
 
         this.jackpotPublisher.publishWinner(winningJackpot);
 

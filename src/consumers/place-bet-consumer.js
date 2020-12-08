@@ -1,7 +1,6 @@
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
-import SlotGameApp from "../slot-game-app";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
