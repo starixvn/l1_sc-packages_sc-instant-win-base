@@ -51,7 +51,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         await this.jackpotConsumer.contribution(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
 
-        await this.processFreeSpins(bet, settlementResult);
+        await this.processFreeSpins(player, bet, settlementResult);
 
         if (settlementResult.bonus == 0) {
             await this.settleBets(finish);
@@ -87,24 +87,15 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return resultFromAdmin ?? this.boardGenerator.generate(mode);
     }
 
-    async processFreeSpins(bet, settlementResult) {
+    async processFreeSpins(player, betTicket, settlementResult) {
         if (settlementResult.freeSpins > 0) {
-            await this.definition.freeSpinRepository.create({
-                time: new Date(),
-                roundId: bet.id,
-                uid: bet.uid,
-                memberId: bet.memberId,
-                name: bet.name,
-                total: settlementResult.freeSpins,
-                available: settlementResult.freeSpins,
-                bet: bet.bet,
-            });
+            const { roundId, bet, paylines } = betTicket;
 
-            this.gameData.ingame[bet.name].freeSpins.push({
-                time: new Date(),
-                expiration: moment.utc().add(this.definition.expirationHours, "hours").toDate(),
-                count: settlementResult.freeSpins,
-            });
+            await this.freeSpinsConumer.gainFreeSpin(
+                player,
+                { roundId, bet, paylines, numberOfFreeSpins: settlementResult.freeSpins },
+                this.definition.expirationHours * 3600
+            );
         }
     }
 
