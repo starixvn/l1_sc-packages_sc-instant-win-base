@@ -17,16 +17,23 @@ export default class FreeSpinsConsumer {
         if (freeSpinsOfPlayer && freeSpinsOfPlayer.length > 0) {
             const currentDateTime = new Date();
 
-            return freeSpinsOfPlayer.some((freeSpin) => freeSpin.expiryDate > currentDateTime);
+            return freeSpinsOfPlayer.some((freeSpin) => freeSpin.available > 0 && freeSpin.expiryTime > currentDateTime);
         }
 
         return false;
     }
 
     async useFreeSpin(player) {
-        const freeSpinsOfPlayer = this.gameData.ingame[player.profile.name]?.freeSpins ?? [];
         const currentDateTime = new Date();
-        const firstAvailableFreeSpinSet = freeSpinsOfPlayer.find((freeSpin) => freeSpin.available > 0 && freeSpin.expiryDate > currentDateTime);
+        const freeSpinsOfPlayer = this.gameData.ingame[player.profile.name]?.freeSpins ?? [];
+        const firstAvailableFreeSpinSet = freeSpinsOfPlayer.find((freeSpin) => freeSpin.available > 0 && freeSpin.expiryTime > currentDateTime);
+
+        if (!firstAvailableFreeSpinSet) {
+            return {
+                bet: 0,
+                paylines: [],
+            };
+        }
 
         await this.definition.freeSpinsRepository.update({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
         firstAvailableFreeSpinSet.available--;
@@ -39,6 +46,8 @@ export default class FreeSpinsConsumer {
 
     async gainFreeSpin(player, { roundId, bet, paylines, numberOfFreeSpins }, timeToLive) {
         const createdTime = new Date();
+        const expiryTime = new Date(createdTime.getTime()).setSeconds(createdTime.getSeconds() + timeToLive);
+        const memberName = player.profile.name;
         const newlyCachedFreeSpin = {
             roundId,
             bet,
@@ -46,20 +55,22 @@ export default class FreeSpinsConsumer {
             total: numberOfFreeSpins,
             available: numberOfFreeSpins,
             time: createdTime,
-            expiryDate: new Date().setSeconds(createdTime.getSeconds() + timeToLive),
+            expiryTime,
         };
         const gainedFreeSpin = {
             uid: player.UID,
             memberId: player.session?.memberId,
-            name: player.profile.name,
+            name: memberName,
             ...newlyCachedFreeSpin,
         };
         const newlyCreatedFreeSpin = await this.definition.freeSpinsRepository.create(gainedFreeSpin);
 
-        newlyCachedFreeSpin.id = newlyCreatedFreeSpin.id;
-        this.gameData.ingame[bet.name].freeSpins = this.gameData.ingame[bet.name].freeSpins ?? [];
+        if (newlyCreatedFreeSpin) {
+            newlyCachedFreeSpin.id = newlyCreatedFreeSpin.id;
+            this.gameData.ingame[memberName].freeSpins = this.gameData.ingame[memberName].freeSpins ?? [];
 
-        this.gameData.ingame[bet.name].freeSpins.push(newlyCachedFreeSpin);
+            this.gameData.ingame[memberName].freeSpins.push(newlyCachedFreeSpin);
+        }
     }
 
     async reload() {
@@ -75,7 +86,7 @@ export default class FreeSpinsConsumer {
     async loadMembersFreeSpins() {
         const filter = {
             available: { $gt: 0 },
-            expiryDate: { $gt: new Date() },
+            expiryTime: { $gt: new Date() },
         };
         const projection = {
             _id: false,
@@ -85,7 +96,7 @@ export default class FreeSpinsConsumer {
             __archive: false,
         };
         const freeSpins = await this.definition.freeSpinsRepository
-            .find(filter, projection, { sort: { expiryDate: 1 } })
+            .find(filter, projection, { sort: { expiryTime: 1 } })
             .lean()
             .exec();
 

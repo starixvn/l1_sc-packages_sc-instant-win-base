@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import autoIncrement from "mongoose-auto-increment-reworked";
 
 const freeSpinsSchema = new mongoose.Schema({
     uid: { type: String, required: true },
@@ -11,9 +10,9 @@ const freeSpinsSchema = new mongoose.Schema({
     total: { type: Number, required: true },
     available: { type: Number, default: 0 },
     time: { type: Date, required: true },
-    expiryDate: { type: Date, required: true },
+    expiryTime: { type: Date, required: true },
 });
 
-freeSpinsSchema.plugin(autoIncrement.MongooseAutoIncrementID.plugin, { modelName: "FreeSpin", field: "id" });
+// freeSpinsSchema.plugin(autoIncrement.MongooseAutoIncrementID.plugin, { modelName: "FreeSpin", field: "id" });
 
 export default freeSpinsSchema;
