@@ -1,3 +1,5 @@
+import { placeBet as placeBetApi } from "sc-base-apis";
+import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
 import FreeSpinsConsumer from "./../consumers/free-spins-consumer";
@@ -20,7 +22,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
                 return;
             }
 
-            const { bet, paylines } = this.freeSpinsConsumer.useFreeSpin(player);
+            const { bet, paylines } = this.freeSpinsConsumer.getFreeSpin(player);
 
             payload.betChoice = paylines;
             payload.amount = bet;
@@ -28,12 +30,17 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
 
         payload.totalAmount = payload.amount * payload.betChoice.length;
 
-        await super.processBet(player, payload);
+        this.gameData.roundId += 1;
+
+        return super.proceedBet(player, payload);
     }
 
     async handleSuccessBet(player, balance, roundId, bet) {
         await super.handleSuccessBet(player, balance, roundId, bet);
-        this.gameData.roundId += 1;
+
+        if (bet.freeSpin) {
+            await this.freeSpinsConsumer.useFreeSpin(player);
+        }
     }
 
     async upsertBet(player, roundId, bet) {
@@ -43,7 +50,6 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             roundId: roundId,
             freeBet: bet.freeBet,
             time: new Date(),
-            freeBet: bet.freeBet,
             paylines: bet.betChoice,
             freeSpin: bet.freeSpin,
             bet: bet.amount,
