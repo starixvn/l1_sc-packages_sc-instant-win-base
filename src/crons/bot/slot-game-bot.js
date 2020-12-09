@@ -108,6 +108,7 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
             const bot = this.bots[botIndex];
 
             if (bot) {
+                this.gameData.roundId++;
                 await this.placeBet(bot);
                 indicesOfBotsToBeRemoved.push(bot);
             }
@@ -132,8 +133,6 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
 
             return currentWinningAmount;
         }, 0);
-
-        this.gameData.roundId++;
 
         if (betResult.jackpot) {
             await this.jackpotConsumer.hit(bot, { pool: amount, roundId });
