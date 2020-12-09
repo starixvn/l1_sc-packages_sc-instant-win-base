@@ -1,16 +1,15 @@
-import { Core } from "sc-game-base";
-
 import Jackpots from "./../models/jackpots";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class HallOfFameQuery {
     /**
-     * @param {Core.GameDefinition} definition
+     * @param {SlotGameDefinition} definition
      */
     constructor(definition) {
         this.definition = definition;
     }
 
-    async queryBigWinningWinners(page, pageSize = 8) {
+    async queryBigWinningWinners(page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
             return;
         }
@@ -32,7 +31,7 @@ export default class HallOfFameQuery {
         return { bigWinningWinners: { winners, page, pageSize, total } };
     }
 
-    async queryJackpotWinners() {
+    async queryJackpotWinners(page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
             return;
         }

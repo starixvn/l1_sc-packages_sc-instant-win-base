@@ -1,15 +1,15 @@
-import { Core } from "sc-game-base";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class HallOfFameConsumer {
     /**
-     * @param {Core.GameDefinition} definition
+     * @param {SlotGameDefinition} definition
      */
     constructor(definition) {
         this.definition = definition;
     }
 
     async add(player, { roundId, bet, numberOfPaylines, totalAmount, winningAmount }) {
-        await this.famesRepository.create({
+        await this.definition.famesRepository.create({
             uid: player.UID,
             memberId: player.session?.memberId,
             name: player.profile.name,

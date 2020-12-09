@@ -1,9 +1,10 @@
-import { Core } from "sc-game-base";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class FreeSpinsConsumer {
     /**
-     * @param {Core.GameDefinition} definition
-     * @param {Core.GameData} gameData
+     * @param {SlotGameDefinition} definition
+     * @param {SlotGameData} gameData
      */
     constructor(definition, gameData) {
         this.definition = definition;

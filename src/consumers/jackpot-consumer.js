@@ -1,12 +1,12 @@
-import { Core } from "sc-game-base";
-
 import Jackpots from "./../models/jackpots";
 import JackpotPublisher from "./../publishers/jackpot-publisher";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class JackpotConsumer {
     /**
-     * @param {Core.GameDefinition} definition
-     * @param {Core.GameData} gameData
+     * @param {SlotGameDefinition} definition
+     * @param {SlotGameData} gameData
      * @param {JackpotPublisher} jackpotPublisher
      */
     constructor(definition, gameData, jackpotPublisher = null) {
