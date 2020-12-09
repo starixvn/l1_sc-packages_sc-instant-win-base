@@ -23,25 +23,36 @@ export default class FreeSpinsConsumer {
         return false;
     }
 
-    async useFreeSpin(player) {
-        const currentDateTime = new Date();
-        const freeSpinsOfPlayer = this.gameData.ingame[player.profile.name]?.freeSpins ?? [];
-        const firstAvailableFreeSpinSet = freeSpinsOfPlayer.find((freeSpin) => freeSpin.available > 0 && freeSpin.expiryTime > currentDateTime);
+    async getFreeSpin(player) {
+        const firstAvailableFreeSpinSet = this.getFirstAvailableFreeSpinSet(player);
 
-        if (!firstAvailableFreeSpinSet) {
+        if (firstAvailableFreeSpinSet) {
             return {
-                bet: 0,
-                paylines: [],
+                bet: firstAvailableFreeSpinSet.bet,
+                paylines: firstAvailableFreeSpinSet.paylines,
             };
         }
 
-        await this.definition.freeSpinsRepository.update({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
-        firstAvailableFreeSpinSet.available--;
-
         return {
-            bet: firstAvailableFreeSpinSet.bet,
-            paylines: firstAvailableFreeSpinSet.paylines,
+            bet: 0,
+            paylines: [],
         };
+    }
+
+    async useFreeSpin(player) {
+        const firstAvailableFreeSpinSet = this.getFirstAvailableFreeSpinSet(player);
+
+        if (firstAvailableFreeSpinSet) {
+            await this.definition.freeSpinsRepository.update({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
+            firstAvailableFreeSpinSet.available--;
+        }
+    }
+
+    getFirstAvailableFreeSpinSet(player) {
+        const currentDateTime = new Date();
+        const freeSpinsOfPlayer = this.gameData.ingame[player.profile.name]?.freeSpins ?? [];
+
+        return freeSpinsOfPlayer.find((freeSpin) => freeSpin.available > 0 && freeSpin.expiryTime > currentDateTime);
     }
 
     async gainFreeSpin(player, { roundId, bet, paylines, numberOfFreeSpins }, timeToLive) {

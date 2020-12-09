@@ -1,6 +1,6 @@
 import { Core } from "sc-game-base";
 
-import FreeSpinsConsumer from "../consumers/free-spins-consumer";
+import FreeSpinsConsumer from "./../consumers/free-spins-consumer";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
@@ -21,6 +21,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             }
 
             const { bet, paylines } = this.freeSpinsConsumer.useFreeSpin(player);
+
             payload.betChoice = paylines;
             payload.amount = bet;
         }
@@ -36,12 +37,11 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
     }
 
     async upsertBet(player, roundId, bet) {
-        const existingBetFilter = { uid: player.UID, roundId: roundId, freeBet: bet.freeBet };
-
         const newBet = {
             uid: player.UID,
             name: player.profile.name,
             roundId: roundId,
+            freeBet: bet.freeBet,
             time: new Date(),
             freeBet: bet.freeBet,
             paylines: bet.betChoice,
@@ -55,6 +55,6 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             newBet.siteId = player.session.siteId;
         }
 
-        await this.definition.betRepository.updateOne(existingBetFilter, { $setOnInsert: newBet }, { upsert: true, setDefaultsOnInsert: true });
+        await this.definition.betRepository.create(newBet);
     }
 }

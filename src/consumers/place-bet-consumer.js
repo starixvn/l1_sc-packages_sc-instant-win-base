@@ -30,7 +30,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         return [
             {
                 failure: !this.definition.stakeLevels.includes(amount),
-                notice: helpers.noticeHelper.placeBetNextRound,
+                notice: helpers.noticeHelper.invalidBet,
             },
         ];
     }
