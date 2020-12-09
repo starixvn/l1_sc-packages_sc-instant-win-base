@@ -25,6 +25,7 @@ export default class JackpotConsumer {
         const runningPoolFilter = {
             game: this.definition.name,
             pool,
+            winnerName: { $exists: false },
             createdAt: { $lte: roundId },
         };
         const nearestPoolOrder = {
