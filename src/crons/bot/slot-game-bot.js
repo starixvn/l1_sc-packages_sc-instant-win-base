@@ -4,6 +4,7 @@ import { Core } from "sc-game-base";
 
 import BoardGenerator from "./../../board/board-generator";
 import PaylineCalculator from "./../../board/payline-calculator";
+import BoardCheatingConsumer from "./../../consumers/board-cheating-consumer";
 import HallOfFameConsumer from "./../../consumers/hall-of-fame-consumer";
 import JackpotConsumer from "./../../consumers/jackpot-consumer";
 import SlotGameData from "./../../slot-game-data";
@@ -16,15 +17,26 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
      * @param {Core.BaseEventPublishers.BasePublisher} publisher
      * @param {JackpotConsumer} jackpotConsumer
      * @param {HallOfFameConsumer} hallOfFameConsumer
+     * @param {BoardCheatingConsumer} boardCheatingConsumer
      * @param {BoardGenerator} boardGenerator
      * @param {PaylineCalculator} paylineCalculator
      */
 
-    constructor(definition, gameData, publisher, jackpotConsumer = null, hallOfFameConsumer = null, boardGenerator = null, paylineCalculator = null) {
+    constructor(
+        definition,
+        gameData,
+        publisher = null,
+        jackpotConsumer = null,
+        hallOfFameConsumer = null,
+        boardCheatingConsumer = null,
+        boardGenerator = null,
+        paylineCalculator = null
+    ) {
         super(definition, gameData, publisher);
 
         this.jackpotConsumer = jackpotConsumer ?? new JackpotConsumer(definition, gameData);
         this.hallOfFameConsumer = hallOfFameConsumer ?? new HallOfFameConsumer(definition);
+        this.boardCheatingConsumer = boardCheatingConsumer ?? new BoardCheatingConsumer(gameData);
         this.boardGenerator = boardGenerator ?? new BoardGenerator();
         this.paylineCalculator = paylineCalculator ?? new PaylineCalculator();
 
@@ -64,6 +76,8 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
 
     async removeAllBots() {
         this.bots = [];
+        this.currentBotRatio = 0;
+        this.maxNumberOfBots = 0;
     }
 
     resetAllBotData() {
@@ -105,20 +119,19 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
     }
 
     async placeBet(bot) {
+        const name = bot.profile.name;
         const roundId = this.gameData.roundId;
         const paylines = this.randomizePaylines();
         const numberOfPaylines = paylines.length;
         const amount = this.getBetAmount();
         const totalAmount = amount * numberOfPaylines;
-        const board = this.boardGenerator.generateForBots();
+        const board = this.boardCheatingConsumer.consume(name, this.boardGenerator.generateForBots());
         const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
         const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => {
             currentWinningAmount += payline.odds * amount;
 
             return currentWinningAmount;
         }, 0);
-
-        // TODO: overwrite result from admin
 
         this.gameData.roundId++;
 
