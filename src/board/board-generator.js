@@ -7,6 +7,7 @@ export default class BoardGenerator {
     constructor(definition) {
         this.chance = new Chance();
         this.definition = definition ?? defaultDefinition;
+        this.numberOfPaylines = this.definition.paylines.length;
 
         this.lowPrizedSymbolPossibilityGap = Object.keys(this.definition.specialSymbols).length;
 
