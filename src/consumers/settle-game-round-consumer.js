@@ -1,10 +1,10 @@
-import moment from "moment";
 import { Core } from "sc-game-base";
 
 import BoardGenerator from "../board/board-generator";
 import BonusBoardGenerator from "../board/bonus-board-generator";
 import PaylineCalculator from "../board/payline-calculator";
 import FreeSpinsConsumer from "./free-spins-consumer";
+import HallOfFameConsumer from "./hall-of-fame-consumer";
 import JackpotConsumer from "./jackpot-consumer";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
@@ -20,14 +20,16 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         boardGenerator = null,
         paylineCalculator = null,
         jackpotConsummer = null,
-        freeSpinsConsumer = null
+        freeSpinsConsumer = null,
+        hallOfFameConsumer = null
     ) {
         super(definition, gameData, roundResultPublisher, userBetResultPublisher);
 
-        this.boardGenerator = boardGenerator ?? new BoardGenerator(definition);
+        this.boardGenerator = boardGenerator ?? new BoardGenerator();
         this.paylineCalculator = paylineCalculator ?? new PaylineCalculator(definition);
         this.jackpotConsumer = jackpotConsummer ?? new JackpotConsumer(definition, gameData);
         this.freeSpinsConumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
+        this.hallOfFameConsumer = hallOfFameConsumer ?? new HallOfFameConsumer(definition);
     }
 
     async settleRound(player, roundId) {
@@ -54,7 +56,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         await this.processFreeSpins(player, bet, settlementResult);
 
         if (settlementResult.bonus == 0) {
-            await this.settleBets(finish);
+            await this.settleBets(player, finish);
         } else {
             const { bonus } = this.gameData.gameConfigs.slotsConfig;
             const bonusChests = new BonusBoardGenerator({ size: this.definition.bonusSize, minRate: bonus.min, maxRate: bonus.max }).generate(
@@ -74,8 +76,21 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await this.definition.betRepository.updateOne(existingBetFilter, updatedBet);
 
             this.gameData.ingame[player.profile.name].bonusChests = bonusChests;
-            this.gameData.ingame[player.profile.name].settlementResult = settlementResult;
+            this.gameData.ingame[player.profile.name].finish = finish;
         }
+    }
+
+    async settleRoundWithBonus(player) {
+        const { bonusChests, finish } = this.gameData.ingame[player.profile.name];
+
+        await this.settleBets(
+            player,
+            finish,
+            bonusChests.filter((chest) => chest.picked)
+        );
+
+        this.gameData.ingame[player.profile.name].bonusChests = [];
+        this.gameData.ingame[player.profile.name].finish = null;
     }
 
     generateResult(playerName) {
@@ -99,16 +114,18 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
     }
 
-    async settleBets({ result, settlementResult, roundId, time, jackpotWin }) {
+    async settleBets(player, { result, settlementResult, roundId, time, jackpotWin }, bonusChests = []) {
         const bet = await this.queryBets(roundId);
 
         if (bet) {
-            const betResult = this.calculatePaylineResult(settlementResult, bet, jackpotWin);
+            const bonus = this.calculateBonus(bonusChests);
+            const betResult = this.calculatePaylineResult(settlementResult, bet, jackpotWin, bonus);
 
             bet.betwin = betResult.totalWin;
             bet.thanhtoan = true;
             bet.result = result;
             bet.settlementResult = settlementResult;
+            bet.bonusChests = bonusChests;
 
             await bet.save();
             await this.callEndGame(bet, roundId, time, betResult);
@@ -116,15 +133,21 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await this.userBetResultPublisher.publish(bet.uid, betResult);
 
             if (betResult.bigWin) {
-                //TODO store hall of fame
+                await this.hallOfFameConsumer.add(player, {
+                    roundId,
+                    bet: bet.bet,
+                    numberOfPaylines: bet.paylines.length,
+                    totalAmount: bet.totalAmount,
+                    winningAmount: betResult.totalWin,
+                });
             }
         }
     }
 
-    calculatePaylineResult(paylines, bet, jackpotWin) {
+    calculatePaylineResult(paylines, bet, jackpotWin, bonus = 0) {
         const { bigWinRatio } = this.gameData.gameConfigs.slotsConfig;
 
-        const betResult = Object.entries(paylines).reduce(
+        const betResult = paylines.reduce(
             (result, paylineItem) => {
                 const betAmount = bet.bet;
                 const winAmount = paylineItem.odds > 0 ? betAmount * paylineItem.odds : 0;
@@ -151,10 +174,20 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
         );
 
-        betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin).toFixed(2));
-        betResult.netWin = parseFloat((betResult.netWin + jackpotWin).toFixed(2));
+        betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin + bonus).toFixed(2));
+        betResult.netWin = parseFloat((betResult.netWin + jackpotWin + bonus).toFixed(2));
         betResult.bigWin = betResult.totalWin / bigWinRatio > 1;
 
         return betResult;
+    }
+
+    calculateBonus(bonusChests) {
+        if (bonusChests && bonusChests.length == 0) {
+            return 0;
+        }
+
+        return bonusChests.reduce((result, chest) => {
+            result += chest.amount;
+        }, 0);
     }
 }
