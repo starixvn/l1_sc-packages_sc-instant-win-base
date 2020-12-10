@@ -115,7 +115,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await this.freeSpinsConumer.gainFreeSpin(
                 player,
                 { roundId, bet, paylines, numberOfFreeSpins: settlementResult.freeSpins },
-                this.definition.expirationHours * 3600
+                this.definition.freeSpinExpirationHours * 3600
             );
         }
     }

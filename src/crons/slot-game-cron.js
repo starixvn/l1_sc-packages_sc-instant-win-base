@@ -55,7 +55,7 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
     }
 
     async processExpiredBonus() {
-        const expiryTime = moment.utc().add(-2, "minutes").toDate();
+        const expiryTime = moment.utc().subtract(this.definition.bonusExpirationMinutes, "minutes").toDate();
         const unsettleBets = Object.values(this.gameData.ingame).filter((currentBet) => currentBet.finish.time < expiryTime);
 
         return this.processUnsettledBets(unsettleBets);

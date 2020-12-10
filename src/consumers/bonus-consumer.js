@@ -2,8 +2,6 @@ import Chance from "chance";
 import { Core } from "sc-game-base";
 
 import BonusPublisher from "./../publishers/bonus-publisher";
-import SlotGameData from "./../slot-game-data";
-import SlotGameDefinition from "./../slot-game-definition";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
 
 export default class BonusConsumer {

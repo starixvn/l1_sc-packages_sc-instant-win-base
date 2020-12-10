@@ -2,7 +2,17 @@ import { Core } from "sc-game-base";
 
 export default class SlotGameDefinition extends Core.GameDefinition {
     constructor(
-        { id = 0, name = "", durations = {}, choices = [], choicesMapper = {}, stakeLevels = [], expirationHours = 0, bonusSize = 10 },
+        {
+            id = 0,
+            name = "",
+            durations = {},
+            choices = [],
+            choicesMapper = {},
+            stakeLevels = [],
+            freeSpinExpirationHours = 0,
+            bonusSize = 10,
+            bonusExpirationMinutes = 2,
+        },
         generateResult,
         settle,
         roundRepository,
@@ -15,7 +25,8 @@ export default class SlotGameDefinition extends Core.GameDefinition {
         this.freeSpinsRepository = freeSpinsRepository;
         this.famesRepository = famesRepository;
         this.stakeLevels = stakeLevels;
-        this.expirationHours = expirationHours;
+        this.freeSpinExpirationHours = freeSpinExpirationHours;
         this.bonusSize = bonusSize;
+        this.bonusExpirationMinutes = bonusExpirationMinutes;
     }
 }
