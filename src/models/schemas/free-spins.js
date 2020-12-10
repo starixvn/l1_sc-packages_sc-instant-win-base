@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const freeSpinsSchema = new mongoose.Schema({
+export default new mongoose.Schema({
     uid: { type: String, required: true },
     memberId: { type: Number, required: true },
     name: { type: String, required: true },
@@ -12,7 +12,3 @@ const freeSpinsSchema = new mongoose.Schema({
     time: { type: Date, required: true },
     expiryTime: { type: Date, required: true },
 });
-
-// freeSpinsSchema.plugin(autoIncrement.MongooseAutoIncrementID.plugin, { modelName: "FreeSpin", field: "id" });
-
-export default freeSpinsSchema;

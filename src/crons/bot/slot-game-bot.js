@@ -21,7 +21,7 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
      * @param {PaylineCalculator} paylineCalculator
      */
 
-    constructor(
+    constructor({
         definition,
         gameData,
         publisher = null,
@@ -29,8 +29,8 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
         hallOfFameConsumer = null,
         boardCheatingConsumer = null,
         boardGenerator = null,
-        paylineCalculator = null
-    ) {
+        paylineCalculator = null,
+    }) {
         super(definition, gameData, publisher);
 
         this.jackpotConsumer = jackpotConsumer ?? new JackpotConsumer(definition, gameData);

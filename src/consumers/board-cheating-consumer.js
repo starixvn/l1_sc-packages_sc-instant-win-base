@@ -1,6 +1,6 @@
 import SlotGameData from "./../slot-game-data";
 
-export default class FreeSpinsConsumer {
+export default class BoardCheatingConsumer {
     /**
      * @param {SlotGameData} gameData
      */

@@ -11,7 +11,7 @@ export default class HallOfFameQuery {
 
     async queryBigWinningWinners(page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
-            return;
+            return { bigWinningWinners: {} };
         }
 
         const numberOfSkippedWinners = (page - 1) * pageSize;
@@ -33,7 +33,7 @@ export default class HallOfFameQuery {
 
     async queryJackpotWinners(page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
-            return;
+            return { jackpotWinners: {} };
         }
 
         const filter = {
