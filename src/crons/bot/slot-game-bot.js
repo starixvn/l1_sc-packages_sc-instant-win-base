@@ -98,11 +98,7 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
         const totalAmount = amount * numberOfPaylines;
         const board = this.boardCheatingConsumer.consume(name, this.boardGenerator.generateForBots());
         const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
-        const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => {
-            currentWinningAmount += payline.odds * amount;
-
-            return currentWinningAmount;
-        }, 0);
+        const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
 
         if (betResult.jackpot) {
             await this.jackpotConsumer.hit(bot, { pool: amount, roundId });
