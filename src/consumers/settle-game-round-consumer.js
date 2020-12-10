@@ -34,7 +34,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async settleRound(player, roundId) {
         //TODO get bet from ingame?
-        const bet = await this.definition.betRepository.find({ phien: roundId }).lean().exec();
+        const bet = await this.definition.roundRepository.find({ id: roundId }).lean().exec();
 
         const result = this.generateResult(bet.name);
         const odds = this.gameData.gameConfigs.slotsConfig.icons;
@@ -73,7 +73,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 bonusChests,
             };
 
-            await this.definition.betRepository.updateOne(existingBetFilter, updatedBet);
+            await this.definition.roundRepository.updateOne(existingBetFilter, updatedBet);
 
             this.gameData.ingame[player.profile.name].bonusChests = bonusChests;
             this.gameData.ingame[player.profile.name].finish = finish;
@@ -89,8 +89,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             bonusChests.filter((chest) => chest.picked)
         );
 
-        this.gameData.ingame[player.profile.name].bonusChests = [];
-        this.gameData.ingame[player.profile.name].finish = null;
+        delete this.gameData.ingame[player.profile.name].bonusChests;
+        delete this.gameData.ingame[player.profile.name].finish;
     }
 
     generateResult(playerName) {
@@ -144,6 +144,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
     }
 
+    queryBets(roundId) {
+        return this.definition.roundRepository.find({ id: roundId }).exec();
+    }
+
     calculatePaylineResult(paylines, bet, jackpotWin, bonus = 0) {
         const { bigWinRatio } = this.gameData.gameConfigs.slotsConfig;
 
@@ -174,9 +178,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
         );
 
+        betResult.bigWin = betResult.totalWin / bigWinRatio > betResult.totalAmount;
         betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin + bonus).toFixed(2));
         betResult.netWin = parseFloat((betResult.netWin + jackpotWin + bonus).toFixed(2));
-        betResult.bigWin = betResult.totalWin / bigWinRatio > 1;
 
         return betResult;
     }
@@ -186,8 +190,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             return 0;
         }
 
-        return bonusChests.reduce((result, chest) => {
-            result += chest.amount;
-        }, 0);
+        return bonusChests.reduce((result, chest) => (result += chest.amount), 0);
     }
 }

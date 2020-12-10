@@ -29,7 +29,6 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
         }
 
         payload.totalAmount = payload.amount * payload.betChoice.length;
-
         this.gameData.roundId += 1;
 
         return super.proceedBet(player, payload);
@@ -47,9 +46,9 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
 
     async upsertBet(player, roundId, bet) {
         const newBet = {
+            id: roundId,
             uid: player.UID,
             name: player.profile.name,
-            roundId: roundId,
             freeBet: bet.freeBet,
             time: new Date(),
             paylines: bet.betChoice,
@@ -63,6 +62,6 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             newBet.siteId = player.session.siteId;
         }
 
-        await this.definition.betRepository.create(newBet);
+        await this.definition.roundRepository.create(newBet);
     }
 }
