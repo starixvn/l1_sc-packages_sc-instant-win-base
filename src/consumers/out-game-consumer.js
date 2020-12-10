@@ -14,7 +14,7 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
      */
     async consume(socketClient) {
         const realPlayer = this.gameData.realPlayers[socketClient.id];
-        await this.bonusConsumer.autoOpenRemaningChests(realPlayer);
+        await this.bonusConsumer.autoOpenRemainingChests(realPlayer);
 
         super.consume(socketClient);
     }

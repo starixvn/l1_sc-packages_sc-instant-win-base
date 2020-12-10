@@ -69,7 +69,7 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
                 this.gameData.ingame[bet.name].finish = bet.finish;
                 this.gameData.ingame[bet.name].bonusChests = bet.bonusChests;
 
-                await this.bonusConsumer.autoOpenRemaningChests(bet.player);
+                await this.bonusConsumer.autoOpenRemainingChests(bet.player);
             })
         );
     }

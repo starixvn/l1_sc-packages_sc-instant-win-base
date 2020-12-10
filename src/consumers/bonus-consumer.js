@@ -41,7 +41,7 @@ export default class BonusConsumer {
         return bonusChests.filter((chest) => !chest.picked);
     }
 
-    async autoOpenRemaningChests(player) {
+    async autoOpenRemainingChests(player) {
         const { settlementResult } = this.gameData.ingame[player.profile.name];
         const unpickedChests = this.getUnpickedChests(player.profile.name);
         const remainingChests = settlementResult.bonus - (this.definition.bonusSize - unpickedChests.length);
