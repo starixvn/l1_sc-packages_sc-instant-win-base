@@ -77,6 +77,11 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
             this.gameData.ingame[player.profile.name].bonusChests = bonusChests;
             this.gameData.ingame[player.profile.name].finish = finish;
+            this.gameData.ingame[player.profile.name].player = {
+                UID: player.UID,
+                profile: player.profile,
+                session: player.session,
+            };
         }
     }
 
@@ -91,6 +96,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         delete this.gameData.ingame[player.profile.name].bonusChests;
         delete this.gameData.ingame[player.profile.name].finish;
+        delete this.gameData.ingame[player.profile.name].player;
     }
 
     generateResult(playerName) {

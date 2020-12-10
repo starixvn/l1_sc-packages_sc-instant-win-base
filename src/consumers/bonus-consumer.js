@@ -43,7 +43,7 @@ export default class BonusConsumer {
         return bonusChests.filter((chest) => !chest.picked);
     }
 
-    autoOpenRemaningChests(player) {
+    async autoOpenRemaningChests(player) {
         const { settlementResult } = this.gameData.ingame[player.profile.name];
         const unpickedChests = this.getUnpickedChests(player.profile.name);
         const remainingChests = settlementResult.bonus - (this.definition.bonusSize - unpickedChests.length);
@@ -54,7 +54,7 @@ export default class BonusConsumer {
             chest.picked = true;
         });
 
-        this.settleRoundConsumer.settleRoundWithBonus(player);
+        return this.settleRoundConsumer.settleRoundWithBonus(player);
     }
 
     validate(player, chest) {

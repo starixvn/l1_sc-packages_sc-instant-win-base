@@ -1,3 +1,4 @@
+import moment from "moment";
 import { Core } from "sc-game-base";
 
 import BonusConsumer from "../consumers/bonus-consumer";
@@ -21,7 +22,8 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
     }
 
     async start() {
-        await this.processUnsettledBets();
+        const unsettleBets = await this.loadUnsettledBets();
+        await this.processUnsettledBets(unsettleBets);
         await this.freeSpinsConsumer.reload();
 
         await super.start();
@@ -45,19 +47,31 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
         if (this.gameData.remainingTime < 0) {
             this.gameData.remainingTime = durations.wholeRound;
 
-            //TODO expired freeSpins
-            //TODO expired bonus
-        } else if (this.gameData.remainingTime < durations.placingBets) {
+            await this.freeSpinsConsumer.reload();
+            await this.processExpiredBonus();
+        } else {
             this.bot && (await this.bot.run());
         }
     }
 
-    async processUnsettledBets() {
-        const unsettleBets = await this.loadUnsettledBets();
+    async processExpiredBonus() {
+        const expiryTime = moment.utc().add(-2, "minutes").toDate();
+        const unsettleBets = Object.values(this.gameData.ingame).filter((currentBet) => currentBet.finish.time < expiryTime);
 
-        unsettleBets.forEach((bet) => {
-            this.gameData.ingame[bet.name] = bet;
-        });
+        return this.processUnsettledBets(unsettleBets);
+    }
+
+    async processUnsettledBets(needSettleBets) {
+        await Promise.all(
+            needSettleBets.map(async (bet) => {
+                this.gameData.ingame[bet.name] = this.gameData.ingame[bet.name] ?? {};
+
+                this.gameData.ingame[bet.name].finish = bet.finish;
+                this.gameData.ingame[bet.name].bonusChests = bet.bonusChests;
+
+                await this.bonusConsumer.autoOpenRemaningChests(bet.player);
+            })
+        );
     }
 
     async loadUnsettledBets() {
@@ -67,8 +81,6 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
 
         const projection = {
             _id: false,
-            uid: false,
-            memberId: false,
             __v: false,
             __archive: false,
         };
@@ -79,10 +91,20 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
             .exec();
 
         return unsettledBets.reduce((bets, currentBet) => {
-            const { name, bonusChests, results, settlementResults, id, time } = currentBet;
+            const { bonusChests, results, settlementResults, id, time } = currentBet;
+
+            const player = {
+                UID: currentBet.uid,
+                profile: {
+                    name: currentBet.name,
+                },
+                session: {
+                    memberId: currentBet.memberId,
+                },
+            };
 
             bets.push({
-                name,
+                player,
                 bonusChests,
                 finish: {
                     id,
