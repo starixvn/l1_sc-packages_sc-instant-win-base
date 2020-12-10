@@ -1,4 +1,3 @@
-import Chance from "chance";
 import { userInfos } from "sc-base-database";
 import { Core } from "sc-game-base";
 
@@ -40,13 +39,10 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
         this.boardGenerator = boardGenerator ?? new BoardGenerator();
         this.paylineCalculator = paylineCalculator ?? new PaylineCalculator();
 
-        this.bots = [];
         this.totalNumberOfTickets = 0;
         this.odds = {};
         this.bigWinRatio = 0;
         this.stakeLevelsTracks = [];
-
-        this.chance = new Chance();
     }
 
     async reset() {
@@ -74,12 +70,6 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
         });
     }
 
-    async removeAllBots() {
-        this.bots = [];
-        this.currentBotRatio = 0;
-        this.maxNumberOfBots = 0;
-    }
-
     resetAllBotData() {
         const stakeLevelsConfigs = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
 
@@ -93,33 +83,13 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
                 numberOfTickets: 0,
             };
         });
-    }
 
-    async run() {
-        if (this.bots.length === 0 || !this.gameData.gameConfigs?.botenabled) {
-            return;
-        }
-
-        const maxBotRandom = this.bots.length / this.gameData.remainingTime;
-        const botsToBet = this.chance.integer({ min: (maxBotRandom * 2) / 3, max: maxBotRandom });
-        const indicesOfBotsToBeRemoved = [];
-
-        for (let botIndex = 0; botIndex < botsToBet; botIndex++) {
-            const bot = this.bots[botIndex];
-
-            if (bot) {
-                this.gameData.roundId++;
-                await this.placeBet(bot);
-                indicesOfBotsToBeRemoved.push(bot);
-            }
-        }
-
-        indicesOfBotsToBeRemoved.forEach((index) => {
-            this.bots.splice(index, 1);
-        });
+        super.resetAllBotData();
     }
 
     async placeBet(bot) {
+        this.gameData.roundId++;
+
         const name = bot.profile.name;
         const roundId = this.gameData.roundId;
         const paylines = this.randomizePaylines();
