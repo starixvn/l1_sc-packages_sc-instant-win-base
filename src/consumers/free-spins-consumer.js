@@ -88,9 +88,17 @@ export default class FreeSpinsConsumer {
         const freeSpinsGroupedByNames = await this.loadMembersFreeSpins();
 
         Object.entries(this.gameData.ingame).forEach(([name, ingameData]) => {
-            delete ingameData.freeSpin;
+            const loadedFreeSpins = freeSpinsGroupedByNames[name] ?? [];
 
-            ingameData.freeSpin = freeSpinsGroupedByNames[name] ?? [];
+            delete ingameData.freeSpins;
+            delete freeSpinsGroupedByNames[name];
+
+            ingameData.freeSpins = loadedFreeSpins;
+        });
+
+        Object.entries(freeSpinsGroupedByNames).forEach(([name, loadedFreeSpins]) => {
+            this.gameData.ingame[name] = this.gameData.ingame[name] ?? {};
+            this.gameData.ingame[name].freeSpins = loadedFreeSpins ?? [];
         });
     }
 
