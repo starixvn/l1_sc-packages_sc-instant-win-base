@@ -1,3 +1,4 @@
+import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
 import SettleGameRoundConsumer from "../consumers/settle-game-round-consumer";
@@ -21,6 +22,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(player);
 
             if (!soonestExpiredFreeSpinSet) {
+                this.publisher.publishGameFailedBet(player.UID, { endBet: -1, notice: helpers.noticeHelper.invalidFreeSpin });
                 return;
             }
 
