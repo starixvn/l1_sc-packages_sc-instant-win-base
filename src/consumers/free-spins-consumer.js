@@ -23,19 +23,21 @@ export default class FreeSpinsConsumer {
         return false;
     }
 
-    async getFreeSpin(player) {
+    getFreeSpin(player) {
         const firstAvailableFreeSpinSet = this.getFirstAvailableFreeSpinSet(player);
 
         if (firstAvailableFreeSpinSet) {
             return {
                 bet: firstAvailableFreeSpinSet.bet,
                 paylines: firstAvailableFreeSpinSet.paylines,
+                expiryTime: firstAvailableFreeSpinSet.expiryTime,
             };
         }
 
         return {
             bet: 0,
             paylines: [],
+            expiryTime: null,
         };
     }
 
