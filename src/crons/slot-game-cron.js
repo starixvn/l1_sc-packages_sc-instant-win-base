@@ -48,6 +48,7 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
             this.gameData.remainingTime = durations.wholeRound;
 
             await this.freeSpinsConsumer.reload();
+            //TODO clean up game notifications, consider overlap freeSpins
             await this.processExpiredBonus();
         } else {
             this.bot && (await this.bot.run());
@@ -55,19 +56,20 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
     }
 
     async processExpiredBonus() {
-        const expiryTime = moment.utc().subtract(this.definition.bonusExpirationMinutes, "minutes").toDate();
+        const expiryTime = moment.utc().subtract(this.definition.bonusLiveSeconds, "seconds").toDate();
         const unsettleBets = Object.values(this.gameData.ingame).filter((currentBet) => currentBet.finish.time < expiryTime);
 
         return this.processUnsettledBets(unsettleBets);
     }
 
-    async processUnsettledBets(needSettleBets) {
+    async processUnsettledBets(bets) {
         await Promise.all(
-            needSettleBets.map(async (bet) => {
+            bets.map(async (bet) => {
+                const { bonusChests, finish } = bet;
                 this.gameData.ingame[bet.name] = this.gameData.ingame[bet.name] ?? {};
 
-                this.gameData.ingame[bet.name].finish = bet.finish;
-                this.gameData.ingame[bet.name].bonusChests = bet.bonusChests;
+                this.gameData.ingame[bet.name].finish = finish;
+                this.gameData.ingame[bet.name].bonusChests = bonusChests;
 
                 await this.bonusConsumer.autoOpenRemainingChests(bet.player);
             })
@@ -90,31 +92,25 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
             .lean()
             .exec();
 
-        return unsettledBets.reduce((bets, currentBet) => {
-            const { bonusChests, results, settlementResults, id, time } = currentBet;
+        return unsettledBets.map((bet) => {
+            const { bonusChests, results, settlementResults, id: roundId, time, uid: UID, name, memberId } = bet;
 
             const player = {
-                UID: currentBet.uid,
-                profile: {
-                    name: currentBet.name,
-                },
-                session: {
-                    memberId: currentBet.memberId,
-                },
+                UID,
+                profile: { name },
+                session: { memberId },
             };
 
-            bets.push({
+            return {
                 player,
                 bonusChests,
                 finish: {
-                    id,
+                    roundId,
                     time,
                     results,
                     settlementResults,
                 },
-            });
-
-            return bets;
-        }, []);
+            };
+        });
     }
 }

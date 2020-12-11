@@ -16,6 +16,8 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
         const realPlayer = this.gameData.realPlayers[socketClient.id];
         await this.bonusConsumer.autoOpenRemainingChests(realPlayer);
 
+        //TODO insert game notification for freeSpins
+
         super.consume(socketClient);
     }
 }

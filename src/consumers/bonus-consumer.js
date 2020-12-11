@@ -18,20 +18,20 @@ export default class BonusConsumer {
         this.chance = new Chance();
     }
 
-    consume(player, payload) {
+    async consume(player, payload) {
         const { chest } = payload;
 
         if (!this.validate(player, chest)) {
             return;
         }
 
-        const { bonusChests } = this.gameData.ingame[player.profile.name];
+        const { bonusChests, finish } = this.gameData.ingame[player.profile.name];
         bonusChests[chest].picked = true;
 
         this.publisher.publishBonus(player.UID, { chest, amount: bonusChests[chest].amount });
 
-        if (bonusChests.filter((chest) => chest.picked).length === this.gameData.ingame[player.profile.name].finish.settlementResult.bonus) {
-            this.settleRoundConsumer.settleRoundWithBonus(player);
+        if (bonusChests.filter((chest) => chest.picked).length === finish.settlementResult.bonus) {
+            return this.settleRoundConsumer.settleRound(player, finish.roundId);
         }
     }
 
@@ -42,9 +42,9 @@ export default class BonusConsumer {
     }
 
     async autoOpenRemainingChests(player) {
-        const { settlementResult } = this.gameData.ingame[player.profile.name];
+        const { finish } = this.gameData.ingame[player.profile.name];
         const unpickedChests = this.getUnpickedChests(player.profile.name);
-        const remainingChests = settlementResult.bonus - (this.definition.bonusSize - unpickedChests.length);
+        const remainingChests = finish.settlementResult.bonus - (this.definition.bonusSize - unpickedChests.length);
 
         const autoPickedChests = this.chance.pickset(unpickedChests, remainingChests);
 
@@ -52,9 +52,10 @@ export default class BonusConsumer {
             chest.picked = true;
         });
 
-        return this.settleRoundConsumer.settleRoundWithBonus(player);
+        return this.settleRoundConsumer.settleRound(player, finish.roundId);
     }
 
+    //TODO move validate message to common?
     validate(player, chest) {
         const { bonusChests } = this.gameData.ingame[player.profile.name];
         const criteria = [

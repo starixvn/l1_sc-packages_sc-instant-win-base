@@ -9,9 +9,9 @@ export default class SlotGameDefinition extends Core.GameDefinition {
             choices = [],
             choicesMapper = {},
             stakeLevels = [],
-            freeSpinExpirationHours = 0,
+            freeSpinLiveSeconds = 0,
             bonusSize = 10,
-            bonusExpirationMinutes = 2,
+            bonusLiveSeconds = 2,
         },
         generateResult,
         settle,
@@ -25,8 +25,8 @@ export default class SlotGameDefinition extends Core.GameDefinition {
         this.freeSpinsRepository = freeSpinsRepository;
         this.famesRepository = famesRepository;
         this.stakeLevels = stakeLevels;
-        this.freeSpinExpirationHours = freeSpinExpirationHours;
+        this.freeSpinLiveSeconds = freeSpinLiveSeconds;
         this.bonusSize = bonusSize;
-        this.bonusExpirationMinutes = bonusExpirationMinutes;
+        this.bonusLiveSeconds = bonusLiveSeconds;
     }
 }
