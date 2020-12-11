@@ -30,7 +30,16 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         return [
             {
                 failure: !this.definition.stakeLevels.includes(amount),
-                notice: helpers.noticeHelper.invalidBet,
+                notice: helpers.noticeHelper.invalidStakeLevel,
+            },
+        ];
+    }
+
+    composeBetChoiceValidationCriteria(betChoice) {
+        return [
+            {
+                failure: betChoice.filter((choice) => !this.definition.choices.includes(choice)).length > 0,
+                notice: helpers.noticeHelper.invalidPaylines,
             },
         ];
     }

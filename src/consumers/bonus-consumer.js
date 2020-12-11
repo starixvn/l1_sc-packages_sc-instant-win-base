@@ -1,4 +1,5 @@
 import Chance from "chance";
+import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
 import BonusPublisher from "./../publishers/bonus-publisher";
@@ -55,17 +56,16 @@ export default class BonusConsumer {
         return this.settleRoundConsumer.settleRound(player, finish.roundId);
     }
 
-    //TODO move validate message to common?
     validate(player, chest) {
         const { bonusChests } = this.gameData.ingame[player.profile.name];
         const criteria = [
             {
                 failure: !chest || chest < 0 || chest > this.definition.bonusSize,
-                notice: "Invalid bonus chest",
+                notice: helpers.noticeHelper.invalidBonus,
             },
             {
                 failure: bonusChests[chest].picked,
-                notice: "Chest opened",
+                notice: helpers.noticeHelper.openedBonus,
             },
         ];
 
