@@ -19,28 +19,26 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
         const realPlayer = this.gameData.realPlayers[socketClient.id];
 
         await this.bonusConsumer.autoOpenRemainingChests(realPlayer);
-        await this.updateFreeSpinNotification(realPlayer);
+        await this.upsertFreeSpinNotification(realPlayer);
 
         super.consume(socketClient);
     }
 
-    async updateFreeSpinNotification(realPlayer) {
-        if (this.freeSpinConsumer.hasFreeSpin(realPlayer)) {
-            const freeSpin = this.freeSpinConsumer.getFreeSpin(realPlayer);
+    async upsertFreeSpinNotification(realPlayer) {
+        const latestExpiredFreeSpinSet = this.freeSpinConsumer.getLatestExpiredFreeSpinSet(realPlayer);
 
-            const gameInfo = {
+        if (latestExpiredFreeSpinSet) {
+            const filter = {
                 uid: realPlayer.UID,
                 gameId: this.definition.id,
-                gameInfo: { freeSpinExpiryTime: freeSpin.expiryTime },
+            };
+            const adjustment = {
+                gameInfo: {
+                    freeSpinExpiryTime: latestExpiredFreeSpinSet.expiryTime,
+                },
             };
 
-            await gameNotifications
-                .updateOne(
-                    { uid: realPlayer.UID, gameId: this.definition.id },
-                    { $setOnInsert: gameInfo },
-                    { upsert: true, setDefaultsOnInsert: true }
-                )
-                .exec();
+            await gameNotifications.update(filter, { $set: adjustment }, { upsert: true });
         }
     }
 }

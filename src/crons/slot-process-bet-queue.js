@@ -18,11 +18,13 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
 
     async proceedBet(player, payload) {
         if (payload.freeSpin) {
-            if (!this.freeSpinsConsumer.hasFreeSpin(player)) {
+            const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(player);
+
+            if (!soonestExpiredFreeSpinSet) {
                 return;
             }
 
-            const { bet, paylines } = this.freeSpinsConsumer.getFreeSpin(player);
+            const { bet, paylines } = soonestExpiredFreeSpinSet;
 
             payload.betChoice = paylines;
             payload.amount = bet;

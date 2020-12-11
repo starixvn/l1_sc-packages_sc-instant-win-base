@@ -1,3 +1,5 @@
+import { gameNotifications } from "sc-base-database";
+
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
@@ -23,26 +25,8 @@ export default class FreeSpinsConsumer {
         return false;
     }
 
-    getFreeSpin(player) {
-        const firstAvailableFreeSpinSet = this.getFirstAvailableFreeSpinSet(player);
-
-        if (firstAvailableFreeSpinSet) {
-            return {
-                bet: firstAvailableFreeSpinSet.bet,
-                paylines: firstAvailableFreeSpinSet.paylines,
-                expiryTime: firstAvailableFreeSpinSet.expiryTime,
-            };
-        }
-
-        return {
-            bet: 0,
-            paylines: [],
-            expiryTime: null,
-        };
-    }
-
     async useFreeSpin(player) {
-        const firstAvailableFreeSpinSet = this.getFirstAvailableFreeSpinSet(player);
+        const firstAvailableFreeSpinSet = this.getSoonestExpiredFreeSpinSet(player);
 
         if (firstAvailableFreeSpinSet) {
             await this.definition.freeSpinsRepository.update({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
@@ -50,11 +34,18 @@ export default class FreeSpinsConsumer {
         }
     }
 
-    getFirstAvailableFreeSpinSet(player) {
+    getSoonestExpiredFreeSpinSet(player) {
         const currentDateTime = new Date();
         const freeSpinsOfPlayer = this.gameData.ingame[player.profile.name]?.freeSpins ?? [];
 
         return freeSpinsOfPlayer.find((freeSpin) => freeSpin.available > 0 && freeSpin.expiryTime > currentDateTime);
+    }
+
+    getLatestExpiredFreeSpinSet(player) {
+        const currentDateTime = new Date();
+        const freeSpinsOfPlayer = this.gameData.ingame[player.profile.name]?.freeSpins ?? [];
+
+        return freeSpinsOfPlayer.reverse().find((freeSpin) => freeSpin.available > 0 && freeSpin.expiryTime > currentDateTime);
     }
 
     async gainFreeSpin(player, { roundId, bet, paylines, numberOfFreeSpins }, timeToLive) {
@@ -87,7 +78,11 @@ export default class FreeSpinsConsumer {
     }
 
     async reload() {
-        const freeSpinsGroupedByNames = await this.loadMembersFreeSpins();
+        const freeSpins = await this.queryFreeSpins();
+        const freeSpinsGroupedByNames = this.groupFreeSpinsByNames(freeSpins);
+        const freeSpinsGroupedByUIDs = this.groupFreeSpinsByUIDs(freeSpins);
+
+        await this.cleanUpGameNotifications(freeSpinsGroupedByUIDs);
 
         Object.entries(this.gameData.ingame).forEach(([name, ingameData]) => {
             const loadedFreeSpins = freeSpinsGroupedByNames[name] ?? [];
@@ -104,28 +99,13 @@ export default class FreeSpinsConsumer {
         });
     }
 
-    async loadMembersFreeSpins() {
-        const filter = {
-            available: { $gt: 0 },
-            expiryTime: { $gt: new Date() },
-        };
-        const projection = {
-            _id: false,
-            uid: false,
-            memberId: false,
-            __v: false,
-            __archive: false,
-        };
-        const freeSpins = await this.definition.freeSpinsRepository
-            .find(filter, projection, { sort: { expiryTime: 1 } })
-            .lean()
-            .exec();
-
+    groupFreeSpinsByNames(freeSpins) {
         return freeSpins.reduce((groups, currentFreeSpin) => {
             const cachingFreeSpin = {
                 ...currentFreeSpin,
             };
 
+            delete cachingFreeSpin.uid;
             delete cachingFreeSpin.name;
 
             groups[currentFreeSpin.name] = groups[currentFreeSpin.name] ?? [];
@@ -133,5 +113,61 @@ export default class FreeSpinsConsumer {
 
             return groups;
         }, {});
+    }
+
+    groupFreeSpinsByUIDs(freeSpins) {
+        return freeSpins.reduce((groups, currentFreeSpin) => {
+            const cachingFreeSpin = {
+                ...currentFreeSpin,
+            };
+
+            delete cachingFreeSpin.uid;
+            delete cachingFreeSpin.name;
+
+            groups[currentFreeSpin.uid] = groups[currentFreeSpin.uid] ?? [];
+            groups[currentFreeSpin.uid].push(cachingFreeSpin);
+
+            return groups;
+        }, {});
+    }
+
+    async queryFreeSpins() {
+        const filter = {
+            available: { $gt: 0 },
+            expiryTime: { $gt: new Date() },
+        };
+        const projection = {
+            _id: false,
+            memberId: false,
+            __v: false,
+            __archive: false,
+        };
+
+        return await this.definition.freeSpinsRepository
+            .find(filter, projection, { sort: { expiryTime: 1 } })
+            .lean()
+            .exec();
+    }
+
+    async cleanUpGameNotifications(freeSpinsGroupedByUIDs) {
+        const excludingUIDs = Object.keys(freeSpinsGroupedByUIDs);
+
+        await gameNotifications.remove({ uid: { $nin: excludingUIDs } });
+        await Promise.all(
+            Object.entries(freeSpinsGroupedByUIDs).map(async ([uid, freeSpins]) => {
+                const filter = {
+                    uid,
+                    gameId: this.definition.id,
+                };
+                const latestExpiredFreeSpinSet = freeSpins[freeSpins.length - 1];
+                const adjustment = {
+                    gameInfo: {
+                        freeSpinExpiryTime: latestExpiredFreeSpinSet.expiryTime,
+                    },
+                };
+
+                await gameNotifications.update(filter, { $set: adjustment }, { upsert: true });
+            })
+        );
     }
 }
