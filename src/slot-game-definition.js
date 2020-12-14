@@ -9,9 +9,9 @@ export default class SlotGameDefinition extends Core.GameDefinition {
             choices = [],
             choicesMapper = {},
             stakeLevels = [],
-            freeSpinLiveSeconds = 0,
+            freeSpinLiveSeconds = 86400, // 1 day
             bonusSize = 10,
-            bonusLiveSeconds = 2,
+            bonusLiveSeconds = 120,
         },
         generateResult,
         settle,
