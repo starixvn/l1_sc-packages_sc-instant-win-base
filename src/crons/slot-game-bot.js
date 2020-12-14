@@ -1,13 +1,13 @@
 import { userInfos } from "sc-base-database";
 import { Core } from "sc-game-base";
 
-import BoardGenerator from "./../../board/board-generator";
-import PaylineCalculator from "./../../board/payline-calculator";
-import BoardCheatingConsumer from "./../../consumers/board-cheating-consumer";
-import HallOfFameConsumer from "./../../consumers/hall-of-fame-consumer";
-import JackpotConsumer from "./../../consumers/jackpot-consumer";
-import SlotGameData from "./../../slot-game-data";
-import SlotGameDefinition from "./../../slot-game-definition";
+import BoardGenerator from "./../board/board-generator";
+import PaylineCalculator from "./../board/payline-calculator";
+import BoardCheatingConsumer from "./../consumers/board-cheating-consumer";
+import HallOfFameConsumer from "./../consumers/hall-of-fame-consumer";
+import JackpotConsumer from "./../consumers/jackpot-consumer";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class SlotGameBot extends Core.Cron.BaseBot {
     /**
