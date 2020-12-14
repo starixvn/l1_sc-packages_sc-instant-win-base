@@ -22,8 +22,8 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
     }
 
     async start() {
-        const unsettleBets = await this.loadUnsettledBets();
-        await this.processUnsettledBets(unsettleBets);
+        await this.loadUnsettleBetsToIngame();
+        await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
 
         await super.start();
@@ -48,35 +48,13 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
             this.gameData.remainingTime = durations.wholeRound;
 
             await this.freeSpinsConsumer.reload();
-            //TODO clean up game notifications, consider overlap freeSpins
-            await this.processExpiredBonus();
+            await this.bonusConsumer.processExpiredBonus();
         } else {
             this.bot && (await this.bot.run());
         }
     }
 
-    async processExpiredBonus() {
-        const expiryTime = moment.utc().subtract(this.definition.bonusLiveSeconds, "seconds").toDate();
-        const unsettleBets = Object.values(this.gameData.ingame).filter((currentBet) => currentBet.finish.time < expiryTime);
-
-        return this.processUnsettledBets(unsettleBets);
-    }
-
-    async processUnsettledBets(bets) {
-        await Promise.all(
-            bets.map(async (bet) => {
-                const { bonusChests, finish } = bet;
-                this.gameData.ingame[bet.name] = this.gameData.ingame[bet.name] ?? {};
-
-                this.gameData.ingame[bet.name].finish = finish;
-                this.gameData.ingame[bet.name].bonusChests = bonusChests;
-
-                await this.bonusConsumer.autoOpenRemainingChests(bet.player);
-            })
-        );
-    }
-
-    async loadUnsettledBets() {
+    async loadUnsettleBetsToIngame() {
         const filter = {
             thanhtoan: false,
         };
@@ -87,12 +65,16 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
             __archive: false,
         };
 
-        const unsettledBets = await this.definition.roundRepository
+        const bets = await this.definition.roundRepository
             .find(filter, projection, { sort: { id: -1 } })
             .lean()
             .exec();
 
-        return unsettledBets.map((bet) => {
+        this.gameData.ingame = this.mapToIngameData(bets);
+    }
+
+    mapToIngameData(bets) {
+        return bets.map((bet) => {
             const { bonusChests, results, settlementResults, id: roundId, time, uid: UID, name, memberId } = bet;
 
             const player = {
@@ -102,13 +84,15 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
             };
 
             return {
-                player,
-                bonusChests,
-                finish: {
-                    roundId,
-                    time,
-                    results,
-                    settlementResults,
+                [name]: {
+                    player,
+                    bonusChests,
+                    finish: {
+                        roundId,
+                        time,
+                        results,
+                        settlementResults,
+                    },
                 },
             };
         });

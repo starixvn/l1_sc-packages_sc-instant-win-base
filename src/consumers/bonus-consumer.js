@@ -1,4 +1,5 @@
 import Chance from "chance";
+import moment from "moment";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
@@ -54,6 +55,22 @@ export default class BonusConsumer {
         });
 
         return this.settleRoundConsumer.settleRound(player, finish.roundId);
+    }
+
+    async processExpiredBonus() {
+        const expiryTime = moment.utc().subtract(this.definition.bonusLiveSeconds, "seconds").toDate();
+        const bets = Object.values(this.gameData.ingame).filter((currentBet) => currentBet.finish.time < expiryTime);
+
+        await Promise.all(
+            bets.map(async (bet) => {
+                const { bonusChests, finish } = bet;
+
+                this.gameData.ingame[bet.name].finish = finish;
+                this.gameData.ingame[bet.name].bonusChests = bonusChests;
+
+                await this.autoOpenRemainingChests(bet.player);
+            })
+        );
     }
 
     validate(player, chest) {
