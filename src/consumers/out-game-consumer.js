@@ -26,12 +26,12 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
 
     async upsertFreeSpinNotification(realPlayer) {
         const latestExpiredFreeSpinSet = this.freeSpinConsumer.getLatestExpiredFreeSpinSet(realPlayer);
+        const filter = {
+            uid: realPlayer.UID,
+            gameId: this.definition.id,
+        };
 
         if (latestExpiredFreeSpinSet) {
-            const filter = {
-                uid: realPlayer.UID,
-                gameId: this.definition.id,
-            };
             const adjustment = {
                 gameInfo: {
                     freeSpinExpiryTime: latestExpiredFreeSpinSet.expiryTime,
@@ -39,6 +39,8 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
             };
 
             await gameNotifications.update(filter, { $set: adjustment }, { upsert: true });
+        } else {
+            await gameNotifications.deleteOne(filter);
         }
     }
 }
