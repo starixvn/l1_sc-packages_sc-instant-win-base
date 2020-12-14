@@ -1,7 +1,7 @@
 import { Core } from "sc-game-base";
 
 import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "../board/";
-import { FreeSpinsConsumer, HallOfFameConsumer, JackpotConsumer } from "./";
+import { BoardCheatingConsumer, FreeSpinsConsumer, HallOfFameConsumer, JackpotConsumer } from "./";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     /**
@@ -17,7 +17,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         paylineCalculator = null,
         jackpotConsummer = null,
         freeSpinsConsumer = null,
-        hallOfFameConsumer = null
+        hallOfFameConsumer = null,
+        boardCheatingConsumer = null
     ) {
         super(definition, gameData, roundResultPublisher, userBetResultPublisher);
 
@@ -26,6 +27,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         this.jackpotConsumer = jackpotConsummer ?? new JackpotConsumer(definition, gameData);
         this.freeSpinsConumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
         this.hallOfFameConsumer = hallOfFameConsumer ?? new HallOfFameConsumer(definition);
+        this.boardCheatingConsumer = boardCheatingConsumer ?? new BoardCheatingConsumer(gameData);
     }
 
     async settleRound(player, roundId) {
@@ -74,11 +76,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     generateResult(playerName) {
         const { mode } = this.gameData.gameConfigs.slotsConfig;
-        const resultFromAdmin = this.gameData.settlementResultFromAdmin[playerName];
+        const board = this.boardGenerator.generate(mode);
 
-        delete this.gameData.settlementResultFromAdmin[playerName];
-
-        return resultFromAdmin ?? this.boardGenerator.generate(mode);
+        return this.boardCheatingConsumer.consume(playerName, board);
     }
 
     async processFreeSpins(player, betTicket, settlementResult) {
