@@ -152,7 +152,7 @@ export default class FreeSpinsConsumer {
     async cleanUpGameNotifications(freeSpinsGroupedByUIDs) {
         const excludingUIDs = Object.keys(freeSpinsGroupedByUIDs);
 
-        await gameNotifications.deleteOne({ uid: { $nin: excludingUIDs } });
+        await gameNotifications.deleteMany({ uid: { $nin: excludingUIDs } });
         await Promise.all(
             Object.entries(freeSpinsGroupedByUIDs).map(async ([uid, freeSpins]) => {
                 const filter = {
