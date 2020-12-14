@@ -2,6 +2,7 @@ import { Core } from "sc-game-base";
 
 import SlotGameBot from "./crons/bot/slot-game-bot";
 import SlotGameCron from "./crons/slot-game-cron";
+import SlotProcessBetQueue from "./crons/slot-process-bet-queue";
 import SlotSocketRouter from "./routers/slot-socket-router";
 import SlotGameData from "./slot-game-data";
 import SlotGameDefinition from "./slot-game-definition";
@@ -12,7 +13,7 @@ export default class SlotGameStartup extends Core.BaseStartup {
      * @param {SlotGameDefinition} definition
      * @param {SlotGameData} gameData
      * @param {SlotGameCron} gameCron
-     * @param {Core.Cron.ProcessBetQueue} processBetQueue
+     * @param {SlotProcessBetQueue} processBetQueue
      * @param {SlotGameBot} bot
      */
     constructor(appConfigs, definition, gameData, gameCron = null, processBetQueue = null, bot = null) {
@@ -21,7 +22,7 @@ export default class SlotGameStartup extends Core.BaseStartup {
             definition,
             gameData,
             gameCron ?? new SlotGameCron(definition, gameData, bot),
-            processBetQueue ?? new Core.Cron.ProcessBetQueue(definition, gameData)
+            processBetQueue ?? new SlotProcessBetQueue(definition, gameData)
         );
     }
 

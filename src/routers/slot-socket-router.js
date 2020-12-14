@@ -12,11 +12,11 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
         userDisconnectConsumer,
         inGameConsumer,
         placeBetConsumer,
+        bonusConsumer,
         userSignInPublisher,
         historyQuery,
         roundQuery,
         hallOfFameQuery,
-        bonusConsumer,
     }) {
         super({
             definition,
@@ -30,8 +30,8 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
             roundQuery,
         });
 
-        this.hallOfFameQuery = hallOfFameQuery ?? new HallOfFameQuery(definition);
         this.bonusConsumer = bonusConsumer ?? new BonusConsumer(definition, gameData);
+        this.hallOfFameQuery = hallOfFameQuery ?? new HallOfFameQuery(definition);
     }
 
     /**
