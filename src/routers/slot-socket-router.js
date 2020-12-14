@@ -1,5 +1,7 @@
+import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
+import { BonusConsumer, OutGameConsumer } from "./../consumers";
 import HallOfFameQuery from "./../query-apis/hall-of-fame-query";
 
 export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
@@ -14,13 +16,14 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
         historyQuery,
         roundQuery,
         hallOfFameQuery,
+        bonusConsumer,
     }) {
         super({
             definition,
             gameData,
-            userSignInConsumer: userSignInConsumer ?? new UserSignInConsumer(definition, gameData),
+            userSignInConsumer,
             userDisconnectConsumer: userDisconnectConsumer ?? new OutGameConsumer(definition, gameData),
-            inGameConsumer: inGameConsumer ?? new InGameConsumer({ definition, gameData, roundQuery }),
+            inGameConsumer,
             placeBetConsumer,
             userSignInPublisher,
             historyQuery,
@@ -28,6 +31,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
         });
 
         this.hallOfFameQuery = hallOfFameQuery ?? new HallOfFameQuery(definition);
+        this.bonusConsumer = bonusConsumer ?? new BonusConsumer(definition, gameData);
     }
 
     /**
@@ -38,6 +42,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
         this.socketClient.on("getBigWinningWinners", this.handleGettingBigWinningWinners.bind(this));
         this.socketClient.on("getJackpotWinners", this.handleGettingJackpotWinners.bind(this));
+        this.socketClient.on("bonus", this.handleBonus.bind(this));
     }
 
     async handleGettingBigWinningWinners(payload) {
@@ -63,6 +68,18 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
             const jackpotWinners = await this.hallOfFameQuery.queryJackpotWinners(payload.page ?? 0);
 
             this.socketClient.emit(this.definition.name, jackpotWinners);
+        } catch (error) {
+            logger.logError(error);
+        }
+    }
+
+    async handleBonus(payload) {
+        try {
+            if (!this.verify()) {
+                return;
+            }
+
+            this.bonusConsumer.consume(this.gameData.realPlayers[this.socketClient.id], payload);
         } catch (error) {
             logger.logError(error);
         }
