@@ -125,7 +125,7 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
         const ratiosPerStakeLevel = this.stakeLevelsTracks.map((track) => {
             return {
                 stake: track.stake,
-                underRatio: (track.numberOfTickets * 100) / this.totalNumberOfTickets < trac.ratio,
+                underRatio: (track.numberOfTickets * 100) / this.totalNumberOfTickets < track.ratio,
             };
         });
         const underRatioStakeLevels = this.chance.shuffle(ratiosPerStakeLevel.filter((stakeLevel) => stakeLevel.underRatio));
