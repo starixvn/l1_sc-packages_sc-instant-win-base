@@ -10,7 +10,7 @@ export default class BoardCheatingConsumer {
 
     consume(name, board) {
         const resultFromAdmin = this.gameData.settlementResultFromAdmin[name];
-        const finalResult = board;
+        let finalResult = board;
 
         if (resultFromAdmin) {
             delete this.gameData.settlementResultFromAdmin[name];

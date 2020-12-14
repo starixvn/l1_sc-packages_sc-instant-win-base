@@ -1,8 +1,6 @@
-import moment from "moment";
 import { Core } from "sc-game-base";
 
-import BonusConsumer from "../consumers/bonus-consumer";
-import FreeSpinsConsumer from "../consumers/free-spins-consumer";
+import { BonusConsumer, FreeSpinsConsumer } from "../consumers";
 
 export default class SlotGameCron extends Core.Cron.BaseGameCron {
     constructor(

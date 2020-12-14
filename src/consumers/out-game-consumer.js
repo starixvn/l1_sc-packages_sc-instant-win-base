@@ -1,8 +1,7 @@
 import { gameNotifications } from "sc-base-database";
 import { Core } from "sc-game-base";
 
-import BonusConsumer from "./bonus-consumer";
-import FreeSpinsConsumer from "./free-spins-consumer";
+import { BonusConsumer, FreeSpinsConsumer } from "./";
 
 export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconnectConsumer {
     constructor(definition, gameData, bonusConsumer, freeSpinConsumer) {
