@@ -1,8 +1,8 @@
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
-import SettleGameRoundConsumer from "../consumers/settle-game-round-consumer";
 import FreeSpinsConsumer from "./../consumers/free-spins-consumer";
+import SettleGameRoundConsumer from "./../consumers/settle-game-round-consumer";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 

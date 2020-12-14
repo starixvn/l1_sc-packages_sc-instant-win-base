@@ -50,7 +50,7 @@ export default class HallOfFameQuery {
             amount: true,
             winningRatio: true,
         };
-        const jackpotWinners = await Fames.find(filter, projection, { sort: { hitTime: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
+        const jackpotWinners = await Jackpots.find(filter, projection, { sort: { hitTime: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
             .lean()
             .exec();
         const winners = jackpotWinners.map((jackpotWinner) => {
