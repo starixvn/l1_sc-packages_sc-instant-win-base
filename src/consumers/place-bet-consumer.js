@@ -1,6 +1,7 @@
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
+import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
@@ -30,7 +31,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         return [
             {
                 failure: !this.definition.stakeLevels.includes(amount),
-                notice: helpers.noticeHelper.invalidStakeLevel,
+                notice: SlotNoticeHelper.invalidStakeLevel,
             },
         ];
     }
@@ -39,7 +40,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         return [
             {
                 failure: betChoice.filter((choice) => !this.definition.choices.includes(choice)).length > 0,
-                notice: helpers.noticeHelper.invalidPaylines,
+                notice: SlotNoticeHelper.invalidPaylines,
             },
         ];
     }

@@ -1,8 +1,8 @@
 import Chance from "chance";
 import moment from "moment";
-import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
+import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import BonusPublisher from "./../publishers/bonus-publisher";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
 
@@ -78,11 +78,11 @@ export default class BonusConsumer {
         const criteria = [
             {
                 failure: !chest || chest < 0 || chest > this.definition.bonusSize,
-                notice: helpers.noticeHelper.invalidBonus,
+                notice: SlotNoticeHelper.invalidBonus,
             },
             {
                 failure: bonusChests[chest].picked,
-                notice: helpers.noticeHelper.openedBonus,
+                notice: SlotNoticeHelper.openedBonus,
             },
         ];
 

@@ -3,6 +3,7 @@ import { Core } from "sc-game-base";
 
 import FreeSpinsConsumer from "./../consumers/free-spins-consumer";
 import SettleGameRoundConsumer from "./../consumers/settle-game-round-consumer";
+import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
@@ -22,7 +23,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(player);
 
             if (!soonestExpiredFreeSpinSet) {
-                this.publisher.publishGameFailedBet(player.UID, { endBet: -1, notice: helpers.noticeHelper.invalidFreeSpin });
+                this.publisher.publishGameFailedBet(player.UID, { endBet: -1, notice: SlotNoticeHelper.invalidFreeSpin });
                 return;
             }
 
