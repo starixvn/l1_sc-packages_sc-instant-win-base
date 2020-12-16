@@ -1,7 +1,7 @@
 import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
-import { BonusConsumer, OutGameConsumer } from "./../consumers";
+import { BonusConsumer, OutGameConsumer } from "./../event-consumers";
 import { HallOfFameQuery, SlotHistoryQuery } from "./../query-apis";
 
 export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {

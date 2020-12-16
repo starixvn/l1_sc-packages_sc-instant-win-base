@@ -3,9 +3,9 @@ import { Core } from "sc-game-base";
 
 import BoardGenerator from "./../board/board-generator";
 import PaylineCalculator from "./../board/payline-calculator";
-import BoardCheatingConsumer from "./../consumers/board-cheating-consumer";
-import HallOfFameConsumer from "./../consumers/hall-of-fame-consumer";
-import JackpotConsumer from "./../consumers/jackpot-consumer";
+import BoardCheatingConsumer from "./../event-consumers/board-cheating-consumer";
+import HallOfFameConsumer from "./../event-consumers/hall-of-fame-consumer";
+import JackpotConsumer from "./../event-consumers/jackpot-consumer";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
