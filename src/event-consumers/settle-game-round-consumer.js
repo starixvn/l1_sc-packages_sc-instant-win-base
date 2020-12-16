@@ -53,7 +53,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         await this.processFreeSpins(player, bet, finish.settlementResult);
 
-        if (finish.settlementResult.bonus == 0) {
+        if (finish.settlementResult.bonus?.odds == 0) {
             await this.settleBets(player, finish);
         } else {
             await this.processBonus(player, finish, bet);
@@ -85,12 +85,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async processFreeSpins(player, betTicket, settlementResult) {
-        if (settlementResult.freeSpins > 0) {
+        if (settlementResult.freeSpins?.odds > 0) {
             const { roundId, bet, paylines } = betTicket;
 
             await this.freeSpinsConumer.gainFreeSpin(
                 player,
-                { roundId, bet, paylines, numberOfFreeSpins: settlementResult.freeSpins },
+                { roundId, bet, paylines, numberOfFreeSpins: settlementResult.freeSpins.odds },
                 this.definition.freeSpinLiveSeconds
             );
         }

@@ -46,7 +46,7 @@ export default class BonusConsumer {
     async autoOpenRemainingChests(player) {
         const { finish } = this.gameData.ingame[player.profile.name];
         const unpickedChests = this.getUnpickedChests(player.profile.name);
-        const remainingChests = finish.settlementResult.bonus - (this.definition.bonusSize - unpickedChests.length);
+        const remainingChests = finish.settlementResult.bonus.odds - (this.definition.bonusSize - unpickedChests.length);
 
         const autoPickedChests = this.chance.pickset(unpickedChests, remainingChests);
 
