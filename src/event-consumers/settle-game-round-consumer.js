@@ -66,14 +66,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
         const jackpotWin = settlementResult.jackpot ? await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId }) : 0;
-        const time = new Date();
 
         return {
             roundId,
             result,
             settlementResult,
             jackpotWin,
-            time,
+            time: new Date(),
         };
     }
 
@@ -97,12 +96,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async processBonus(player, finish, bet) {
-        const { bonus } = this.gameData.gameConfigs.slotsConfig;
+        const { bonus, icons: odds } = this.gameData.gameConfigs.slotsConfig;
         finish.bonusChests = new BonusBoardGenerator({ size: this.definition.bonusSize, minRate: bonus.min, maxRate: bonus.max }).generate(bet);
 
         const existingBetFilter = { uid: player.UID, roundId: finish.roundId };
+        const updatedBet = { ...finish, odds };
 
-        await this.definition.roundRepository.updateOne(existingBetFilter, finish);
+        await this.definition.roundRepository.updateOne(existingBetFilter, updatedBet);
 
         this.gameData.ingame[player.profile.name].bonusChests = finish.bonusChests;
         this.gameData.ingame[player.profile.name].finish = finish;
@@ -117,9 +117,11 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const bet = await this.queryBets(roundId);
 
         if (bet) {
+            const odds = this.gameData.gameConfigs.slotsConfig.icons;
             const bonus = bonusChests.length > 0 ? this.calculateBonus(bonusChests) : 0;
             const betResult = this.calculatePaylineResult(settlementResult, bet, jackpotWin, bonus);
 
+            bet.odds = bet.odds ?? odds;
             bet.betwin = betResult.totalWin;
             bet.thanhtoan = true;
             bet.result = result;
