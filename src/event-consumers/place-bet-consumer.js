@@ -30,7 +30,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
         return [
             {
-                failure: !this.definition.stakeLevels.includes(amount),
+                failure: !this.gameData.gameConfigs.slotsConfig?.stakeLevels.includes(amount),
                 notice: SlotNoticeHelper.invalidStakeLevel,
             },
         ];
