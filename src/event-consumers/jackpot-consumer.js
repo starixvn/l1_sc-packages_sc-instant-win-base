@@ -1,7 +1,7 @@
-import Jackpots from "../models/jackpots";
-import SlotGameData from "../slot-game-data";
-import SlotGameDefinition from "../slot-game-definition";
-import JackpotPublisher from "./../event-publishers/jackpot-publisher";
+import { JackpotPublisher } from "./../event-publishers";
+import { Jackpots } from "./../models";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class JackpotConsumer {
     /**

@@ -1,4 +1,5 @@
-import FreeSpinSchema from "./schemas/free-spins";
-import HallOfFameSchema from "./schemas/hall-of-fames";
+import Jackpots from "./jackpots";
+import FreeSpinsSchema from "./schemas/free-spins";
+import HallOfFamesSchema from "./schemas/hall-of-fames";
 
-export { FreeSpinSchema, HallOfFameSchema };
+export { Jackpots, FreeSpinsSchema, HallOfFamesSchema };

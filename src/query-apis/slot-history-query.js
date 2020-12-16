@@ -1,6 +1,8 @@
+import SlotGameDefinition from "./../slot-game-definition";
+
 export default class HistoryQuery {
     /**
-     * @param {GameDefinition} definition
+     * @param {SlotGameDefinition} definition
      */
     constructor(definition) {
         this.definition = definition;

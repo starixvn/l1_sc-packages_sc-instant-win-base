@@ -1,4 +1,4 @@
-import SlotGameDefinition from "../slot-game-definition";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class HallOfFameConsumer {
     /**

@@ -1,7 +1,6 @@
 import { Core } from "sc-game-base";
 
-import FreeSpinsConsumer from "./../event-consumers/free-spins-consumer";
-import SettleGameRoundConsumer from "./../event-consumers/settle-game-round-consumer";
+import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";

@@ -7,4 +7,4 @@ import SlotGameData from "./slot-game-data";
 import SlotGameDefinition from "./slot-game-definition";
 import SlotGameStartup from "./slot-game-startup";
 
-export { SlotGameDefinition, SlotGameStartup, SlotGameApp, SlotGameStartup, Routers, Crons, EventConsumers, EventPublishers };
+export { Crons, EventConsumers, EventPublishers, Routers, SlotGameApp, SlotGameData, SlotGameDefinition, SlotGameStartup };

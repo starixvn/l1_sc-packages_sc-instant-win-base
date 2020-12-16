@@ -5,5 +5,15 @@ import HallOfFameConsumer from "./hall-of-fame-consumer";
 import JackpotConsumer from "./jackpot-consumer";
 import OutGameConsumer from "./out-game-consumer";
 import PlaceBetConsumer from "./place-bet-consumer";
+import SettleGameRoundConsumer from "./settle-game-round-consumer";
 
-export { BonusConsumer, FreeSpinsConsumer, HallOfFameConsumer, OutGameConsumer, JackpotConsumer, PlaceBetConsumer, BoardCheatingConsumer };
+export {
+    BoardCheatingConsumer,
+    BonusConsumer,
+    FreeSpinsConsumer,
+    HallOfFameConsumer,
+    JackpotConsumer,
+    OutGameConsumer,
+    PlaceBetConsumer,
+    SettleGameRoundConsumer,
+};

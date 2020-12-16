@@ -1,7 +1,7 @@
 import { gameNotifications } from "sc-base-database";
 
-import SlotGameData from "../slot-game-data";
-import SlotGameDefinition from "../slot-game-definition";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class FreeSpinsConsumer {
     /**

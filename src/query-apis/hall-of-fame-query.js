@@ -1,4 +1,4 @@
-import Jackpots from "./../models/jackpots";
+import { Jackpots } from "./../models";
 import SlotGameDefinition from "./../slot-game-definition";
 
 export default class HallOfFameQuery {

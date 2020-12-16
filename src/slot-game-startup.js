@@ -1,7 +1,7 @@
 import { Core } from "sc-game-base";
 
 import { SlotGameBot, SlotGameCron, SlotProcessBetQueue } from "./crons";
-import SlotSocketRouter from "./routers/slot-socket-router";
+import { SlotSocketRouter } from "./routers";
 import SlotGameData from "./slot-game-data";
 import SlotGameDefinition from "./slot-game-definition";
 
