@@ -44,8 +44,8 @@ export default class PaylineCalculator {
         const numberOfFreeSpins = odds[this.definition.specialSymbols.freeSpins]?.[numberOfColumns] ?? 0;
 
         return {
-            numberOfSymbols: numberOfColumns,
-            count: numberOfFreeSpins,
+            count: numberOfColumns,
+            odds: numberOfFreeSpins,
         };
     }
 
@@ -55,8 +55,8 @@ export default class PaylineCalculator {
         const numberOfBonusHits = odds[this.definition.specialSymbols.bonus]?.[numberOfColumns] ?? 0;
 
         return {
-            numberOfSymbols: numberOfColumns,
-            count: numberOfBonusHits,
+            count: numberOfColumns,
+            odds: numberOfBonusHits,
         };
     }
 
