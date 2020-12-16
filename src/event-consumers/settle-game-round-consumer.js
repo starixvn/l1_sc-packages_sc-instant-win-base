@@ -26,7 +26,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         super(definition, gameData, roundResultPublisher, userBetResultPublisher);
 
         this.boardGenerator = boardGenerator ?? new BoardGenerator();
-        this.paylineCalculator = paylineCalculator ?? new PaylineCalculator(definition);
+        this.paylineCalculator = paylineCalculator ?? new PaylineCalculator();
         this.jackpotConsumer = jackpotConsummer ?? new JackpotConsumer(definition, gameData);
         this.freeSpinsConumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
         this.hallOfFameConsumer = hallOfFameConsumer ?? new HallOfFameConsumer(definition);
