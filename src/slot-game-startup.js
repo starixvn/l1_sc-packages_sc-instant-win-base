@@ -1,7 +1,9 @@
+import express from "express";
 import { Core } from "sc-game-base";
+import socketIo from "socket.io";
 
 import { SlotGameBot, SlotGameCron, SlotProcessBetQueue } from "./crons";
-import { SlotSocketRouter } from "./routers";
+import { SlotHttpRouter, SlotSocketRouter } from "./routers";
 import SlotGameData from "./slot-game-data";
 import SlotGameDefinition from "./slot-game-definition";
 
@@ -31,5 +33,14 @@ export default class SlotGameStartup extends Core.BaseStartup {
         const router = new SlotSocketRouter({ definition: this.definition, gameData: this.gameData });
 
         router.init(socketClient);
+    }
+
+    /**
+     * @param {express.Express} app
+     */
+    initHttpRouter(app) {
+        const router = new SlotHttpRouter(this.gameData);
+
+        router.init(app, this.appConfigs);
     }
 }
