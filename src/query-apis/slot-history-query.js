@@ -16,11 +16,11 @@ export default class HistoryQuery {
         const total = await this.definition.roundRepository.countDocuments(filter).exec();
         const roundProjection = {
             _id: false,
-            uid: false,
             thanhtoan: false,
             odds: false,
             siteId: false,
             memberId: false,
+            bonusChests: false,
             __v: false,
             __archive: false,
         };
