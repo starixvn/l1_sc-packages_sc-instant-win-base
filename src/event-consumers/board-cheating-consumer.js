@@ -1,4 +1,4 @@
-import SlotGameData from "./../slot-game-data";
+import SlotGameData from "../slot-game-data";
 
 export default class BoardCheatingConsumer {
     /**

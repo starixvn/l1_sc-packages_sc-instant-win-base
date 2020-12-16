@@ -1,6 +1,6 @@
 import * as Crons from "./crons";
 import * as EventConsumers from "./event-consumers";
-import * as EventPublishers from "./event-publisherss";
+import * as EventPublishers from "./event-publishers";
 import * as Routers from "./routers";
 import SlotGameApp from "./slot-game-app";
 import SlotGameData from "./slot-game-data";

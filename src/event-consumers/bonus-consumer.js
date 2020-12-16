@@ -2,8 +2,8 @@ import Chance from "chance";
 import moment from "moment";
 import { Core } from "sc-game-base";
 
-import BonusPublisher from "./../event-publisherss/bonus-publisher";
-import SlotNoticeHelper from "./../helpers/slot-notice-helper";
+import SlotNoticeHelper from "../helpers/slot-notice-helper";
+import BonusPublisher from "./../event-publishers/bonus-publisher";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
 
 export default class BonusConsumer {

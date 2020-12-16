@@ -1,7 +1,7 @@
 import { Core } from "sc-game-base";
 
-import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "../board/";
-import { BoardCheatingConsumer, FreeSpinsConsumer, HallOfFameConsumer, JackpotConsumer } from "./";
+import { BoardCheatingConsumer, FreeSpinsConsumer, HallOfFameConsumer, JackpotConsumer } from ".";
+import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "../board";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     /**
