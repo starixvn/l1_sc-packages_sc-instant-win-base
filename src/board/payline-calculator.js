@@ -41,15 +41,23 @@ export default class PaylineCalculator {
     calculateFreeSpins(board, paylines, odds) {
         const countingByColumns = this.countSpecificSymbolPerColumn(board, this.definition.specialSymbols.freeSpins);
         const numberOfColumns = Object.keys(countingByColumns).length;
+        const numberOfFreeSpins = odds[this.definition.specialSymbols.freeSpins]?.[numberOfColumns] ?? 0;
 
-        return odds[this.definition.specialSymbols.freeSpins]?.[numberOfColumns] ?? 0;
+        return {
+            numberOfSymbols: numberOfColumns,
+            count: numberOfFreeSpins,
+        };
     }
 
     calculateBonus(board, paylines, odds) {
         const countingByColumns = this.countSpecificSymbolPerColumn(board, this.definition.specialSymbols.bonus);
         const numberOfColumns = Object.keys(countingByColumns).length;
+        const numberOfBonusHits = odds[this.definition.specialSymbols.bonus]?.[numberOfColumns] ?? 0;
 
-        return odds[this.definition.specialSymbols.bonus]?.[numberOfColumns] ?? 0;
+        return {
+            numberOfSymbols: numberOfColumns,
+            count: numberOfBonusHits,
+        };
     }
 
     countSpecificSymbolPerColumn(board, sample) {

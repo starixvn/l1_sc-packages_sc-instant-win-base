@@ -2,7 +2,7 @@ import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
 import { BonusConsumer, OutGameConsumer } from "./../consumers";
-import HallOfFameQuery from "./../query-apis/hall-of-fame-query";
+import { HallOfFameQuery, SlotHistoryQuery } from "./../query-apis";
 
 export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
     constructor({
@@ -26,7 +26,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
             inGameConsumer,
             placeBetConsumer,
             userSignInPublisher,
-            historyQuery,
+            historyQuery: historyQuery ?? new SlotHistoryQuery(definition),
             roundQuery,
         });
 
