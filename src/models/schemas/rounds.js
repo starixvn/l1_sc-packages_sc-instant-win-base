@@ -59,6 +59,7 @@ export default new mongoose.Schema({
 
     odds: { type: Object },
     betwin: { type: Number, default: 0 },
+    jackpotWin: { type: Number },
     thanhtoan: { type: Boolean, default: false },
     time: { type: Date },
 });

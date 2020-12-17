@@ -65,14 +65,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const odds = this.gameData.gameConfigs.slotsConfig.icons;
 
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
-        const jackpotWin = settlementResult.jackpot ? await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId }) : 0;
+        const jackpotWin = settlementResult.jackpot ? (await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId })).amount : 0;
 
         return {
             roundId,
             result,
             settlementResult,
             jackpotWin,
-            time: new Date(),
         };
     }
 
@@ -97,7 +96,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async processBonus(player, finish, bet) {
         const { bonus, icons: odds } = this.gameData.gameConfigs.slotsConfig;
-        finish.bonusChests = new BonusBoardGenerator({ size: this.definition.bonusSize, minRate: bonus.min, maxRate: bonus.max }).generate(bet);
+        finish.bonusChests = new BonusBoardGenerator({ size: this.definition.bonusSize, minRate: bonus.min, maxRate: bonus.max }).generate(bet.bet);
 
         const existingBetFilter = { uid: player.UID, roundId: finish.roundId };
         const updatedBet = { ...finish, odds };
