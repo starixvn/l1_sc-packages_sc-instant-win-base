@@ -93,7 +93,7 @@ export default class JackpotConsumer {
 
         winningJackpot.amount *= winningRatio;
 
-        this.jackpotPublisher.publishWinner(winningJackpot);
+        await this.jackpotPublisher.publishWinner(winningJackpot);
 
         return winningJackpot;
     }
