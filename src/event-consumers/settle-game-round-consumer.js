@@ -126,6 +126,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             bet.thanhtoan = true;
             bet.results = result;
             bet.settlementResult = settlementResult;
+            bet.settlementResult.paylines = betResult.winningLines;
             bet.bonusChests = bonusChests;
 
             await bet.save();
@@ -166,7 +167,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
                 if (winAmount > 0) {
                     result.winningLines.push(paylineItem.payline);
-                    result.netWin += winAmount - betAmount;
                 } else {
                     result.totalLost += betAmount;
                 }
@@ -183,9 +183,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
         );
 
-        betResult.bigWin = betResult.totalWin / bigWinRatio > betResult.totalAmount;
+        betResult.bigWin = betResult.totalWin / bigWinRatio > betResult.totalBetAmount;
         betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin + bonus).toFixed(2));
-        betResult.netWin = parseFloat((betResult.netWin + jackpotWin + bonus).toFixed(2));
+        betResult.netWin = parseFloat((betResult.totalWin + jackpotWin + bonus - betResult.totalBetAmount).toFixed(2));
 
         return betResult;
     }
