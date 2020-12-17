@@ -48,6 +48,7 @@ export default new mongoose.Schema({
     name: { type: String, required: true },
     memberId: { type: Number },
     siteId: { type: String },
+    uid: { type: String },
 
     bet: { type: Number, default: 0 },
     totalAmount: { type: Number, default: 0 },
