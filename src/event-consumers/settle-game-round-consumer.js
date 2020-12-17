@@ -163,9 +163,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
                 result.totalBetAmount = bet.totalAmount;
                 result.totalWin += winAmount;
-                result.winningLines.push(paylineItem.payline);
 
                 if (winAmount > 0) {
+                    result.winningLines.push(paylineItem.payline);
                     result.netWin += winAmount - betAmount;
                 } else {
                     result.totalLost += betAmount;
