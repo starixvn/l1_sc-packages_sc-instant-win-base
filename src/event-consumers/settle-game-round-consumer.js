@@ -73,6 +73,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             result,
             settlementResult,
             jackpotWin,
+            time: new Date(),
         };
     }
 
@@ -119,7 +120,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const bet = await this.queryBets(roundId);
 
         if (bet) {
-            const odds = this.gameData.gameConfigs.slotsConfig.icons;
+            const odds = bet.odds ?? this.gameData.gameConfigs.slotsConfig.icons;
             const bonus = bonusChests.length > 0 ? this.calculateBonus(bonusChests) : 0;
             const betResult = this.calculatePaylineResult(settlementResult.paylines, bet, jackpotWin, bonus);
 
@@ -162,16 +163,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const betResult = paylines.reduce(
             (result, paylineItem) => {
                 const betAmount = bet.bet;
-                const winAmount = paylineItem.odds > 0 ? betAmount * paylineItem.odds : 0;
-
-                result.totalBetAmount = bet.totalAmount;
+                const winAmount = betAmount * paylineItem.odds;
                 result.totalWin += winAmount;
-
-                if (winAmount > 0) {
-                    result.winningLines.push(paylineItem.payline);
-                } else {
-                    result.totalLost += betAmount;
-                }
 
                 return result;
             },
@@ -185,9 +178,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
         );
 
+        betResult.winningLines = paylines;
+        betResult.totalBetAmount = bet.totalAmount;
         betResult.bigWin = betResult.totalWin / bigWinRatio > betResult.totalBetAmount;
         betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin + bonus).toFixed(2));
         betResult.netWin = parseFloat((betResult.totalWin + jackpotWin + bonus - betResult.totalBetAmount).toFixed(2));
+        betResult.totalLost = betResult.totalBetAmount - betResult.totalWin > 0 ? betResult.totalBetAmount - betResult.totalWin : 0;
 
         return betResult;
     }
