@@ -22,13 +22,13 @@ export default class JackpotConsumer {
             : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
         const contributionAmount = totalAmount * contributionRatio;
 
-        const runningPoolsFilter = {
+        const runningPoolFilter = {
             game: this.definition.name,
             pool,
             winnerName: { $exists: false },
             createdAt: { $lte: roundId },
         };
-        const nearestPoolsOrder = {
+        const nearestPoolOrder = {
             createdAt: -1,
         };
         const poolAdjustment = {
@@ -38,7 +38,7 @@ export default class JackpotConsumer {
         };
         const latestJackpotProjection = { _id: false, amount: true };
         const latestJackpotPool = await Jackpots.findOneAndUpdate(
-            runningPoolsFilter,
+            runningPoolFilter,
             {
                 $inc: poolAdjustment,
             },
@@ -46,7 +46,7 @@ export default class JackpotConsumer {
                 new: true,
                 lean: true,
                 fields: latestJackpotProjection,
-                sort: nearestPoolsOrder,
+                sort: nearestPoolOrder,
             }
         );
 
@@ -57,12 +57,12 @@ export default class JackpotConsumer {
         await this.initializeNewPool(pool, roundId);
 
         const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningAmount;
-        const runningPoolsFilter = {
+        const runningPoolFilter = {
             game: this.definition.name,
             pool,
             createdAt: { $lt: roundId },
         };
-        const nearestRunningPoolsOrder = {
+        const nearestRunningPoolOrder = {
             createdAt: -1,
         };
         const winnerAdjustment = {
@@ -79,7 +79,7 @@ export default class JackpotConsumer {
             amount: true,
         };
         const winningJackpot = await Jackpots.findOneAndUpdate(
-            runningPoolsFilter,
+            runningPoolFilter,
             {
                 $set: winnerAdjustment,
             },
@@ -87,7 +87,7 @@ export default class JackpotConsumer {
                 new: true,
                 lean: true,
                 fields: winnerProjection,
-                sort: nearestRunningPoolsOrder,
+                sort: nearestRunningPoolOrder,
             }
         );
 
@@ -96,6 +96,27 @@ export default class JackpotConsumer {
         await this.jackpotPublisher.publishWinner(winningJackpot);
 
         return winningJackpot;
+    }
+
+    async initialize() {
+        const stakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
+        const roundId = this.gameData.roundId;
+
+        await Promise.all(
+            stakeLevels.map(async (stakeLevel) => {
+                const runningPoolFilter = {
+                    game: this.definition.name,
+                    pool: stakeLevel.stake,
+                    winnerName: { $exists: false },
+                    createdAt: { $lte: roundId },
+                };
+                const numberOfExistingPools = await Jackpots.countDocuments(runningPoolFilter).exec();
+
+                if (numberOfExistingPools === 0) {
+                    await this.initializeNewPool(stakeLevel.stake, roundId);
+                }
+            })
+        );
     }
 
     async initializeNewPool(pool, roundId) {

@@ -1,6 +1,6 @@
 import { Core } from "sc-game-base";
 
-import { BonusConsumer, FreeSpinsConsumer } from "./../event-consumers";
+import { BonusConsumer, FreeSpinsConsumer, JackpotConsumer } from "./../event-consumers";
 
 export default class SlotGameCron extends Core.Cron.BaseGameCron {
     constructor(
@@ -11,12 +11,14 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
         gameStatusPublisher = null,
         runningRoundInfoPublisher = null,
         freeSpinsConsumer = null,
-        bonusConsumer = null
+        bonusConsumer = null,
+        jackpotConsumer = null
     ) {
         super(definition, gameData, bot, settleGameRoundConsumer, gameStatusPublisher, runningRoundInfoPublisher);
 
         this.freeSpinsConsumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
         this.bonusConsumer = bonusConsumer ?? new BonusConsumer(definition, gameData);
+        this.jackpotConsumer = jackpotConsumer ?? new JackpotConsumer(definition, gameData);
     }
 
     async start() {
@@ -25,6 +27,8 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
         await this.freeSpinsConsumer.reload();
 
         await super.start();
+
+        this.jackpotConsumer.initialize();
     }
 
     async proceed() {
