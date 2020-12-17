@@ -119,12 +119,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         if (bet) {
             const odds = this.gameData.gameConfigs.slotsConfig.icons;
             const bonus = bonusChests.length > 0 ? this.calculateBonus(bonusChests) : 0;
-            const betResult = this.calculatePaylineResult(settlementResult, bet, jackpotWin, bonus);
+            const betResult = this.calculatePaylineResult(settlementResult.paylines, bet, jackpotWin, bonus);
 
             bet.odds = bet.odds ?? odds;
             bet.betwin = betResult.totalWin;
             bet.thanhtoan = true;
-            bet.result = result;
+            bet.results = result;
             bet.settlementResult = settlementResult;
             bet.bonusChests = bonusChests;
 
