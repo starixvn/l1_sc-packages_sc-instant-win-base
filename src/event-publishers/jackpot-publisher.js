@@ -16,7 +16,7 @@ export default class JackpotPublisher extends Core.BaseEventPublishers.BasePubli
     async sendJackpotWinner(winner) {
         try {
             const params = {
-                name: this.gameName,
+                gameName: this.gameName,
                 ...winner,
             };
             Core.Helpers.authenticationHelper.post("jackpot", params);
