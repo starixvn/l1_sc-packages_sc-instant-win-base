@@ -19,7 +19,8 @@ export default class JackpotPublisher extends Core.BaseEventPublishers.BasePubli
                 gameName: this.gameName,
                 ...winner,
             };
-            Core.Helpers.authenticationHelper.post("jackpotWinner", params);
+
+            await Core.Helpers.authenticationHelper.post("jackpotWinner", params);
         } catch (error) {
             logger.logError(error);
         }
