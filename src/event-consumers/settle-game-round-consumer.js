@@ -49,7 +49,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const bet = await this.definition.roundRepository.find({ id: roundId }).lean().exec();
         const finish = await this.generateRoundResult(player, roundId, bet);
 
-        await this.jackpotConsumer.contribution(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
+        await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
 
         await this.processFreeSpins(player, bet, finish.settlementResult);
 
