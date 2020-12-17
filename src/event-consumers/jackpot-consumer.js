@@ -22,13 +22,13 @@ export default class JackpotConsumer {
             : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
         const contributionAmount = totalAmount * contributionRatio;
 
-        const runningPoolFilter = {
+        const runningPoolsFilter = {
             game: this.definition.name,
             pool,
             winnerName: { $exists: false },
             createdAt: { $lte: roundId },
         };
-        const nearestPoolOrder = {
+        const nearestPoolsOrder = {
             createdAt: -1,
         };
         const poolAdjustment = {
@@ -38,7 +38,7 @@ export default class JackpotConsumer {
         };
         const latestJackpotProjection = { _id: false, amount: true };
         const latestJackpotPool = await Jackpots.findOneAndUpdate(
-            runningPoolFilter,
+            runningPoolsFilter,
             {
                 $inc: poolAdjustment,
             },
@@ -46,7 +46,7 @@ export default class JackpotConsumer {
                 new: true,
                 lean: true,
                 fields: latestJackpotProjection,
-                sort: nearestPoolOrder,
+                sort: nearestPoolsOrder,
             }
         );
 
@@ -57,12 +57,12 @@ export default class JackpotConsumer {
         await this.initializeNewPool(pool, roundId);
 
         const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningAmount;
-        const runningPoolFilter = {
+        const runningPoolsFilter = {
             game: this.definition.name,
             pool,
             createdAt: { $lt: roundId },
         };
-        const nearestRunningPoolOrder = {
+        const nearestRunningPoolsOrder = {
             createdAt: -1,
         };
         const winnerAdjustment = {
@@ -79,7 +79,7 @@ export default class JackpotConsumer {
             amount: true,
         };
         const winningJackpot = await Jackpots.findOneAndUpdate(
-            runningPoolFilter,
+            runningPoolsFilter,
             {
                 $set: winnerAdjustment,
             },
@@ -87,7 +87,7 @@ export default class JackpotConsumer {
                 new: true,
                 lean: true,
                 fields: winnerProjection,
-                sort: nearestRunningPoolOrder,
+                sort: nearestRunningPoolsOrder,
             }
         );
 
