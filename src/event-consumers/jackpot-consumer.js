@@ -1,3 +1,5 @@
+import { logger } from "sc-common";
+
 import { JackpotPublisher } from "./../event-publishers";
 import { Jackpots } from "./../models";
 import SlotGameData from "./../slot-game-data";
@@ -60,6 +62,7 @@ export default class JackpotConsumer {
         const runningPoolFilter = {
             game: this.definition.name,
             pool,
+            winnerName: { $exists: false },
             createdAt: { $lt: roundId },
         };
         const nearestRunningPoolOrder = {
@@ -90,6 +93,12 @@ export default class JackpotConsumer {
                 sort: nearestRunningPoolOrder,
             }
         );
+
+        if (!winningJackpot) {
+            logger.logCritical(`Couldn't find any running jackpot pool associated with: ${JSON.stringify(runningPoolFilter)}`);
+
+            return { amount: 0 };
+        }
 
         winningJackpot.amount *= winningRatio;
 
