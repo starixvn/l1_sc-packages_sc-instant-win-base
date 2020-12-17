@@ -113,10 +113,13 @@ function calculateSettlementResultOfSpecificBoard() {
     const calculator = new PaylineCalculator();
     const paylines = [...Array(25).keys()];
 
-    const board = [6, 2, 9, 1, 0, 9, 2, 1, 9, 0, 0, 9, 0, 6, 9];
+    const board = [1, 4, 0, 0, 0, 3, 0, 3, 6, 4, 2, 5, 0, 1, 7];
     const result = calculator.calculate(board, paylines, odds);
 
-    console.log(formatBoard(board));
+    for (const row of formatBoard(board)) {
+        console.log(row);
+    }
+
     console.log(result);
 }
 
@@ -132,4 +135,4 @@ function checkPosibility() {
     console.log(generator.anySymbolPossibilities);
 }
 
-checkPosibility();
+calculateSettlementResultOfSpecificBoard();

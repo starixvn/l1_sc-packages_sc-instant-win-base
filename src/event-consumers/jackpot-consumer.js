@@ -56,7 +56,7 @@ export default class JackpotConsumer {
     async hit(player, { pool, roundId }) {
         await this.initializeNewPool(pool, roundId);
 
-        const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningAmount;
+        const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningRatio;
         const runningPoolFilter = {
             game: this.definition.name,
             pool,
@@ -126,6 +126,7 @@ export default class JackpotConsumer {
             game: this.definition.name,
             pool,
             initAmount,
+            amount: initAmount,
             createdAt: roundId,
             createdTime: new Date(),
         });
