@@ -150,7 +150,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     queryBets(roundId) {
-        return this.definition.roundRepository.find({ id: roundId }).exec();
+        return this.definition.roundRepository.findOne({ id: roundId }).exec();
     }
 
     calculatePaylineResult(paylines, bet, jackpotWin, bonus = 0) {
