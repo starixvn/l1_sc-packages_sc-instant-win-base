@@ -131,7 +131,7 @@ export default class FreeSpinsConsumer {
         }, {});
     }
 
-    async queryFreeSpins() {
+    queryFreeSpins() {
         const filter = {
             available: { $gt: 0 },
             expiryTime: { $gt: new Date() },
@@ -143,7 +143,7 @@ export default class FreeSpinsConsumer {
             __archive: false,
         };
 
-        return await this.definition.freeSpinsRepository
+        return this.definition.freeSpinsRepository
             .find(filter, projection, { sort: { expiryTime: 1 } })
             .lean()
             .exec();

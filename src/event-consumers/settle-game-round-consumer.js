@@ -53,7 +53,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         await this.processFreeSpins(player, bet, finish.settlementResult);
 
-        if (finish.settlementResult.bonus?.odds == 0) {
+        if (finish.settlementResult.bonus?.odds === 0) {
             await this.settleBets(player, finish);
         } else {
             await this.processBonus(player, finish, bet);
@@ -191,10 +191,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     calculateBonus(bonusChests) {
-        if (bonusChests && bonusChests.length == 0) {
+        if (bonusChests && bonusChests.length === 0) {
             return 0;
         }
 
-        return bonusChests.reduce((result, chest) => (result += chest.amount), 0);
+        return bonusChests.reduce((result, chest) => result + chest.amount, 0);
     }
 }

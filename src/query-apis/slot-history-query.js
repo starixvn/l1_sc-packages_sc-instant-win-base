@@ -1,6 +1,6 @@
 import SlotGameDefinition from "./../slot-game-definition";
 
-export default class HistoryQuery {
+export default class SlotHistoryQuery {
     /**
      * @param {SlotGameDefinition} definition
      */

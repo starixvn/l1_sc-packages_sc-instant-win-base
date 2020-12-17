@@ -22,6 +22,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
 
             if (!soonestExpiredFreeSpinSet) {
                 this.publisher.publishGameFailedBet(player.UID, { endBet: -1, notice: SlotNoticeHelper.invalidFreeSpin });
+
                 return;
             }
 
@@ -34,7 +35,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
         payload.totalAmount = payload.amount * payload.betChoice.length;
         this.gameData.roundId += 1;
 
-        return super.proceedBet(player, payload);
+        await super.proceedBet(player, payload);
     }
 
     async handleSuccessBet(player, balance, roundId, bet) {
