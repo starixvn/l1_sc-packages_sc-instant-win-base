@@ -26,9 +26,24 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
         await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
 
-        await super.start();
+        await this.getLastRoundAndInitJob();
 
         this.jackpotConsumer.initialize();
+    }
+
+    async getLastRoundAndInitJob() {
+        this.gameData.roundId = this.gameData.gameConfigs.disabledRound ?? 0;
+
+        const job = new cron.CronJob(
+            "* * * * * *",
+            () => this.proceed().catch(logger.logError),
+            () => {
+                logger.logError(`${this.definition.name} unexpectedly stopped at round #${this.gameData.roundId} because some other tasks halt it.`);
+                job.start();
+            }
+        );
+
+        job.start();
     }
 
     async proceed() {
