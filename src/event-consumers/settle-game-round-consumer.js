@@ -11,7 +11,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
      * @param {BoardGenerator} boardGenerator
      */
 
-    constructor(
+    constructor({
         definition,
         gameData,
         roundResultPublisher = null,
@@ -21,8 +21,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         jackpotConsummer = null,
         freeSpinsConsumer = null,
         hallOfFameConsumer = null,
-        boardCheatingConsumer = null
-    ) {
+        boardCheatingConsumer = null,
+    }) {
         super(definition, gameData, roundResultPublisher, userBetResultPublisher);
 
         this.boardGenerator = boardGenerator ?? new BoardGenerator();
@@ -73,7 +73,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             result,
             settlementResult,
             jackpotWin,
-            time: new Date(),
+            time: bet.time,
         };
     }
 
@@ -127,10 +127,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             bet.odds = bet.odds ?? odds;
             bet.betWin = betResult.totalWin;
             bet.paid = true;
-            bet.results = result;
-            bet.settlementResult = settlementResult;
-            bet.settlementResult.paylines = betResult.winningLines;
+            bet.results = bet.results ?? result;
+            bet.settlementResult = bet.settlementResult ?? settlementResult;
             bet.bonusChests = bonusChests;
+            bet.endTime = new Date();
 
             await bet.save();
             await this.callEndGame(bet, roundId, time, betResult);
@@ -162,9 +162,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         const betResult = paylines.reduce(
             (result, paylineItem) => {
-                const betAmount = bet.bet;
-                const winAmount = betAmount * paylineItem.odds;
-                result.totalWin += winAmount;
+                result.totalWin += bet.bet * paylineItem.odds;
 
                 return result;
             },
@@ -178,7 +176,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
         );
 
-        betResult.winningLines = paylines;
+        betResult.winningLines = paylines.map((item) => item.payline);
         betResult.totalBetAmount = bet.totalAmount;
         betResult.bigWin = betResult.totalWin / bigWinRatio > betResult.totalBetAmount;
         betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin + bonus).toFixed(2));

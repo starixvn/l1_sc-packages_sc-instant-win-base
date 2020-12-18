@@ -16,7 +16,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
     constructor(definition, gameData, publisher = null, freeSpinsConsumer = null, settleRoundConsumer = null) {
         super(definition, gameData, publisher);
         this.freeSpinsConsumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
-        this.settleRoundConsumer = settleRoundConsumer ?? new SettleGameRoundConsumer(definition, gameData);
+        this.settleRoundConsumer = settleRoundConsumer ?? new SettleGameRoundConsumer({ definition, gameData });
     }
 
     async proceedBet(player, payload) {
