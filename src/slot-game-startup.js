@@ -21,7 +21,7 @@ export default class SlotGameStartup extends Core.BaseStartup {
             appConfigs,
             definition,
             gameData,
-            gameCron ?? new SlotGameCron(definition, gameData, bot),
+            gameCron ?? new SlotGameCron({ definition, gameData, bot }),
             processBetQueue ?? new SlotProcessBetQueue(definition, gameData)
         );
     }
