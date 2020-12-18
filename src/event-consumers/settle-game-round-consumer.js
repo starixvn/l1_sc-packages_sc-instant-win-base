@@ -126,7 +126,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
             bet.odds = bet.odds ?? odds;
             bet.betwin = betResult.totalWin;
-            bet.thanhtoan = true;
+            bet.paid = true;
             bet.results = result;
             bet.settlementResult = settlementResult;
             bet.settlementResult.paylines = betResult.winningLines;

@@ -58,7 +58,7 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
 
     async loadUnsettleBetsToIngame() {
         const filter = {
-            thanhtoan: false,
+            paid: false,
         };
 
         const projection = {

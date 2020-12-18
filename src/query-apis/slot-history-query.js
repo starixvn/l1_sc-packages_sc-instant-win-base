@@ -13,12 +13,12 @@ export default class SlotHistoryQuery {
             return {};
         }
 
-        const filter = { uid: player.UID, thanhtoan: true };
+        const filter = { uid: player.UID, paid: true };
         const numberOfSkippedBets = (page - 1) * pageSize;
         const total = await this.definition.roundRepository.countDocuments(filter).exec();
         const roundProjection = {
             _id: false,
-            thanhtoan: false,
+            paid: false,
             odds: false,
             siteId: false,
             memberId: false,
