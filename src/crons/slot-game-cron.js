@@ -1,3 +1,4 @@
+import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
 import { BonusConsumer, FreeSpinsConsumer, JackpotConsumer } from "./../event-consumers";
