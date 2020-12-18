@@ -53,6 +53,7 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
 
         if (!this.gameData.disabled) {
             this.gameData.remainingTime--;
+            this.bot && (await this.bot.run());
         }
 
         if (this.gameData.remainingTime < 0) {
@@ -60,8 +61,6 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
 
             await this.freeSpinsConsumer.reload();
             await this.bonusConsumer.processExpiredBonus();
-        } else {
-            this.bot && (await this.bot.run());
         }
     }
 
