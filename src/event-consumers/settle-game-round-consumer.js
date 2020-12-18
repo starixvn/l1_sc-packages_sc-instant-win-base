@@ -57,7 +57,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await this.processBonus(player, finish, bet);
         }
 
-        await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
+        if (!bet.freeSpin) {
+            await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
+        }
     }
 
     async generateRoundResult(player, roundId, bet) {
@@ -127,7 +129,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             bet.odds = bet.odds ?? odds;
             bet.betWin = betResult.totalWin;
             bet.paid = true;
-            bet.results = bet.results ?? result;
+            bet.results = bet.results.length === 0 ? result : bet.results;
             bet.settlementResult = bet.settlementResult ?? settlementResult;
             bet.bonusChests = bonusChests;
             bet.endTime = new Date();
