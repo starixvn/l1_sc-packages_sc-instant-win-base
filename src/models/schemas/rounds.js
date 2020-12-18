@@ -53,6 +53,7 @@ export default new mongoose.Schema({
     bet: { type: Number, default: 0 },
     totalAmount: { type: Number, default: 0 },
     paylines: { type: [Number] },
+    freeSpin: { type: Boolean, default: false },
 
     results: { type: [Number] },
     settlementResult: { type: settlementResultSchema },
