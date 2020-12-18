@@ -9,6 +9,9 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
     /**
      * @param {SlotGameDefinition} definition
      * @param {SlotGameData} gameData
+     * @param {Core.BaseEventPublishers.BasePublisher} publisher
+     * @param {FreeSpinsConsumer} freeSpinsConsumer
+     * @param {SettleGameRoundConsumer} settleRoundConsumer
      */
     constructor(definition, gameData, publisher = null, freeSpinsConsumer = null, settleRoundConsumer = null) {
         super(definition, gameData, publisher);

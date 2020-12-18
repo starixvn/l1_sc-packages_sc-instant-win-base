@@ -11,6 +11,7 @@ export default class BonusConsumer {
      * @param {Core.GameDefinition} definition
      * @param {Core.GameData} gameData
      * @param {BonusPublisher} bonusPublisher
+     * @param {SettleGameRoundConsumer} settleRoundConsumer
      */
     constructor(definition, gameData, bonusPublisher = null, settleRoundConsumer = null) {
         this.definition = definition;
