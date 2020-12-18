@@ -29,7 +29,7 @@ export default class FreeSpinsConsumer {
         const firstAvailableFreeSpinSet = this.getSoonestExpiredFreeSpinSet(player);
 
         if (firstAvailableFreeSpinSet) {
-            await this.definition.freeSpinsRepository.update({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
+            await this.definition.freeSpinsRepository.updateOne({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
             firstAvailableFreeSpinSet.available--;
         }
     }
@@ -166,7 +166,7 @@ export default class FreeSpinsConsumer {
                     },
                 };
 
-                await gameNotifications.update(filter, { $set: adjustment }, { upsert: true });
+                await gameNotifications.updateOne(filter, { $set: adjustment }, { upsert: true });
             })
         );
     }

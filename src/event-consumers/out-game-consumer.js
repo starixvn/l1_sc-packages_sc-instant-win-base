@@ -38,7 +38,7 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
                 },
             };
 
-            await gameNotifications.update(filter, { $set: adjustment }, { upsert: true });
+            await gameNotifications.updateOne(filter, { $set: adjustment }, { upsert: true });
         } else {
             await gameNotifications.deleteOne(filter);
         }
