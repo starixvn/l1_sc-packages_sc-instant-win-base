@@ -59,7 +59,7 @@ export default new mongoose.Schema({
     bonusChests: { type: [bonusChestSchema] },
 
     odds: { type: Object },
-    betwin: { type: Number, default: 0 },
+    betWin: { type: Number, default: 0 },
     jackpotWin: { type: Number },
     paid: { type: Boolean, default: false },
     time: { type: Date },

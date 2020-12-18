@@ -125,7 +125,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             const betResult = this.calculatePaylineResult(settlementResult.paylines, bet, jackpotWin, bonus);
 
             bet.odds = bet.odds ?? odds;
-            bet.betwin = betResult.totalWin;
+            bet.betWin = betResult.totalWin;
             bet.paid = true;
             bet.results = result;
             bet.settlementResult = settlementResult;
