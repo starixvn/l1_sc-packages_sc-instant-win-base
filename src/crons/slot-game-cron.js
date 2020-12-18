@@ -24,17 +24,12 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
     }
 
     async start() {
+        this.gameData.roundId = this.gameData.gameConfigs.disabledround ?? 0;
+
         await this.loadUnsettleBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
-
-        await this.getLastRoundAndInitJob();
-
-        this.jackpotConsumer.initialize();
-    }
-
-    async getLastRoundAndInitJob() {
-        this.gameData.roundId = this.gameData.gameConfigs.disabledRound ?? 0;
+        await this.jackpotConsumer.initialize();
 
         const job = new cron.CronJob(
             "* * * * * *",
