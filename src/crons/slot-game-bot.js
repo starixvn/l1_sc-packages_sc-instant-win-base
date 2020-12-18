@@ -104,7 +104,7 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
         await this.jackpotConsumer.contribute(bot, { pool: amount, totalAmount, roundId });
 
         if (totalAmount * this.bigWinRatio <= winningAmount) {
-            this.hallOfFameConsumer.add(bot, { roundId, bet: amount, numberOfPaylines, totalAmount, winningAmount });
+            await this.hallOfFameConsumer.add(bot, { roundId, bet: amount, numberOfPaylines, totalAmount, winningAmount });
         }
 
         this.adjustStakeLevelsTracks(amount);

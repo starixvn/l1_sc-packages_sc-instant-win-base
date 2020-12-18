@@ -36,14 +36,11 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
 
         if (this.gameData.remainingTime === durations.wholeRound) {
             await this.checkGameStatus();
+            this.bot && (await this.bot.reset());
         }
 
         if (!this.gameData.disabled) {
             this.gameData.remainingTime--;
-        }
-
-        if (this.isStartingTime(this.gameData.remainingTime, durations)) {
-            this.bot && (await this.bot.reset());
         }
 
         if (this.gameData.remainingTime < 0) {
