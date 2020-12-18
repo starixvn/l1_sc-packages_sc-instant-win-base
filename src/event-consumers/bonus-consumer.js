@@ -17,7 +17,7 @@ export default class BonusConsumer {
         this.definition = definition;
         this.gameData = gameData;
         this.publisher = bonusPublisher ?? new BonusPublisher(definition.name, gameData);
-        this.settleRoundConsumer = settleRoundConsumer ?? new SettleGameRoundConsumer(definition, gameData);
+        this.settleRoundConsumer = settleRoundConsumer ?? new SettleGameRoundConsumer({ definition, gameData });
         this.chance = new Chance();
     }
 
