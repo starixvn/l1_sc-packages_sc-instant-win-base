@@ -4,7 +4,7 @@ export default class PaylineCalculator {
     constructor(definition) {
         this.definition = definition ?? defaultDefinition;
         this.specialSymbols = Object.values(this.definition.specialSymbols).map((symbol) => String(symbol));
-        this.ignoringOddsSymbols = [this.definition.specialSymbols.freeSpins, this.definition.specialSymbols.bonus];
+        this.ignoringOddsSymbols = [String(this.definition.specialSymbols.freeSpins), String(this.definition.specialSymbols.bonus)];
     }
 
     calculate(board, selectedPaylines, odds) {
