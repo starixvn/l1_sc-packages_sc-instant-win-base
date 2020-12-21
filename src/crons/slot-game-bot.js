@@ -2,27 +2,15 @@ import { userInfos } from "sc-base-database";
 import { Core } from "sc-game-base";
 
 import { BoardGenerator, PaylineCalculator } from "./../board";
-import { BoardCheatingConsumer, HallOfFameConsumer, JackpotConsumer } from "./../event-consumers";
-import SlotGameData from "./../slot-game-data";
-import SlotGameDefinition from "./../slot-game-definition";
+import { BoardCheatingConsumer, HallOfFameConsumer, IdCountersConsumer, JackpotConsumer } from "./../event-consumers";
 
 export default class SlotGameBot extends Core.Cron.BaseBot {
-    /**
-     * @param {SlotGameDefinition} definition
-     * @param {SlotGameData} gameData
-     * @param {Core.BaseEventPublishers.BasePublisher} publisher
-     * @param {JackpotConsumer} jackpotConsumer
-     * @param {HallOfFameConsumer} hallOfFameConsumer
-     * @param {BoardCheatingConsumer} boardCheatingConsumer
-     * @param {BoardGenerator} boardGenerator
-     * @param {PaylineCalculator} paylineCalculator
-     */
-
     constructor({
         definition,
         gameData,
         publisher = null,
         jackpotConsumer = null,
+        idCountersConsumer = null,
         hallOfFameConsumer = null,
         boardCheatingConsumer = null,
         boardGenerator = null,
@@ -30,6 +18,7 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
     }) {
         super(definition, gameData, publisher);
 
+        this.idCountersConsumer = idCountersConsumer ?? new IdCountersConsumer(definition, gameData);
         this.jackpotConsumer = jackpotConsumer ?? new JackpotConsumer(definition, gameData);
         this.hallOfFameConsumer = hallOfFameConsumer ?? new HallOfFameConsumer(definition);
         this.boardCheatingConsumer = boardCheatingConsumer ?? new BoardCheatingConsumer(gameData);
@@ -85,7 +74,7 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
     }
 
     async placeBet(bot) {
-        this.gameData.roundId++;
+        await this.increaseRoundId();
 
         const name = bot.profile.name;
         const roundId = this.gameData.roundId;
@@ -108,6 +97,11 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
         }
 
         this.adjustStakeLevelsTracks(amount);
+    }
+
+    async increaseRoundId() {
+        await this.idCountersConsumer.consume();
+        this.gameData.roundId++;
     }
 
     randomizePaylines() {

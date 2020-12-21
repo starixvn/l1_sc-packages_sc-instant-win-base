@@ -2,7 +2,7 @@ import cron from "cron";
 import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
-import { BonusConsumer, FreeSpinsConsumer, JackpotConsumer } from "./../event-consumers";
+import { BonusConsumer, FreeSpinsConsumer, IdCountersConsumer, JackpotConsumer } from "./../event-consumers";
 
 export default class SlotGameCron extends Core.Cron.BaseGameCron {
     constructor({
@@ -14,17 +14,19 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
         runningRoundInfoPublisher = null,
         freeSpinsConsumer = null,
         bonusConsumer = null,
+        idCountersConsumer = null,
         jackpotConsumer = null,
     }) {
         super(definition, gameData, bot, settleGameRoundConsumer, gameStatusPublisher, runningRoundInfoPublisher);
 
         this.freeSpinsConsumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
         this.bonusConsumer = bonusConsumer ?? new BonusConsumer(definition, gameData);
+        this.idCountersConsumer = idCountersConsumer ?? new IdCountersConsumer(definition, gameData);
         this.jackpotConsumer = jackpotConsumer ?? new JackpotConsumer(definition, gameData);
     }
 
     async start() {
-        this.gameData.roundId = this.gameData.gameConfigs.disabledround ?? 0;
+        this.gameData.roundId = await this.idCountersConsumer.getLatestId();
 
         await this.loadUnsettleBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
