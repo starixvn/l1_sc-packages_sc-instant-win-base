@@ -193,7 +193,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
         );
 
-        betResult.winningLines = paylines.map((item) => item.payline);
         betResult.totalBetAmount = bet.totalAmount;
         betResult.bigWin = betResult.totalWin / bigWinRatio > betResult.totalBetAmount;
         betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin + bonus).toFixed(2));
@@ -212,6 +211,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     collectRoundResult({ result, settlementResult, roundId, betWin = 0, bigWin = false }) {
+        settlementResult.winningLines = settlementResult.paylines.map((item) => item.payline);
+        delete settlementResult.paylines;
+
         return {
             finish: {
                 result,

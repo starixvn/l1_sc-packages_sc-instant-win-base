@@ -71,4 +71,6 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
 
         await this.definition.roundRepository.create(newBet);
     }
+
+    adjustBetTracks(playerName, bet) {}
 }
