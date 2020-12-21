@@ -45,7 +45,7 @@ export default class BonusConsumer {
     }
 
     async autoOpenRemainingChests(player) {
-        const { finish } = this.gameData.ingame[player.profile.name] ?? {};
+        const { finish } = this.gameData.ingame[player.profile.name] ?? { finish: {} };
 
         if (finish.settlementResult) {
             const unpickedChests = this.getUnpickedChests(player.profile.name);
@@ -80,7 +80,7 @@ export default class BonusConsumer {
     }
 
     validate(player, chest) {
-        const { bonusChests } = this.gameData.ingame[player.profile.name] ?? [];
+        const { bonusChests } = this.gameData.ingame[player.profile.name] ?? { bonusChests: [] };
         const criteria = [
             {
                 failure: bonusChests.length === 0,
