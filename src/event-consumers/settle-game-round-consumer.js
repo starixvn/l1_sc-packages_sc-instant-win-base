@@ -46,19 +46,22 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             return;
         }
 
-        const bet = await this.definition.roundRepository.findOne({ id: roundId }).lean().exec();
-        const finish = await this.generateRoundResult(player, roundId, bet);
+        const bet = await this.definition.roundRepository.findOne({ id: roundId, paid: false }).lean().exec();
 
-        await this.processFreeSpins(player, bet, finish.settlementResult);
+        if (bet) {
+            const finish = await this.generateRoundResult(player, roundId, bet);
 
-        if (finish.settlementResult.bonus?.odds === 0) {
-            await this.settleBets(player, finish);
-        } else {
-            await this.processBonus(player, finish, bet);
-        }
+            await this.processFreeSpins(player, bet, finish.settlementResult);
 
-        if (!bet.freeSpin) {
-            await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
+            if (finish.settlementResult.bonus?.odds === 0) {
+                await this.settleBets(player, finish);
+            } else {
+                await this.processBonus(player, finish, bet);
+            }
+
+            if (!bet.freeSpin) {
+                await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
+            }
         }
     }
 
