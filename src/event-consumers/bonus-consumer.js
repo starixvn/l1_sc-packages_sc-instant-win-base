@@ -55,9 +55,11 @@ export default class BonusConsumer {
 
             autoPickedChests.forEach((chest) => {
                 chest.picked = true;
+                const chestIndex = remainingChests.indexOf(chest);
+                this.publisher.publishBonus(player.UID, { chest: chestIndex, amount: chest.amount });
             });
 
-            await this.settleRoundConsumer.settleRound(player, finish.roundId);
+            await this.settleRoundConsumer.autoSettleRound(player);
         }
     }
 

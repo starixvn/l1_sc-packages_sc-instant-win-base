@@ -33,7 +33,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         this.boardCheatingConsumer = boardCheatingConsumer ?? new BoardCheatingConsumer(gameData);
     }
 
-    async settleRound(player, roundId) {
+    async autoSettleRound(player) {
         if (this.gameData.ingame[player.profile.name].finish) {
             const { bonusChests, finish } = this.gameData.ingame[player.profile.name];
 
@@ -42,10 +42,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 finish,
                 bonusChests.filter((chest) => chest.picked)
             );
-
-            return;
         }
+    }
 
+    async settleRound(player, roundId) {
         const bet = await this.definition.roundRepository.findOne({ id: roundId, paid: false }).lean().exec();
 
         if (bet) {
@@ -121,17 +121,17 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             session: player.session,
         };
 
-        await this.userBetResultPublisher.publish(bet.uid, { result, settlementResult });
+        await this.userBetResultPublisher.publishToUser(bet.uid, this.collectRoundResult({ result, settlementResult, roundId: finish.roundId }));
     }
 
-    async settleBets(player, { result, settlementResult, roundId, time, jackpotWin }, bonusChests = []) {
+    async settleBets(player, { result, settlementResult, roundId, jackpotWin }, bonusChests = []) {
         const bet = await this.queryBets(roundId);
 
         if (bet) {
             const odds = bet.odds ?? this.gameData.gameConfigs.slotsConfig.icons;
             const bonus = this.calculateBonus(bonusChests);
-            const betResult = this.calculatePaylineResult(settlementResult.paylines, bet, jackpotWin, bonus);
 
+            const betResult = this.calculatePaylineResult(settlementResult.paylines, bet, jackpotWin, bonus);
             bet.odds = bet.odds ?? odds;
             bet.betWin = betResult.totalWin;
             bet.paid = true;
@@ -141,9 +141,18 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             bet.endTime = new Date();
 
             await bet.save();
-            await this.callEndGame(bet, roundId, time, betResult);
+            await this.callEndGame(bet, roundId, bet.endTime, betResult);
 
-            await this.userBetResultPublisher.publish(bet.uid, { result, settlementResult, betWin: bet.betWin, bigWin: betResult.bigWin });
+            await this.userBetResultPublisher.publishToUser(
+                bet.uid,
+                this.collectRoundResult({
+                    result,
+                    settlementResult,
+                    roundId,
+                    betWin: bet.betWin,
+                    bigWin: betResult.bigWin,
+                })
+            );
 
             if (betResult.bigWin) {
                 await this.hallOfFameConsumer.add(player, {
@@ -161,7 +170,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
     }
 
-    queryBets(roundId) {
+    async queryBets(roundId) {
         return this.definition.roundRepository.findOne({ id: roundId, paid: false }).exec();
     }
 
@@ -200,5 +209,17 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
 
         return bonusChests.reduce((result, chest) => result + chest.amount, 0);
+    }
+
+    collectRoundResult({ result, settlementResult, roundId, betWin = 0, bigWin = false }) {
+        return {
+            finish: {
+                result,
+                settlementResult,
+                roundId,
+                betWin,
+                bigWin,
+            },
+        };
     }
 }
