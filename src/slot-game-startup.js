@@ -1,5 +1,5 @@
 import express from "express";
-import { Core } from "sc-game-base";
+import { Core, Table } from "sc-game-base";
 import socketIo from "socket.io";
 
 import { SlotGameBot, SlotGameCron, SlotProcessBetQueue } from "./crons";
@@ -30,7 +30,11 @@ export default class SlotGameStartup extends Core.BaseStartup {
      * @param {socketIo.Socket} socketClient
      */
     initSocketRouter(socketClient) {
-        const router = new SlotSocketRouter({ definition: this.definition, gameData: this.gameData });
+        const router = new SlotSocketRouter({
+            definition: this.definition,
+            gameData: this.gameData,
+            userSignInConsumer: new Table.EventConsumers.UserSignInConsumer(this.definition, this.gameData),
+        });
 
         router.init(socketClient);
     }
