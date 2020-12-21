@@ -84,4 +84,12 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
             logger.logError(error);
         }
     }
+
+    async handleDisconnect() {
+        try {
+            await this.userDisconnectConsumer.consume(this.socketClient);
+        } catch (error) {
+            logger.logError(error);
+        }
+    }
 }

@@ -41,16 +41,20 @@ export default class BonusConsumer {
     getUnpickedChests(playerName) {
         const { bonusChests } = this.gameData.ingame[playerName] ?? {};
 
-        return bonusChests.filter((chest) => !chest.picked);
+        return bonusChests?.filter((chest) => !chest.picked);
     }
 
     async autoOpenRemainingChests(player) {
-        const { finish } = this.gameData.ingame[player.profile.name] ?? { finish: {} };
+        const { finish } = this.gameData.ingame[player.profile.name] ?? {};
 
-        if (finish.settlementResult) {
+        if (finish?.settlementResult) {
             const unpickedChests = this.getUnpickedChests(player.profile.name);
-            const remainingChests = finish.settlementResult.bonus.odds - (this.definition.bonusSize - unpickedChests.length);
 
+            if (unpickedChests?.length === 0) {
+                return;
+            }
+
+            const remainingChests = finish.settlementResult.bonus.odds - (this.definition.bonusSize - unpickedChests.length);
             const autoPickedChests = this.chance.pickset(unpickedChests, remainingChests);
 
             autoPickedChests.forEach((chest) => {
@@ -83,7 +87,7 @@ export default class BonusConsumer {
         const { bonusChests } = this.gameData.ingame[player.profile.name] ?? { bonusChests: [] };
         const criteria = [
             {
-                failure: bonusChests.length === 0,
+                failure: bonusChests?.length === 0,
                 notice: SlotNoticeHelper.invalidBonus,
             },
             {
