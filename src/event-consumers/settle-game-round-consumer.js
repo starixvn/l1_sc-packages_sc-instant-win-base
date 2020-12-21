@@ -100,6 +100,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async processBonus(player, finish, bet) {
         const { bonus, icons: odds } = this.gameData.gameConfigs.slotsConfig;
+        const { result, settlementResult } = finish;
         finish.bonusChests = new BonusBoardGenerator({ size: this.definition.bonusSize, minRate: bonus.min, maxRate: bonus.max }).generate(bet.bet);
 
         const existingBetFilter = { id: finish.roundId };
@@ -116,6 +117,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             profile: player.profile,
             session: player.session,
         };
+
+        await this.userBetResultPublisher.publish(bet.uid, { result, settlementResult });
     }
 
     async settleBets(player, { result, settlementResult, roundId, time, jackpotWin }, bonusChests = []) {
@@ -137,7 +140,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await bet.save();
             await this.callEndGame(bet, roundId, time, betResult);
 
-            await this.userBetResultPublisher.publish(bet.uid, betResult);
+            await this.userBetResultPublisher.publish(bet.uid, { result, settlementResult, betWin: bet.betWin, bigWin: betResult.bigWin });
 
             if (betResult.bigWin) {
                 await this.hallOfFameConsumer.add(player, {
