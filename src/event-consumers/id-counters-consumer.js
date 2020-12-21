@@ -17,7 +17,7 @@ export default class IdCountersConsumer {
             m: this.modelName,
             f: "id",
         };
-        const increment = { c: 1 };
+        const increment = { $inc: { c: 1 } };
         const updateOptions = {
             new: true,
             lean: true,
