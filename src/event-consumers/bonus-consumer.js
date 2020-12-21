@@ -39,23 +39,26 @@ export default class BonusConsumer {
     }
 
     getUnpickedChests(playerName) {
-        const { bonusChests } = this.gameData.ingame[playerName];
+        const { bonusChests } = this.gameData.ingame[playerName] ?? {};
 
         return bonusChests.filter((chest) => !chest.picked);
     }
 
     async autoOpenRemainingChests(player) {
-        const { finish } = this.gameData.ingame[player.profile.name];
-        const unpickedChests = this.getUnpickedChests(player.profile.name);
-        const remainingChests = finish.settlementResult.bonus.odds - (this.definition.bonusSize - unpickedChests.length);
+        const { finish } = this.gameData.ingame[player.profile.name] ?? {};
 
-        const autoPickedChests = this.chance.pickset(unpickedChests, remainingChests);
+        if (finish.settlementResult) {
+            const unpickedChests = this.getUnpickedChests(player.profile.name);
+            const remainingChests = finish.settlementResult.bonus.odds - (this.definition.bonusSize - unpickedChests.length);
 
-        autoPickedChests.forEach((chest) => {
-            chest.picked = true;
-        });
+            const autoPickedChests = this.chance.pickset(unpickedChests, remainingChests);
 
-        return this.settleRoundConsumer.settleRound(player, finish.roundId);
+            autoPickedChests.forEach((chest) => {
+                chest.picked = true;
+            });
+
+            await this.settleRoundConsumer.settleRound(player, finish.roundId);
+        }
     }
 
     async processExpiredBonus() {
@@ -75,14 +78,18 @@ export default class BonusConsumer {
     }
 
     validate(player, chest) {
-        const { bonusChests } = this.gameData.ingame[player.profile.name];
+        const { bonusChests } = this.gameData.ingame[player.profile.name] ?? [];
         const criteria = [
+            {
+                failure: bonusChests.length === 0,
+                notice: SlotNoticeHelper.invalidBonus,
+            },
             {
                 failure: !chest || chest < 0 || chest > this.definition.bonusSize,
                 notice: SlotNoticeHelper.invalidBonus,
             },
             {
-                failure: bonusChests[chest].picked,
+                failure: bonusChests[chest]?.picked,
                 notice: SlotNoticeHelper.openedBonus,
             },
         ];
