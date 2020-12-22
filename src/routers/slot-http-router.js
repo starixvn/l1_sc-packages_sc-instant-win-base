@@ -38,8 +38,8 @@ export default class SlotHttpRouter extends Core.Routers.HttpRouter {
 
     handleSetBoard(params, res) {
         try {
-            logger.logWarning(`receive set board results for ${params?.name} : result ${JSON.stringify(params.result)}`);
-            this.gameData.settlementResultFromAdmin[params.name] = params.result;
+            logger.logWarning(`receive set board results for ${params?.name} : result ${params.results}`);
+            this.gameData.settlementResultFromAdmin[params.name] = params.results;
 
             res.send({ error: false });
         } catch (error) {
