@@ -73,4 +73,16 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
     }
 
     adjustBetTracks(playerName, bet) {}
+
+    adjustTotalBets(player, bet) {}
+
+    generatePlacingBetResult(player, balance, bet) {
+        const { totalAmount, freeSpin } = bet;
+
+        return {
+            endBet: totalAmount,
+            freeSpin,
+            user: { ...balance },
+        };
+    }
 }
