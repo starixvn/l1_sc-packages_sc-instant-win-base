@@ -66,7 +66,7 @@ function runOneMillions() {
         const board = generator.generate(difficulties.medium);
         const result = calculator.calculate(board, paylines, odds);
 
-        if (result.jackpot) {
+        if (result.jackpotPayline >= 0) {
             summary.jackpot += 1;
         }
 
@@ -98,7 +98,7 @@ function runOneMillionsForBots() {
         const board = generator.generateForBots();
         const result = calculator.calculate(board, paylines, odds);
 
-        if (result.jackpot) {
+        if (result.jackpotPayline >= 0) {
             summary.jackpot += 1;
         }
 
@@ -113,7 +113,7 @@ function calculateSettlementResultOfSpecificBoard() {
     const calculator = new PaylineCalculator();
     const paylines = [...Array(25).keys()];
 
-    const board = [1, 4, 0, 0, 0, 3, 0, 3, 6, 4, 2, 5, 0, 1, 7];
+    const board = [0, 4, 5, 0, 0, 0, 7, 2, 5, 1, 3, 1, 3, 8, 2];
     const result = calculator.calculate(board, paylines, odds);
 
     for (const row of formatBoard(board)) {

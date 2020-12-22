@@ -26,12 +26,20 @@ const freeSpinsSchema = new mongoose.Schema(
     { _id: false }
 );
 
+const jackpotSchema = new mongoose.Schema(
+    {
+        winningLine: { type: Number, required: true },
+        winningAmount: { type: Number, required: true },
+    },
+    { _id: false }
+);
+
 const settlementResultSchema = new mongoose.Schema(
     {
         paylines: [winningLineSchema],
         bonus: bonusSchema,
         freeSpins: freeSpinsSchema,
-        jackpot: { type: Boolean },
+        jackpot: jackpotSchema,
     },
     { _id: false }
 );

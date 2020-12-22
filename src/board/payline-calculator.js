@@ -34,7 +34,7 @@ export default class PaylineCalculator {
             paylines: paylinesResult,
             freeSpins: this.calculateFreeSpins(board, occurrencesInSelectedPaylines, odds),
             bonus: this.calculateBonus(board, occurrencesInSelectedPaylines, odds),
-            jackpot: this.checkIfWinJackpot(board, occurrencesInSelectedPaylines),
+            jackpotPayline: this.getJackpotWinningPayline(board, occurrencesInSelectedPaylines),
         };
     }
 
@@ -72,8 +72,12 @@ export default class PaylineCalculator {
         }, {});
     }
 
-    checkIfWinJackpot(board, paylines) {
-        return paylines.some((payline) => payline.occurrences[this.definition.specialSymbols.jackpot] === this.definition.numberOfColumns);
+    getJackpotWinningPayline(board, paylines) {
+        const jackpotPayline = paylines.find(
+            (payline) => payline.occurrences[this.definition.specialSymbols.jackpot] === this.definition.numberOfColumns
+        );
+
+        return jackpotPayline?.paylineIndex ?? -1;
     }
 
     countSymbolsInBoard(board) {
