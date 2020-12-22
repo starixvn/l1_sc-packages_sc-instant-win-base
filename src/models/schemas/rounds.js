@@ -36,7 +36,7 @@ const jackpotSchema = new mongoose.Schema(
 
 const settlementResultSchema = new mongoose.Schema(
     {
-        paylines: [winningLineSchema],
+        winningPaylines: [winningLineSchema],
         bonus: bonusSchema,
         freeSpins: freeSpinsSchema,
         jackpot: jackpotSchema,

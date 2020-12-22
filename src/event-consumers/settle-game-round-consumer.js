@@ -70,9 +70,11 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const odds = this.gameData.gameConfigs.slotsConfig.icons;
 
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
-        const jackpotWin = settlementResult.jackpot ? (await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId })).amount : 0;
+        const jackpotWin = settlementResult.jackpotPayline > -1 ? (await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId })).amount : 0;
 
-        settlementResult.winningLines = settlementResult.paylines.filter((payline) => payline.odds > 0);
+        settlementResult.winningPaylines = settlementResult.paylines.filter((payline) => payline.odds > 0);
+        settlementResult.jackpot =
+            settlementResult.jackpotPayline > -1 ? { winningLine: settlementResult.jackpotPayline, winningAmount: jackpotWin } : {};
 
         return {
             roundId,
@@ -132,13 +134,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             const odds = bet.odds ?? this.gameData.gameConfigs.slotsConfig.icons;
             const bonus = this.calculateBonus(bonusChests);
 
-            const betResult = this.calculatePaylineResult(settlementResult.winningLines, bet, jackpotWin, bonus);
+            const betResult = this.calculatePaylineResult(settlementResult.winningPaylines, bet, jackpotWin, bonus);
             bet.odds = bet.odds ?? odds;
-            bet.betWin = betResult.totalWin;
-            bet.paid = true;
             bet.results = bet.results.length === 0 ? result : bet.results;
             bet.settlementResult = bet.settlementResult ?? settlementResult;
             bet.bonusChests = bonusChests;
+            bet.betWin = betResult.totalWin;
+            bet.paid = true;
             bet.endTime = new Date();
 
             await bet.save();
@@ -212,8 +214,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     collectRoundResult({ result, settlementResult, roundId, betWin = 0, bigWin = false }) {
-        settlementResult.winningLines = settlementResult.paylines.map((item) => item.payline);
+        settlementResult.winningLines = settlementResult.winningPaylines.map((item) => item.payline);
         delete settlementResult.paylines;
+        delete settlementResult.winningPaylines;
 
         return {
             finish: {
