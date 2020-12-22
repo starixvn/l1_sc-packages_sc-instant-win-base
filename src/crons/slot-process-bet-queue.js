@@ -38,7 +38,29 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
         payload.totalAmount = payload.amount * payload.betChoice.length;
         this.gameData.roundId += 1;
 
-        await super.proceedBet(player, payload);
+        await this.sendToApi(player, payload);
+    }
+
+    async sendToApi(player, payload) {
+        const betInfo = {
+            amount: payload.totalAmount,
+            gameId: this.definition.id,
+            gameRoundId: this.gameData.roundId,
+            choiceId: 0,
+            freeBet: payload.freeBet,
+            freeSpin: payload.freeSpin,
+        };
+
+        const apiResult = await placeBetApi({ id: player.UID, session: player.session }, betInfo);
+
+        if (apiResult.isOk) {
+            await this.handleSuccessBet(player, apiResult.response, betInfo.gameRoundId, payload);
+        } else {
+            const insufficientNotice = payload.freeBet ? helpers.noticeHelper.notEnoughScoin : helpers.noticeHelper.notEnoughMoney;
+            const notice = apiResult.response.inSufficientBalance ? insufficientNotice : apiResult.response;
+
+            this.handleFailedBet(player, notice);
+        }
     }
 
     async handleSuccessBet(player, balance, roundId, bet) {
