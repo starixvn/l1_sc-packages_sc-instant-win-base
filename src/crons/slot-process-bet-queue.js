@@ -1,3 +1,4 @@
+import { placeBet as placeBetApi } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
 import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
