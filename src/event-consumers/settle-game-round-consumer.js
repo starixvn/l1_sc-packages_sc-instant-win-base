@@ -74,7 +74,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         settlementResult.winningPaylines = settlementResult.paylines.filter((payline) => payline.odds > 0);
         settlementResult.jackpot =
-            settlementResult.jackpotPayline > -1 ? { winningLine: settlementResult.jackpotPayline, winningAmount: jackpotWin } : {};
+            settlementResult.jackpotPayline > -1 ? { winningLine: settlementResult.jackpotPayline, winningAmount: jackpotWin } : null;
 
         return {
             roundId,
