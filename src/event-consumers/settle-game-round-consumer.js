@@ -118,7 +118,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         finish.bonusChests = new BonusBoardGenerator({ size: this.definition.bonusSize, minRate: bonus.min, maxRate: bonus.max }).generate(bet.bet);
 
         const existingBetFilter = { id: finish.roundId };
-        const updatedBet = { ...finish, odds, results: finish.result };
+        const updatedBet = { ...finish, odds };
 
         delete updatedBet.result;
 
@@ -144,7 +144,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
             const betResult = this.calculatePaylineResult(settlementResult.winningPaylines, bet, jackpotWin, bonus);
             bet.odds = bet.odds ?? odds;
-            bet.results = bet.results.length === 0 ? result : bet.results;
+            bet.result = bet.result.length === 0 ? result : bet.result;
             bet.settlementResult = bet.settlementResult ?? settlementResult;
             bet.bonusChests = bonusChests;
             bet.betWin = betResult.totalWin;
