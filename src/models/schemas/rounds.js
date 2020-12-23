@@ -63,7 +63,7 @@ export default new mongoose.Schema({
     paylines: { type: [Number] },
     freeSpin: { type: Boolean, default: false },
 
-    results: { type: [Number] },
+    result: { type: [Number] },
     settlementResult: { type: settlementResultSchema },
     bonusChests: { type: [bonusChestSchema] },
 

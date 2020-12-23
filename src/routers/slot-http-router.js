@@ -29,17 +29,17 @@ export default class SlotHttpRouter extends Core.Routers.HttpRouter {
 
     handleSetBoard(params, res) {
         try {
-            if (!params || !params.name || !params.results) {
+            if (!params || !params.name || !params.result) {
                 logger.logError("receives a result cheating call with invalid params.");
             }
 
             const paylines = [...Array(this.paylineCalculator.definition.paylines.length).keys()];
             const odds = this.gameData.gameConfigs.slotsConfig.icons;
-            const settlementResult = this.paylineCalculator.calculate(params.results, paylines, odds);
+            const settlementResult = this.paylineCalculator.calculate(params.result, paylines, odds);
 
-            logger.logWarning(`receives a result cheating call for ${params?.name} with the board as ${params.results}.`);
+            logger.logWarning(`receives a result cheating call for ${params?.name} with the board as ${params.result}.`);
 
-            this.gameData.settlementResultFromAdmin[params.name] = params.results;
+            this.gameData.settlementResultFromAdmin[params.name] = params.result;
 
             res.send(settlementResult);
         } catch (error) {
