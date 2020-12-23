@@ -25,34 +25,21 @@ export default class SlotHttpRouter extends Core.Routers.HttpRouter {
             }),
             (_req, res) => this.handleSetBoard(_req.body, res)
         );
-
-        app.get(
-            "/api/calculate-board",
-            utils.authentication.useAuthenticate({
-                authUrl: appConfigs.apiSettings.authUrl,
-                audiences: appConfigs.authenticateSettings.audiences,
-            }),
-            (_req, res) => this.handleBoardCalculation(_req.body, res)
-        );
     }
 
     handleSetBoard(params, res) {
         try {
-            logger.logWarning(`receive set board results for ${params?.name} : result ${params.results}`);
-            this.gameData.settlementResultFromAdmin[params.name] = params.results;
+            if (!params || !params.name || !params.results) {
+                logger.logError("receives a result cheating call with invalid params.");
+            }
 
-            res.send({ error: false });
-        } catch (error) {
-            logger.logError(error);
-            res.send({ error: true });
-        }
-    }
-
-    handleBoardCalculation(params, res) {
-        try {
             const paylines = [...Array(this.paylineCalculator.definition.paylines.length).keys()];
             const odds = this.gameData.gameConfigs.slotsConfig.icons;
-            const settlementResult = this.paylineCalculator.calculate(params.result, paylines, odds);
+            const settlementResult = this.paylineCalculator.calculate(params.results, paylines, odds);
+
+            logger.logWarning(`receives a result cheating call for ${params?.name} with the board as ${params.results}.`);
+
+            this.gameData.settlementResultFromAdmin[params.name] = params.results;
 
             res.send(settlementResult);
         } catch (error) {
