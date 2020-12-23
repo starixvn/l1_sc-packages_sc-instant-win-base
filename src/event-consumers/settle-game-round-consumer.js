@@ -224,14 +224,19 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     collectRoundResult({ player, result, settlementResult, roundId, betWin = 0, bigWin = false }) {
-        settlementResult.winningLines = settlementResult.winningPaylines.map((item) => item.payline);
-        delete settlementResult.paylines;
-        delete settlementResult.winningPaylines;
+        const { bonus, freeSpins, jackpot, winningPaylines } = settlementResult;
+
+        const roundSettlement = {
+            bonus,
+            freeSpins,
+            jackpot,
+            winningLines: winningPaylines.map((item) => item.payline),
+        };
 
         return {
             finish: {
                 result,
-                settlementResult,
+                settlementResult: roundSettlement,
                 roundId,
                 betWin,
                 bigWin,
