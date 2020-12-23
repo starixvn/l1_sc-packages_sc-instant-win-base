@@ -37,7 +37,7 @@ export default class HallOfFameQuery {
         }
 
         const filter = {
-            game: this.definition.name,
+            gameId: this.definition.id,
             winnerName: { $exists: true },
         };
         const numberOfSkippedWinners = (page - 1) * pageSize;

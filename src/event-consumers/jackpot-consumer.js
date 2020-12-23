@@ -25,7 +25,7 @@ export default class JackpotConsumer {
         const contributionAmount = totalAmount * contributionRatio;
 
         const runningPoolFilter = {
-            game: this.definition.name,
+            gameId: this.definition.id,
             pool,
             winnerName: { $exists: false },
             createdAt: { $lte: roundId },
@@ -60,7 +60,7 @@ export default class JackpotConsumer {
 
         const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningRatio;
         const runningPoolFilter = {
-            game: this.definition.name,
+            gameId: this.definition.id,
             pool,
             winnerName: { $exists: false },
             createdAt: { $lt: roundId },
@@ -114,7 +114,7 @@ export default class JackpotConsumer {
         await Promise.all(
             stakeLevels.map(async (stakeLevel) => {
                 const runningPoolFilter = {
-                    game: this.definition.name,
+                    gameId: this.definition.id,
                     pool: stakeLevel.stake,
                     winnerName: { $exists: false },
                     createdAt: { $lte: roundId },
@@ -132,7 +132,8 @@ export default class JackpotConsumer {
         const initAmount = this.gameData.gameConfigs.slotsConfig?.stakeLevels?.find((stakeLevel) => stakeLevel.stake === pool)?.jackpot ?? 0;
 
         await Jackpots.create({
-            game: this.definition.name,
+            gameId: this.definition.id,
+            gameName: this.definition.name,
             pool,
             initAmount,
             amount: initAmount,
