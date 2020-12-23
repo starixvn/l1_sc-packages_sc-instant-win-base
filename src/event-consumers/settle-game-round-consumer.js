@@ -234,7 +234,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 roundId,
                 betWin,
                 bigWin,
-                totalOfFreeSpins: this.freeSpinConsumer.getTotalAvaiableFreeSpins(player),
+                totalOfFreeSpins: this.freeSpinsConumer.getTotalAvaiableFreeSpins(player),
             },
         };
     }
