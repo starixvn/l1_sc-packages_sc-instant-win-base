@@ -6,7 +6,7 @@ import { FreeSpinsConsumer } from ".";
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
     constructor({ definition, gameData, roundQuery, publisher, freeSpinConsumer }) {
         super({ definition, gameData, roundQuery, publisher });
-        this.freeSpinConsumer = freeSpinConsumer ?? new FreeSpinsConsumer();
+        this.freeSpinConsumer = freeSpinConsumer ?? new FreeSpinsConsumer(definition, gameData);
     }
 
     async buildPayload(realPlayer) {
