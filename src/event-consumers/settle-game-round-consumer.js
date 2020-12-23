@@ -120,8 +120,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const existingBetFilter = { id: finish.roundId };
         const updatedBet = { ...finish, odds };
 
-        delete updatedBet.result;
-
         await this.definition.roundRepository.updateOne(existingBetFilter, updatedBet);
 
         this.gameData.ingame[player.profile.name].bonusChests = finish.bonusChests;
