@@ -5,10 +5,7 @@ import { FreeSpinsConsumer } from ".";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
     constructor({ definition, gameData, roundQuery, publisher, freeSpinConsumer }) {
-        this.definition = definition;
-        this.gameData = gameData;
-        this.roundQuery = roundQuery ?? new RoundQuery(definition);
-        this.publisher = publisher ?? new BasePublisher(definition.name, gameData);
+        super({ definition, gameData, roundQuery, publisher });
         this.freeSpinConsumer = freeSpinConsumer ?? new FreeSpinsConsumer();
     }
 
