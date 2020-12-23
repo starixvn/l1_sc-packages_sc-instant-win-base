@@ -59,7 +59,7 @@ export default class BonusConsumer {
 
             autoPickedChests.forEach((chest) => {
                 chest.picked = true;
-                const chestIndex = remainingChests.indexOf(chest);
+                const chestIndex = unpickedChests.indexOf(chest);
                 this.publisher.publishBonus(player.UID, { chest: chestIndex, amount: chest.amount });
             });
 
@@ -73,11 +73,6 @@ export default class BonusConsumer {
 
         await Promise.all(
             bets.map(async (bet) => {
-                const { bonusChests, finish } = bet;
-
-                this.gameData.ingame[bet.name].finish = finish;
-                this.gameData.ingame[bet.name].bonusChests = bonusChests;
-
                 await this.autoOpenRemainingChests(bet.player);
             })
         );
