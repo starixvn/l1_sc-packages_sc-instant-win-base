@@ -4,15 +4,15 @@ import { Core } from "sc-game-base";
 import { FreeSpinsConsumer } from ".";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
-    constructor({ definition, gameData, roundQuery, publisher, freeSpinConsumer }) {
+    constructor({ definition, gameData, roundQuery, publisher, freeSpinsConsumer }) {
         super({ definition, gameData, roundQuery, publisher });
-        this.freeSpinConsumer = freeSpinConsumer ?? new FreeSpinsConsumer(definition, gameData);
+        this.freeSpinsConsumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
     }
 
     async buildPayload(realPlayer) {
         const { stakeLevels, icons: odds } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = { stakeLevels: stakeLevels.map((level) => level.stake), odds };
-        const totalOfFreeSpins = this.freeSpinConsumer.getTotalAvaiableFreeSpins(realPlayer);
+        const totalOfFreeSpins = this.freeSpinsConsumer.getTotalAvaiableFreeSpins(realPlayer);
 
         await getBalance(realPlayer, true);
 
