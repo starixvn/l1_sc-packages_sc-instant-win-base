@@ -132,7 +132,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             session: player.session,
         };
 
-        await this.userBetResultPublisher.publishToUser(bet.uid, this.collectRoundResult({ result, settlementResult, roundId: finish.roundId }));
+        await this.userBetResultPublisher.publishToUser(
+            bet.uid,
+            this.collectRoundResult({ player, result, settlementResult, roundId: finish.roundId })
+        );
     }
 
     async settleBets(player, { result, settlementResult, roundId, jackpotWin }, bonusChests = []) {
