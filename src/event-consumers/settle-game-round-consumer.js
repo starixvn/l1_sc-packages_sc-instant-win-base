@@ -157,6 +157,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await this.userBetResultPublisher.publishToUser(
                 bet.uid,
                 this.collectRoundResult({
+                    player,
                     result,
                     settlementResult,
                     roundId,
@@ -221,7 +222,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return bonusChests.reduce((result, chest) => result + chest.amount, 0);
     }
 
-    collectRoundResult({ result, settlementResult, roundId, betWin = 0, bigWin = false }) {
+    collectRoundResult({ player, result, settlementResult, roundId, betWin = 0, bigWin = false }) {
         settlementResult.winningLines = settlementResult.winningPaylines.map((item) => item.payline);
         delete settlementResult.paylines;
         delete settlementResult.winningPaylines;
@@ -233,6 +234,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 roundId,
                 betWin,
                 bigWin,
+                totalOfFreeSpins: this.freeSpinConsumer.getTotalAvaiableFreeSpins(player),
             },
         };
     }

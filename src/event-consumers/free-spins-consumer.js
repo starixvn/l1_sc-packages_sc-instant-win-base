@@ -170,4 +170,10 @@ export default class FreeSpinsConsumer {
             })
         );
     }
+
+    getTotalAvaiableFreeSpins(player) {
+        const { freeSpins } = this.gameData.ingame[player.profile.name];
+
+        return freeSpins?.reduce((total, freeSpin) => total + freeSpin.available, 0) ?? 0;
+    }
 }
