@@ -59,16 +59,16 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 await this.processBonus(player, finish, bet);
             }
 
-            if (!bet.freeSpin || !this.isUserExcludeJackpotContribute(player)) {
+            if (!bet.freeSpin && this.isUserEnableJackpot(player)) {
                 await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
             }
         }
     }
 
-    isUserExcludeJackpotContribute(player) {
+    isUserEnableJackpot(player) {
         const { jackpot } = this.gameData.gameConfigs.slotsConfig;
 
-        return jackpot.excludeUUS && player.session.currency === "$UUS";
+        return !jackpot.excludeUUS && player.session.currency !== "$UUS";
     }
 
     async generateRoundResult(player, roundId, bet) {
@@ -80,7 +80,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         settlementResult.winningPaylines = settlementResult.paylines.filter((payline) => payline.odds > 0);
         settlementResult.jackpot =
-            settlementResult.jackpotPayline > -1 ? { winningLine: settlementResult.jackpotPayline, winningAmount: jackpotWin } : null;
+            settlementResult.jackpotPayline > -1 && this.isUserEnableJackpot(player)
+                ? { winningLine: settlementResult.jackpotPayline, winningAmount: jackpotWin }
+                : null;
 
         return {
             roundId,
