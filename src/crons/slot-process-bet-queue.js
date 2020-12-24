@@ -1,4 +1,3 @@
-import { placeBet as placeBetApi } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
 import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
@@ -16,6 +15,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
      */
     constructor(definition, gameData, publisher = null, freeSpinsConsumer = null, settleRoundConsumer = null) {
         super(definition, gameData, publisher);
+
         this.freeSpinsConsumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
         this.settleRoundConsumer = settleRoundConsumer ?? new SettleGameRoundConsumer({ definition, gameData });
     }
@@ -54,11 +54,12 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
     }
 
     async handleSuccessBet(player, balance, roundId, bet) {
-        await super.handleSuccessBet(player, balance, roundId, bet);
-
         if (bet.freeSpin) {
             await this.freeSpinsConsumer.useFreeSpin(player);
         }
+
+        await this.upsertBet(player, roundId, bet);
+        this.notifyPlacingBetResult(player, balance, bet);
 
         await this.settleRoundConsumer.settleRound(player, roundId);
     }
@@ -83,10 +84,6 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
 
         await this.definition.roundRepository.create(newBet);
     }
-
-    adjustBetTracks(playerName, bet) {}
-
-    adjustTotalBets(player, bet) {}
 
     generatePlacingBetResult(player, balance, bet) {
         const { totalAmount, freeSpin } = bet;
