@@ -29,6 +29,7 @@ export default class BonusConsumer {
         }
 
         const { bonusChests, finish } = this.gameData.ingame[player.profile.name];
+
         bonusChests[chest].picked = true;
 
         this.publisher.publishBonus(player.UID, { chest, amount: bonusChests[chest].amount });
@@ -94,7 +95,6 @@ export default class BonusConsumer {
                 notice: SlotNoticeHelper.openedBonus,
             },
         ];
-
         const failedCriterion = criteria.find((criterion) => criterion.failure);
 
         if (failedCriterion) {

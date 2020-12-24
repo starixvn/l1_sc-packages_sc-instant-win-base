@@ -28,7 +28,7 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
     async start() {
         this.gameData.roundId = await this.idCountersConsumer.getLatestId();
 
-        await this.loadUnsettleBetsToIngame();
+        await this.loadUnsettledBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
         await this.jackpotConsumer.initialize();
@@ -66,21 +66,24 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
         }
     }
 
-    async loadUnsettleBetsToIngame() {
+    async loadUnsettledBetsToIngame() {
         const filter = {
             paid: false,
         };
-
         const projection = {
             _id: false,
             __v: false,
             __archive: false,
+            siteId: false,
+            bet: false,
+            totalAmount: false,
+            odds: false,
+            betWin: false,
+            endTime: false,
+            freeSpin: false,
         };
-
-        const bets = await this.definition.roundRepository
-            .find(filter, projection, { sort: { id: -1 } })
-            .lean()
-            .exec();
+        const sort = { id: -1 };
+        const bets = await this.definition.roundRepository.find(filter, projection, { sort }).lean().exec();
 
         this.gameData.ingame = this.mapToIngameData(bets);
     }
@@ -103,7 +106,7 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
                     time,
                     result,
                     settlementResult,
-                    jackpotWin: jackpot ? jackpot.winningAmount : 0,
+                    jackpotWin: jackpot?.winningAmount ?? 0,
                 },
             };
 
