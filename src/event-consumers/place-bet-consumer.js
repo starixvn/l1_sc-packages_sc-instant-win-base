@@ -17,20 +17,22 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     }
 
     composeBettingTimeValidationCriteria() {
-        const configs = this.gameData.gameConfigs;
+        const gameConfigs = this.gameData.gameConfigs;
 
         return [
             {
-                failure: !configs.enabled,
+                failure: !gameConfigs.enabled,
                 notice: helpers.noticeHelper.placeBetNextRound,
             },
         ];
     }
 
     composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
+        const stakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
+
         return [
             {
-                failure: !this.gameData.gameConfigs.slotsConfig?.stakeLevels.find((stakeLevel) => stakeLevel.stake === amount),
+                failure: !stakeLevels.find((stakeLevel) => stakeLevel.stake === amount),
                 notice: SlotNoticeHelper.invalidStakeLevel,
             },
         ];
