@@ -141,7 +141,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         if (bet) {
             const odds = bet.odds ?? this.gameData.gameConfigs.slotsConfig.icons;
-            const bonus = this.calculateBonus(bonusChests);
+            const bonus = this.calculateBonusAmount(bonusChests);
 
             const betResult = this.calculatePaylineResult(settlementResult.winningPaylines, bet, jackpotWin, bonus);
             bet.odds = bet.odds ?? odds;
@@ -183,7 +183,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
     }
 
-    async queryBets(roundId) {
+    queryBets(roundId) {
         return this.definition.roundRepository.findOne({ id: roundId, paid: false }).exec();
     }
 
@@ -215,32 +215,38 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return betResult;
     }
 
-    calculateBonus(bonusChests) {
-        if (bonusChests && bonusChests.length === 0) {
-            return 0;
-        }
-
-        return bonusChests.reduce((result, chest) => result + chest.amount, 0);
+    calculateBonusAmount(bonusChests) {
+        return bonusChests?.reduce((bonusAmount, chest) => bonusAmount + chest.amount, 0) ?? 0;
     }
 
     collectRoundResult({ player, result, settlementResult, roundId, betWin = 0, bigWin = false }) {
-        const { bonus, freeSpins, jackpot, winningPaylines } = settlementResult;
-
-        const roundSettlement = {
-            bonus,
-            freeSpins,
+        const { winningPaylines, bonus, freeSpins, jackpot } = settlementResult;
+        const totalOfFreeSpins = this.freeSpinsConumer.getTotalAvaiableFreeSpins(player);
+        const winningLines = winningPaylines.map((winningPayline) => {
+            return {
+                payline: winningPayline.payline,
+                symbol: winningPayline.symbol,
+                count: winningPayline.count,
+                positions: this.boardGenerator.definition.paylines[winningPayline.payline],
+            };
+        });
+        const numberOfBonusChests = bonus.odds;
+        const numerOfGainedFreeSpins = freeSpins.odds;
+        const roundSettlementResult = {
+            winningLines,
+            bonus: numberOfBonusChests,
+            freeSpins: numerOfGainedFreeSpins,
             jackpot,
-            winningLines: winningPaylines.map((item) => item.payline),
         };
 
         return {
             finish: {
-                result,
-                settlementResult: roundSettlement,
                 roundId,
+                result,
+                settlementResult: roundSettlementResult,
                 betWin,
                 bigWin,
-                totalOfFreeSpins: this.freeSpinsConumer.getTotalAvaiableFreeSpins(player),
+                totalOfFreeSpins,
             },
         };
     }
