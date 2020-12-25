@@ -204,7 +204,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         );
 
         betResult.totalBetAmount = bet.totalAmount;
-        betResult.bigWin = betResult.totalWin / bigWinRatio > betResult.totalBetAmount;
+        betResult.bigWin = (betResult.totalWin + bonus) / bigWinRatio > betResult.totalBetAmount;
         betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin + bonus).toFixed(2));
         betResult.netWin = parseFloat((betResult.totalWin + jackpotWin + bonus - betResult.totalBetAmount).toFixed(2));
         betResult.totalLost = betResult.totalBetAmount - betResult.totalWin > 0 ? betResult.totalBetAmount - betResult.totalWin : 0;
