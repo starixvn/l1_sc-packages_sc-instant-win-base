@@ -64,7 +64,7 @@ export default class BonusConsumer {
                 this.publisher.publishBonus(player.UID, { chest: chestIndex, amount: chest.amount });
             });
 
-            await this.settleRoundConsumer.autoSettleRound(player);
+            await this.settleRoundConsumer.autoSettleRound(player, finish.roundId);
         }
     }
 

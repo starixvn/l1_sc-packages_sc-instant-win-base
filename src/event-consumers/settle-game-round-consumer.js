@@ -33,7 +33,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         this.boardCheatingConsumer = boardCheatingConsumer ?? new BoardCheatingConsumer(gameData);
     }
 
-    async autoSettleRound(player) {
+    async autoSettleRound(player, roundId) {
         if (this.gameData.ingame[player.profile.name].finish) {
             const bet = await this.queryBets(roundId);
             const { bonusChests, finish } = this.gameData.ingame[player.profile.name];
