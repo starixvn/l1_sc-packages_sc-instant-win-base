@@ -83,7 +83,7 @@ export default class BonusConsumer {
                 notice: SlotNoticeHelper.invalidBonus,
             },
             {
-                failure: !chest || chest < 0 || chest > this.definition.bonusSize,
+                failure: typeof chest !== "number" || chest < 0 || chest >= this.definition.bonusSize,
                 notice: SlotNoticeHelper.invalidBonus,
             },
             {
