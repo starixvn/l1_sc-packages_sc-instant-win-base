@@ -34,7 +34,7 @@ export default class BonusConsumer {
 
         this.publisher.publishBonus(player.UID, { chest, amount: bonusChests[chest].amount });
 
-        if (bonusChests.filter((chest) => chest.picked).length === finish.settlementResult.bonus) {
+        if (bonusChests.filter((chest) => chest.picked).length === finish.settlementResult.bonus.odds) {
             await this.settleRoundConsumer.settleRound(player, finish.roundId);
         }
     }
@@ -77,6 +77,7 @@ export default class BonusConsumer {
 
     validate(player, chest) {
         const { bonusChests } = this.gameData.ingame[player.profile.name] ?? { bonusChests: [] };
+
         const criteria = [
             {
                 failure: bonusChests?.length === 0,
