@@ -227,7 +227,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 payline: winningPayline.payline,
                 symbol: winningPayline.symbol,
                 count: winningPayline.count,
-                positions: this.boardGenerator.definition.paylines[winningPayline.payline],
+                positions: this.paylineCalculator.definition.paylines[winningPayline.payline],
             };
         });
         const numberOfBonusChests = bonus.odds;
