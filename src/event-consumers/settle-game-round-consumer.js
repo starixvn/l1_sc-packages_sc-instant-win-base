@@ -68,7 +68,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     isUserEnableJackpot(player) {
         const { jackpot } = this.gameData.gameConfigs.slotsConfig;
 
-        return player.session.currency !== "$UUS" || !jackpot.excludeUUS;
+        return player.session.currency !== "UUS" || !jackpot.excludeUUS;
     }
 
     async generateRoundResult(player, roundId, bet) {
@@ -76,13 +76,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const odds = this.gameData.gameConfigs.slotsConfig.icons;
 
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
-        const jackpotWin = settlementResult.jackpotPayline > -1 ? (await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId })).amount : 0;
+        const jackpotWin =
+            settlementResult.jackpotPayline > -1 && this.isUserEnableJackpot(player)
+                ? (await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId })).amount
+                : 0;
 
         settlementResult.winningPaylines = settlementResult.paylines.filter((payline) => payline.odds > 0);
-        settlementResult.jackpot =
-            settlementResult.jackpotPayline > -1 && this.isUserEnableJackpot(player)
-                ? { winningLine: settlementResult.jackpotPayline, winningAmount: jackpotWin }
-                : null;
+        settlementResult.jackpot = jackpotWin > 0 ? { winningLine: settlementResult.jackpotPayline, winningAmount: jackpotWin } : null;
 
         return {
             roundId,
@@ -130,10 +130,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             session: player.session,
         };
 
-        await this.userBetResultPublisher.publishToUser(
-            bet.uid,
-            this.collectRoundResult({ player, result, settlementResult, roundId: finish.roundId })
-        );
+        await this.userBetResultPublisher.publishToUser(bet.uid, this.collectBonusResult({ result, settlementResult, roundId: finish.roundId }));
     }
 
     async settleBets(player, { result, settlementResult, roundId, jackpotWin }, bonusChests = []) {
@@ -247,6 +244,19 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 betWin,
                 bigWin,
                 totalOfFreeSpins,
+            },
+        };
+    }
+
+    collectBonusResult({ result, settlementResult, roundId }) {
+        const { bonus } = settlementResult;
+        const numberOfBonusChests = bonus.odds;
+
+        return {
+            bonuses: {
+                roundId,
+                bonus: numberOfBonusChests,
+                result,
             },
         };
     }
