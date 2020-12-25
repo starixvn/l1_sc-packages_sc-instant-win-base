@@ -35,18 +35,20 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async autoSettleRound(player) {
         if (this.gameData.ingame[player.profile.name].finish) {
+            const bet = await this.queryBets(roundId);
             const { bonusChests, finish } = this.gameData.ingame[player.profile.name];
 
             await this.settleBets(
                 player,
                 finish,
+                bet,
                 bonusChests.filter((chest) => chest.picked)
             );
         }
     }
 
     async settleRound(player, roundId) {
-        const bet = await this.definition.roundRepository.findOne({ id: roundId, paid: false }).lean().exec();
+        const bet = await this.queryBets(roundId);
 
         if (bet) {
             const finish = await this.generateRoundResult(player, roundId, bet);
@@ -54,7 +56,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await this.processFreeSpins(player, bet, finish.settlementResult);
 
             if (finish.settlementResult.bonus?.odds === 0) {
-                await this.settleBets(player, finish);
+                await this.settleBets(player, finish, bet);
             } else {
                 await this.processBonus(player, finish, bet);
             }
@@ -113,14 +115,20 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async processBonus(player, finish, bet) {
-        const { bonus, icons: odds } = this.gameData.gameConfigs.slotsConfig;
+        const { bonus: bonusConfig, icons: odds } = this.gameData.gameConfigs.slotsConfig;
         const { result, settlementResult } = finish;
-        finish.bonusChests = new BonusBoardGenerator({ size: this.definition.bonusSize, minRate: bonus.min, maxRate: bonus.max }).generate(bet.bet);
+        finish.bonusChests = new BonusBoardGenerator({
+            size: this.definition.bonusSize,
+            minRate: bonusConfig.min,
+            maxRate: bonusConfig.max,
+        }).generate(bet.bet);
 
-        const existingBetFilter = { id: finish.roundId };
-        const updatedBet = { ...finish, odds };
+        bet.odds = odds;
+        bet.result = result;
+        bet.settlementResult = settlementResult;
+        bet.bonusChests = finish.bonusChests;
 
-        await this.definition.roundRepository.updateOne(existingBetFilter, updatedBet);
+        await bet.save();
 
         this.gameData.ingame[player.profile.name].bonusChests = finish.bonusChests;
         this.gameData.ingame[player.profile.name].finish = finish;
@@ -133,9 +141,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         await this.userBetResultPublisher.publishToUser(bet.uid, this.collectBonusResult({ result, settlementResult, roundId: finish.roundId }));
     }
 
-    async settleBets(player, { result, settlementResult, roundId, jackpotWin }, bonusChests = []) {
-        const bet = await this.queryBets(roundId);
-
+    async settleBets(player, { result, settlementResult, roundId, jackpotWin }, bet, bonusChests = []) {
         if (bet) {
             const odds = bet.odds ?? this.gameData.gameConfigs.slotsConfig.icons;
             const bonus = this.calculateBonusAmount(bonusChests);
