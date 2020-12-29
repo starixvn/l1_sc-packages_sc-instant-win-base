@@ -35,7 +35,7 @@ export default class BonusConsumer {
         this.publisher.publishBonus(player.UID, { chest, amount: bonusChests[chest].amount });
 
         if (bonusChests.filter((chest) => chest.picked).length === finish.settlementResult.bonus.odds) {
-            await this.settleRoundConsumer.settleRound(player, finish.roundId);
+            await this.settleRoundConsumer.autoSettleRound(player, finish.roundId);
         }
     }
 
