@@ -1,3 +1,4 @@
+import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
 import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
@@ -84,6 +85,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             newBet.siteId = player.session.siteId;
         }
 
+        logger.log(`upsertBet player ${newBet.name} - round ${newBet.id} - choices ${newBet.paylines?.length} - amount ${newBet.amount}`);
         await this.definition.roundRepository.create(newBet);
     }
 
