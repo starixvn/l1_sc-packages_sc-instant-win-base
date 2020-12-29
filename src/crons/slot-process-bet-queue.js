@@ -85,7 +85,9 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             newBet.siteId = player.session.siteId;
         }
 
-        logger.log(`upsertBet player ${newBet.name} - round ${newBet.id} - choices ${newBet.paylines?.length} - amount ${newBet.amount}`);
+        logger.log(
+            `upsertBet player ${newBet.name} - round ${newBet.id} - choices ${newBet.paylines?.length} - amount ${newBet.bet} - freeSpin ${newBet.freeSpin}`
+        );
         await this.definition.roundRepository.create(newBet);
     }
 
