@@ -26,6 +26,8 @@ export default class JackpotPublisher extends Core.BaseEventPublishers.BasePubli
                 ...winner,
             };
 
+            logger.logWarning(`sends jackpot winner to main game socket with the following parameters: ${JSON.stringify(params)}`);
+
             await Core.Helpers.authenticationHelper.post("jackpotWinner", params);
         } catch (error) {
             logger.logError(error);
