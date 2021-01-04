@@ -1,7 +1,8 @@
 import { getBalance } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
-import { FreeSpinsConsumer } from ".";
+import { Jackpots } from "./../models/jackpots";
+import FreeSpinsConsumer from "./free-spins-consumer";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
     constructor({ definition, gameData, roundQuery, publisher, freeSpinsConsumer }) {
@@ -17,6 +18,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             odds,
         };
         const totalOfFreeSpins = this.freeSpinsConsumer.getTotalAvaiableFreeSpins(realPlayer);
+        const jackpotPools = await this.getPools();
 
         await getBalance(realPlayer, true);
 
@@ -24,8 +26,23 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
 
         return {
             gameConfigs,
+            jackpotPools,
             totalOfFreeSpins,
             user,
         };
+    }
+
+    async getPools() {
+        const runningPoolsFilter = {
+            gameId: this.definition.id,
+            winnerName: { $exists: false },
+        };
+        const projection = {
+            _id: false,
+            pool: true,
+            amount: true,
+        };
+
+        return await Jackpots.find(runningPoolsFilter, projection).lean().exec();
     }
 }
