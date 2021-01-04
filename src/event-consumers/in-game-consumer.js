@@ -1,7 +1,7 @@
 import { getBalance } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
-import { Jackpots } from "./../models/jackpots";
+import { Jackpots } from "./../models";
 import FreeSpinsConsumer from "./free-spins-consumer";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
