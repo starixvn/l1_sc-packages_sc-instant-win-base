@@ -2,6 +2,12 @@ import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
 export default class JackpotPublisher extends Core.BaseEventPublishers.BasePublisher {
+    constructor(gameId, gameName, gameData) {
+        super(gameName, gameData);
+
+        this.gameId = gameId;
+    }
+
     publishLatestPool(pool) {
         this.publishToAllUsers({ jackpotPool: pool });
     }
@@ -16,7 +22,7 @@ export default class JackpotPublisher extends Core.BaseEventPublishers.BasePubli
     async sendJackpotWinner(winner) {
         try {
             const params = {
-                gameName: this.gameName,
+                gameId: this.gameId,
                 ...winner,
             };
 
