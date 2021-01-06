@@ -22,14 +22,25 @@ export default class SlotHistoryQuery {
             odds: false,
             siteId: false,
             memberId: false,
-            bonusChests: false,
             __v: false,
             __archive: false,
         };
-        const betLogs = await this.definition.roundRepository
+        const rawBetLogs = await this.definition.roundRepository
             .find(filter, roundProjection, { sort: { _id: -1 }, skip: numberOfSkippedBets, limit: pageSize })
             .lean()
             .exec();
+        const betLogs = rawBetLogs.map((rawBetLog) => {
+            const betLog = { ...rawBetLog };
+
+            delete betLog.bonusChests;
+
+            betLog.settlementResult.bonus.winningAmount = rawBetLog.bonusChests.reduce(
+                (winningAmount, bonusChest) => winningAmount + bonusChest.amount,
+                0
+            );
+
+            return betLog;
+        });
 
         return { history: { betLogs, page, pageSize, total } };
     }
