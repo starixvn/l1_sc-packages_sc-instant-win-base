@@ -90,7 +90,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             roundId,
             result,
             settlementResult,
-            jackpotWin,
+            jackpotWin: settlementResult.jackpot ? settlementResult.jackpot.winningAmount : 0,
             time: bet.time,
         };
     }
