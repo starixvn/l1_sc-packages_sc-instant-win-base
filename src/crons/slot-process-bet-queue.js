@@ -23,8 +23,10 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
 
     async proceedBet(player, payload) {
         const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(player);
+        const { slotsConfig } = this.gameData.gameConfigs;
+        const contributionRate = slotsConfig.jackpot ? slotsConfig.jackpot.playerContributionRatio : 0;
 
-        payload.freeSpin = payload.freeSpin || (!payload.freeSpin && soonestExpiredFreeSpinSet);
+        payload.freeSpin = payload.freeSpin || (soonestExpiredFreeSpinSet ?? false);
 
         if (payload.freeSpin && !soonestExpiredFreeSpinSet) {
             this.publisher.publishGameFailedBet(player.UID, { endBet: -1, notice: SlotNoticeHelper.invalidFreeSpin });
@@ -40,6 +42,8 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
         }
 
         payload.totalAmount = payload.amount * payload.betChoice.length;
+        payload.contributionRate = contributionRate;
+        payload.contributionAmount = contributionRate * payload.totalAmount;
         this.gameData.roundId += 1;
 
         await super.proceedBet(player, payload);
@@ -53,6 +57,8 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             choiceId: 0,
             freeBet: payload.freeBet,
             freeSpin: payload.freeSpin,
+            contributionRate: payload.contributionRate,
+            contributionAmount: payload.contributionAmount,
         };
     }
 
