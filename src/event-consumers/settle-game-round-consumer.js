@@ -1,3 +1,4 @@
+import { hitJackpot } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
 import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "./../board";
@@ -76,15 +77,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     async generateRoundResult(player, roundId, bet) {
         const result = this.generateResult(bet.name);
         const odds = this.gameData.gameConfigs.slotsConfig.icons;
-
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
-        const jackpotWin =
+
+        settlementResult.jackpot =
             settlementResult.jackpotPayline > -1 && this.isUserEnableJackpot(player)
-                ? (await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId })).amount
-                : 0;
+                ? await this.processJackpot(player, roundId, bet.bet, jackpotPayline, settlementResult.jackpotPayline)
+                : null;
 
         settlementResult.winningPaylines = settlementResult.paylines.filter((payline) => payline.odds > 0);
-        settlementResult.jackpot = jackpotWin > 0 ? { winningLine: settlementResult.jackpotPayline, winningAmount: jackpotWin } : null;
 
         return {
             roundId,
@@ -141,12 +141,21 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         await this.userBetResultPublisher.publishToUser(bet.uid, this.collectBonusResult({ result, settlementResult, roundId: finish.roundId }));
     }
 
-    async settleBets(player, { result, settlementResult, roundId, jackpotWin }, bet, bonusChests = []) {
+    async processJackpot(player, roundId, betAmount, winningLine) {
+        const winningAmount = (await this.jackpotConsumer.hit(player, { pool: betAmount, roundId })).amount;
+        const hitJackpotResult = await hitJackpot(player, { gameRoundId: roundId, gameId: this.definition.id, winningAmount });
+
+        const error = hitJackpotResult.isOk ? "" : hitJackpotResult.response.message;
+
+        return { winningAmount, error, winningLine };
+    }
+
+    async settleBets(player, { result, settlementResult, roundId }, bet, bonusChests = []) {
         if (bet) {
             const odds = bet.odds ?? this.gameData.gameConfigs.slotsConfig.icons;
             const bonus = this.calculateBonusAmount(bonusChests);
 
-            const betResult = this.calculatePaylineResult(settlementResult.winningPaylines, bet, jackpotWin, bonus);
+            const betResult = this.calculatePaylineResult(settlementResult.winningPaylines, bet, bonus);
             bet.odds = bet.odds ?? odds;
             bet.result = bet.result.length === 0 ? result : bet.result;
             bet.settlementResult = bet.settlementResult ?? settlementResult;
@@ -190,7 +199,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return this.definition.roundRepository.findOne({ id: roundId, paid: false }).exec();
     }
 
-    calculatePaylineResult(paylines, bet, jackpotWin, bonus = 0) {
+    calculatePaylineResult(paylines, bet, bonus = 0) {
         const { bigWinRatio } = this.gameData.gameConfigs.slotsConfig;
 
         const betResult = paylines.reduce(
@@ -211,8 +220,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         betResult.totalBetAmount = bet.totalAmount;
         betResult.bigWin = (betResult.totalWin + bonus) / bigWinRatio > betResult.totalBetAmount;
-        betResult.totalWin = parseFloat((betResult.totalWin + jackpotWin + bonus).toFixed(2));
-        betResult.netWin = parseFloat((betResult.totalWin + jackpotWin + bonus - betResult.totalBetAmount).toFixed(2));
+        betResult.totalWin = parseFloat((betResult.totalWin + bonus).toFixed(2));
+        betResult.netWin = parseFloat((betResult.totalWin + bonus - betResult.totalBetAmount).toFixed(2));
         betResult.totalLost = betResult.totalBetAmount - betResult.totalWin > 0 ? betResult.totalBetAmount - betResult.totalWin : 0;
 
         return betResult;
