@@ -21,8 +21,8 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(realPlayer);
         const freeSpins = {
             total: totalOfFreeSpins,
-            bet: soonestExpiredFreeSpinSet.bet,
-            paylines: soonestExpiredFreeSpinSet.paylines,
+            bet: soonestExpiredFreeSpinSet?.bet,
+            paylines: soonestExpiredFreeSpinSet?.paylines,
         };
         const jackpotPools = await this.getPools();
 
