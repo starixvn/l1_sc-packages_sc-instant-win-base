@@ -18,6 +18,12 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             odds,
         };
         const totalOfFreeSpins = this.freeSpinsConsumer.getTotalAvaiableFreeSpins(realPlayer);
+        const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(realPlayer);
+        const freeSpins = {
+            total: totalOfFreeSpins,
+            bet: soonestExpiredFreeSpinSet.bet,
+            paylines: soonestExpiredFreeSpinSet.paylines,
+        };
         const jackpotPools = await this.getPools();
 
         await getBalance(realPlayer, true);
@@ -27,7 +33,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         return {
             gameConfigs,
             jackpotPools,
-            totalOfFreeSpins,
+            freeSpins,
             user,
         };
     }
