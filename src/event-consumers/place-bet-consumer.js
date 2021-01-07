@@ -41,6 +41,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     composeBetChoiceValidationCriteria(betChoice) {
         return [
             {
+                failure: betChoice.length < 1,
+                notice: SlotNoticeHelper.invalidPaylines,
+            },
+            {
                 failure: betChoice.filter((choice) => !this.definition.choices.includes(choice)).length > 0,
                 notice: SlotNoticeHelper.invalidPaylines,
             },
