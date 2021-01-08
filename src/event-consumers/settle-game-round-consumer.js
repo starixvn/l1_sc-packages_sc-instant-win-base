@@ -242,12 +242,18 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 positions: this.paylineCalculator.definition.paylines[winningPayline.payline],
             };
         });
-        const numberOfBonusChests = bonus.odds;
-        const numerOfGainedFreeSpins = freeSpins.odds;
+        const winningBonus = {
+            symbol: this.boardGenerator.definition.specialSymbols.bonus,
+            count: bonus.odds,
+        };
+        const winningFreeSpins = {
+            symbol: this.boardGenerator.definition.specialSymbols.freeSpin,
+            count: freeSpins.odds,
+        };
         const roundSettlementResult = {
             winningLines,
-            bonus: numberOfBonusChests,
-            freeSpins: numerOfGainedFreeSpins,
+            bonus: winningBonus,
+            freeSpins: winningFreeSpins,
             jackpot,
         };
 
