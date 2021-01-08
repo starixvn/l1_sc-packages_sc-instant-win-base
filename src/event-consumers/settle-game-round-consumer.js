@@ -247,7 +247,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             count: bonus.odds,
         };
         const winningFreeSpins = {
-            symbol: this.boardGenerator.definition.specialSymbols.freeSpin,
+            symbol: this.boardGenerator.definition.specialSymbols.freeSpins,
             count: freeSpins.odds,
         };
         const roundSettlementResult = {
