@@ -25,7 +25,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
         const { slotsConfig } = this.gameData.gameConfigs;
         const contributionRate = slotsConfig.jackpot ? slotsConfig.jackpot.playerContributionRatio : 0;
 
-        payload.freeSpin = payload.freeSpin || (soonestExpiredFreeSpinSet ?? false);
+        payload.freeSpin = payload.freeSpin || (soonestExpiredFreeSpinSet == null ? false : true);
 
         if (payload.freeSpin && !soonestExpiredFreeSpinSet) {
             this.publisher.publishGameFailedBet(player.UID, { endBet: -1, notice: SlotNoticeHelper.invalidFreeSpin });
