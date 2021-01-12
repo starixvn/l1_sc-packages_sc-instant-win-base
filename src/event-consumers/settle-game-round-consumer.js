@@ -81,7 +81,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         settlementResult.jackpot =
             settlementResult.jackpotPayline > -1 && this.isUserEnableJackpot(player)
-                ? await this.processJackpot(player, roundId, bet.bet, jackpotPayline, settlementResult.jackpotPayline)
+                ? await this.processJackpot(player, roundId, bet.bet, settlementResult.jackpotPayline)
                 : null;
 
         settlementResult.winningPaylines = settlementResult.paylines.filter((payline) => payline.odds > 0);
