@@ -79,7 +79,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
                 return;
             }
 
-            this.bonusConsumer.consume(this.gameData.realPlayers[this.socketClient.id], payload);
+            await this.bonusConsumer.consume(this.gameData.realPlayers[this.socketClient.id], payload);
         } catch (error) {
             logger.logError(error);
         }
