@@ -88,7 +88,7 @@ export default class BonusConsumer {
                 notice: SlotNoticeHelper.invalidBonus,
             },
             {
-                failure: bonusChests[chest]?.picked,
+                failure: bonusChests[chest] && bonusChests[chest].picked,
                 notice: SlotNoticeHelper.openedBonus,
             },
         ];
