@@ -144,10 +144,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     async processJackpot(player, roundId, betAmount, winningLine) {
         const winningAmount = (await this.jackpotConsumer.hit(player, { pool: betAmount, roundId })).amount;
         const hitJackpotResult = await hitJackpot(player, { gameRoundId: roundId, gameId: this.definition.id, winningAmount });
-
         const error = hitJackpotResult.isOk ? "" : hitJackpotResult.response.message;
+        const symbol = this.boardGenerator.definition.specialSymbols.jackpot;
 
-        return { winningAmount, error, winningLine };
+        return { winningAmount, error, winningLine, symbol };
     }
 
     async settleBets(player, { result, settlementResult, roundId }, bet, bonusChests = []) {
