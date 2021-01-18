@@ -12,10 +12,13 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     }
 
     async buildPayload(realPlayer) {
-        const { stakeLevels, icons: odds } = this.gameData.gameConfigs.slotsConfig;
+        const { stakeLevels, icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = {
             stakeLevels: stakeLevels.map((level) => level.stake),
             odds,
+            jackpot: {
+                winningRatio: jackpot.winningRatio,
+            },
         };
         const totalOfFreeSpins = this.freeSpinsConsumer.getTotalAvaiableFreeSpins(realPlayer);
         const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(realPlayer);
