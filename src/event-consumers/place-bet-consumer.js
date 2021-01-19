@@ -50,4 +50,9 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             },
         ];
     }
+
+    consume(player, payload) {
+        payload.freeSpin = payload.freeSpin ?? false;
+        super.consume(player, payload);
+    }
 }
