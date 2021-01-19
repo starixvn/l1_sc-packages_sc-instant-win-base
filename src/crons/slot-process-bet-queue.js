@@ -102,4 +102,6 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             user: { ...balance },
         };
     }
+
+    decreaseBetTracks(playerName, bet) {}
 }

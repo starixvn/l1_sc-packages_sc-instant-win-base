@@ -55,4 +55,6 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         payload.freeSpin = payload.freeSpin ?? false;
         super.consume(player, payload);
     }
+
+    adjustBetTracks(playerName, bet) {}
 }
