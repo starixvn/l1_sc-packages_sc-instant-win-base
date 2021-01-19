@@ -28,7 +28,7 @@
     "license": "ISC",
     "dependencies": {
         "chance": "^1.1.7",
-        "sc-game-base": "^1.17.5-beta.0"
+        "sc-game-base": "^1.17.6-beta.0"
     },
     "devDependencies": {
         "@commitlint/cli": "^9.1.2",
