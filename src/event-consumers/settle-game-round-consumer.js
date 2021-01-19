@@ -232,13 +232,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     collectRoundResult({ player, result, settlementResult, roundId, betWin = 0, bigWin = false }) {
         const totalOfFreeSpins = this.freeSpinsConumer.getTotalAvaiableFreeSpins(player);
-        const settlementResult = this.collectRoundSettlementResult(settlementResult);
+        const roundSettlementResult = this.collectRoundSettlementResult(settlementResult);
 
         return {
             finish: {
                 roundId,
                 result,
-                settlementResult,
+                settlementResult: roundSettlementResult,
                 betWin,
                 bigWin,
                 totalOfFreeSpins,
@@ -263,11 +263,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             symbol: this.boardGenerator.definition.specialSymbols.freeSpins,
             count: freeSpins.odds,
         };
-        const winningJackpot = {
-            ...jackpot,
-            symbol: this.boardGenerator.definition.specialSymbols.jackpot,
-            positions: this.paylineCalculator.definition.paylines[jackpot.winningLine],
-        };
+        const winningJackpot = jackpot
+            ? {
+                  ...jackpot,
+                  symbol: this.boardGenerator.definition.specialSymbols.jackpot,
+                  positions: this.paylineCalculator.definition.paylines[jackpot.winningLine],
+              }
+            : null;
 
         return {
             winningLines,
