@@ -31,4 +31,8 @@ export default class JackpotPublisher extends Core.BaseEventPublishers.BasePubli
             logger.logError(error);
         }
     }
+
+    publishFailedJackpot(playerId, error) {
+        this.publishToUser(playerId, { jackpotError: error });
+    }
 }

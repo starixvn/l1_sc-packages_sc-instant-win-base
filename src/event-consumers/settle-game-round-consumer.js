@@ -2,6 +2,7 @@ import { hitJackpot } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
 import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "./../board";
+import { JackpotPublisher } from "./../event-publishers";
 import BoardCheatingConsumer from "./board-cheating-consumer";
 import FreeSpinsConsumer from "./free-spins-consumer";
 import HallOfFameConsumer from "./hall-of-fame-consumer";
@@ -23,6 +24,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         freeSpinsConsumer = null,
         hallOfFameConsumer = null,
         boardCheatingConsumer = null,
+        jackpotPublisher = null,
     }) {
         super(definition, gameData, roundResultPublisher, userBetResultPublisher);
 
@@ -32,6 +34,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         this.freeSpinsConumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
         this.hallOfFameConsumer = hallOfFameConsumer ?? new HallOfFameConsumer(definition);
         this.boardCheatingConsumer = boardCheatingConsumer ?? new BoardCheatingConsumer(gameData);
+        this.jackpotPublisher = jackpotPublisher ?? new JackpotPublisher(definition.id, definition.name, gameData);
     }
 
     async autoSettleRound(player, roundId) {
@@ -144,17 +147,21 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     async processJackpot(player, roundId, betAmount, winningLine) {
         const winningAmount = (await this.jackpotConsumer.hit(player, { pool: betAmount, roundId })).amount;
         const hitJackpotResult = await hitJackpot(player, { gameRoundId: roundId, gameId: this.definition.id, winningAmount });
-        const error = hitJackpotResult.isOk ? "" : hitJackpotResult.response.message;
+        const error = hitJackpotResult.isOk ? null : hitJackpotResult.response.message;
 
-        return { winningAmount, error, winningLine };
+        if (error) {
+            this.jackpotPublisher.publishFailedJackpot(player.UID, error);
+        }
+
+        return { winningAmount, winningLine };
     }
 
     async settleBets(player, { result, settlementResult, roundId }, bet, bonusChests = []) {
         if (bet) {
             const odds = bet.odds ?? this.gameData.gameConfigs.slotsConfig.icons;
             const bonus = this.calculateBonusAmount(bonusChests);
-
             const betResult = this.calculatePaylineResult(settlementResult.winningPaylines, bet, bonus);
+
             bet.odds = bet.odds ?? odds;
             bet.result = bet.result.length === 0 ? result : bet.result;
             bet.settlementResult = bet.settlementResult ?? settlementResult;
