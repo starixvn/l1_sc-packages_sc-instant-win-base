@@ -124,7 +124,7 @@ function calculateSettlementResultOfSpecificBoard() {
 }
 
 function generateBonusBonus() {
-    const board = new BonusBoardGenerator({ size: 10, minRate: 8, maxRate: 28 }).generate(100);
+    const board = new BonusBoardGenerator(10).generate(100, 8, 28);
 
     console.log(board);
 }

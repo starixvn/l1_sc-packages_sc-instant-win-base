@@ -1,8 +1,11 @@
 import defaultDefinition from "./default-definition";
 
 export default class PaylineCalculator {
-    constructor(definition) {
-        this.definition = definition ?? defaultDefinition;
+    /**
+     * @param {defaultDefinition} boardDefinition
+     */
+    constructor(boardDefinition) {
+        this.definition = boardDefinition ?? defaultDefinition;
         this.specialSymbols = Object.values(this.definition.specialSymbols).map((symbol) => String(symbol));
         this.ignoringOddsSymbols = [String(this.definition.specialSymbols.freeSpins), String(this.definition.specialSymbols.bonus)];
     }

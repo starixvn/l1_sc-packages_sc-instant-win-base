@@ -1,15 +1,25 @@
-import { gameNotifications } from "sc-base-database";
+import mongoose from "mongoose";
 import { Core } from "sc-game-base";
 
+import SlotGameData from "./../slot-game-data";
 import BonusConsumer from "./bonus-consumer";
 import FreeSpinsConsumer from "./free-spins-consumer";
 
 export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconnectConsumer {
-    constructor(definition, gameData, bonusConsumer, freeSpinConsumer) {
+    /**
+     * @param {Number} gameId
+     * @param {SlotGameData} gameData
+     * @param {BonusConsumer} gameData
+     * @param {FreeSpinsConsumer} gameData
+     * @param {mongoose.Model} gameNotificationsRepository
+     */
+    constructor(gameId, gameData, bonusConsumer, freeSpinConsumer, gameNotificationsRepository) {
         super(gameData);
-        this.definition = definition;
-        this.bonusConsumer = bonusConsumer ?? new BonusConsumer(definition, gameData);
-        this.freeSpinConsumer = freeSpinConsumer ?? new FreeSpinsConsumer(definition, gameData);
+
+        this.gameId = gameId;
+        this.bonusConsumer = bonusConsumer;
+        this.freeSpinConsumer = freeSpinConsumer;
+        this.gameNotificationsRepository = gameNotificationsRepository;
     }
 
     /**
@@ -30,7 +40,7 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
         const latestExpiredFreeSpinSet = this.freeSpinConsumer.getLatestExpiredFreeSpinSet(realPlayer);
         const filter = {
             uid: realPlayer.UID,
-            gameId: this.definition.id,
+            gameId: this.gameId,
         };
 
         if (latestExpiredFreeSpinSet) {
@@ -40,9 +50,9 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
                 },
             };
 
-            await gameNotifications.updateOne(filter, { $set: adjustment }, { upsert: true });
+            await this.gameNotificationsRepository.updateOne(filter, { $set: adjustment }, { upsert: true });
         } else {
-            await gameNotifications.deleteOne(filter);
+            await this.gameNotificationsRepository.deleteOne(filter);
         }
     }
 }

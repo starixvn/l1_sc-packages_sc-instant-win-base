@@ -2,27 +2,59 @@ import cron from "cron";
 import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
-import { BonusConsumer, FreeSpinsConsumer, IdCountersConsumer, JackpotConsumer } from "./../event-consumers";
+import { SlotGameBot } from "./../crons";
+import * as EventConsumers from "./../event-consumers";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class SlotGameCron extends Core.Cron.BaseGameCron {
+    /**
+     * @param {Object} dependencies
+     * @param {SlotGameDefinition} dependencies.definition
+     * @param {SlotGameData} dependencies.gameData
+     * @param {SlotGameBot} dependencies.bot
+     * @param {EventConsumers.SettleGameRoundConsumer} dependencies.settleGameRoundConsumer
+     * @param {EventConsumers.FreeSpinsConsumer} dependencies.freeSpinsConsumer
+     * @param {EventConsumers.BonusConsumer} dependencies.bonusConsumer
+     * @param {EventConsumers.IdCountersConsumer} dependencies.idCountersConsumer
+     * @param {EventConsumers.JackpotConsumer} dependencies.jackpotConsumer
+     * @param {Core.BaseEventPublishers.GameStatusPublisher} dependencies.gameStatusPublisher
+     * @param {Core.BaseEventPublishers.RunningRoundInfoPublisher} dependencies.runningRoundInfoPublisher
+     * @param {logger} dependencies.logService
+     * @param {mongoose.Model} dependencies.gameConfigsRepository
+     * @param {mongoose.Model} dependencies.roundsRepository
+     */
     constructor({
         definition,
         gameData,
-        bot = null,
-        settleGameRoundConsumer = null,
-        gameStatusPublisher = null,
-        runningRoundInfoPublisher = null,
-        freeSpinsConsumer = null,
-        bonusConsumer = null,
-        idCountersConsumer = null,
-        jackpotConsumer = null,
+        bot,
+        settleGameRoundConsumer,
+        freeSpinsConsumer,
+        bonusConsumer,
+        idCountersConsumer,
+        jackpotConsumer,
+        gameStatusPublisher,
+        runningRoundInfoPublisher,
+        logService,
+        gameConfigsRepository,
+        roundsRepository,
     }) {
-        super(definition, gameData, bot, settleGameRoundConsumer, gameStatusPublisher, runningRoundInfoPublisher);
+        super({
+            definition,
+            gameData,
+            bot,
+            settleGameRoundConsumer,
+            gameStatusPublisher,
+            runningRoundInfoPublisher,
+            logService,
+            gameConfigsRepository,
+            roundsRepository,
+        });
 
-        this.freeSpinsConsumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
-        this.bonusConsumer = bonusConsumer ?? new BonusConsumer(definition, gameData);
-        this.idCountersConsumer = idCountersConsumer ?? new IdCountersConsumer(definition, gameData);
-        this.jackpotConsumer = jackpotConsumer ?? new JackpotConsumer(definition, gameData);
+        this.freeSpinsConsumer = freeSpinsConsumer;
+        this.bonusConsumer = bonusConsumer;
+        this.idCountersConsumer = idCountersConsumer;
+        this.jackpotConsumer = jackpotConsumer;
     }
 
     async start() {
@@ -83,7 +115,7 @@ export default class SlotGameCron extends Core.Cron.BaseGameCron {
             freeSpin: false,
         };
         const sort = { id: -1 };
-        const bets = await this.definition.roundRepository.find(filter, projection, { sort }).lean().exec();
+        const bets = await this.roundsRepository.find(filter, projection, { sort }).lean().exec();
 
         this.gameData.ingame = this.mapToIngameData(bets);
     }

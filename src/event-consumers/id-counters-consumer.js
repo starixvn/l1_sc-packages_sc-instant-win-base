@@ -1,15 +1,17 @@
-import { IdCounters } from "./../models";
+import mongoose from "mongoose";
+
 import SlotGameData from "./../slot-game-data";
-import SlotGameDefinition from "./../slot-game-definition";
 
 export default class IdCountersConsumer {
     /**
-     * @param {SlotGameDefinition} definition
+     * @param {String} gameName
      * @param {SlotGameData} gameData
+     * @param {mongoose.Model} idCountersRepository
      */
-    constructor(definition, gameData) {
+    constructor(gameName, gameData, idCountersRepository) {
         this.gameData = gameData;
-        this.modelName = `${definition.name}_round`;
+        this.modelName = `${gameName}_round`;
+        this.idCountersRepository = idCountersRepository;
     }
 
     async consume() {
@@ -25,13 +27,13 @@ export default class IdCountersConsumer {
             upsert: true,
             fields: { c: 1 },
         };
-        const latestCounter = await IdCounters.findOneAndUpdate(filter, increment, updateOptions);
+        const latestCounter = await this.idCountersRepository.findOneAndUpdate(filter, increment, updateOptions);
 
         return latestCounter.c;
     }
 
     async getLatestId() {
-        const latestCounter = await IdCounters.findOne({ m: this.modelName }, "c").lean().exec();
+        const latestCounter = await this.idCountersRepository.findOne({ m: this.modelName }, "c").lean().exec();
 
         return latestCounter?.c;
     }

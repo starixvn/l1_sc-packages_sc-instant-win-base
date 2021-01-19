@@ -1,29 +1,46 @@
-import { userInfos } from "sc-base-database";
+import mongoose from "mongoose";
 import { Core } from "sc-game-base";
 
-import { BoardGenerator, PaylineCalculator } from "./../board";
-import { BoardCheatingConsumer, HallOfFameConsumer, IdCountersConsumer, JackpotConsumer } from "./../event-consumers";
+import * as Board from "./../board";
+import * as EventConsumers from "./../event-consumers";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 
 export default class SlotGameBot extends Core.Cron.BaseBot {
+    /**
+     * @param {Object} dependencies
+     * @param {SlotGameDefinition} dependencies.definition
+     * @param {SlotGameData} dependencies.gameData
+     * @param {Core.BaseEventPublishers.BaseEventPublisher} dependencies.publisher
+     * @param {EventConsumers.JackpotConsumer} dependencies.jackpotConsumer
+     * @param {EventConsumers.IdCountersConsumer} dependencies.idCountersConsumer
+     * @param {EventConsumers.HallOfFameConsumer} dependencies.hallOfFameConsumer
+     * @param {EventConsumers.BoardCheatingConsumer} dependencies.boardCheatingConsumer
+     * @param {Board.BoardGenerator} dependencies.boardGenerator
+     * @param {Board.PaylineCalculator} dependencies.paylineCalculator
+     * @param {mongoose.Model} dependencies.userInfosRepository
+     */
     constructor({
         definition,
         gameData,
-        publisher = null,
-        jackpotConsumer = null,
-        idCountersConsumer = null,
-        hallOfFameConsumer = null,
-        boardCheatingConsumer = null,
-        boardGenerator = null,
-        paylineCalculator = null,
+        publisher,
+        jackpotConsumer,
+        idCountersConsumer,
+        hallOfFameConsumer,
+        boardCheatingConsumer,
+        boardGenerator,
+        paylineCalculator,
+        userInfosRepository,
     }) {
         super(definition, gameData, publisher);
 
-        this.idCountersConsumer = idCountersConsumer ?? new IdCountersConsumer(definition, gameData);
-        this.jackpotConsumer = jackpotConsumer ?? new JackpotConsumer(definition, gameData);
-        this.hallOfFameConsumer = hallOfFameConsumer ?? new HallOfFameConsumer(definition);
-        this.boardCheatingConsumer = boardCheatingConsumer ?? new BoardCheatingConsumer(gameData);
-        this.boardGenerator = boardGenerator ?? new BoardGenerator();
-        this.paylineCalculator = paylineCalculator ?? new PaylineCalculator();
+        this.idCountersConsumer = idCountersConsumer;
+        this.jackpotConsumer = jackpotConsumer;
+        this.hallOfFameConsumer = hallOfFameConsumer;
+        this.boardCheatingConsumer = boardCheatingConsumer;
+        this.boardGenerator = boardGenerator;
+        this.paylineCalculator = paylineCalculator;
+        this.userInfosRepository = userInfosRepository;
 
         this.totalNumberOfTickets = 0;
         this.odds = {};
@@ -37,7 +54,7 @@ export default class SlotGameBot extends Core.Cron.BaseBot {
         const configs = this.gameData.gameConfigs;
 
         if (configs?.botenabled) {
-            const bots = await userInfos.find({ type: true, disabled: false }, "id name").lean().exec();
+            const bots = await userInfosRepository.find({ type: true, disabled: false }, "id name").lean().exec();
 
             this.bots = this.chance.shuffle(this.standardizeBots(bots)).slice(0, this.maxNumberOfBots);
         } else {

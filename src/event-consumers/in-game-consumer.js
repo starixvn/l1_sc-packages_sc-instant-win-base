@@ -1,14 +1,27 @@
-import { getBalance } from "sc-base-apis";
+import { getBalance as getBalanceApi } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
-import { Jackpots } from "./../models";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 import FreeSpinsConsumer from "./free-spins-consumer";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
-    constructor({ definition, gameData, roundQuery, publisher, freeSpinsConsumer }) {
-        super({ definition, gameData, roundQuery, publisher });
+    /**
+     * @param {Object} dependencies
+     * @param {SlotGameDefinition} dependencies.definition
+     * @param {SlotGameData} dependencies.gameData
+     * @param {Core.QueryApis.RoundQuery} dependencies.roundQuery
+     * @param {Core.BaseEventPublishers.BaseEventPublisher} dependencies.publisher
+     * @param {FreeSpinsConsumer} dependencies.freeSpinsConsumer
+     * @param {getBalanceApi} dependencies.getBalance
+     * @param {mongoose.Model} dependencies.userInfosRepository
+     * @param {mongoose.Model} dependencies.jackpotsRepository
+     */
+    constructor({ definition, gameData, roundQuery, publisher, freeSpinsConsumer, getBalance, userInfosRepository, jackpotsRepository }) {
+        super(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository);
 
-        this.freeSpinsConsumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
+        this.freeSpinsConsumer = freeSpinsConsumer;
+        this.jackpotsRepository = jackpotsRepository;
     }
 
     async buildPayload(realPlayer) {
@@ -29,7 +42,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         };
         const jackpotPools = await this.getPools();
 
-        await getBalance(realPlayer, true);
+        await this.getBalance(realPlayer, true);
 
         const user = await this.getUserInfo(realPlayer.UID);
 
@@ -52,6 +65,6 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             amount: true,
         };
 
-        return await Jackpots.find(runningPoolsFilter, projection).lean().exec();
+        return await this.jackpotsRepository.find(runningPoolsFilter, projection).lean().exec();
     }
 }

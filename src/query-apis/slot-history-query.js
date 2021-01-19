@@ -1,11 +1,11 @@
-import SlotGameDefinition from "./../slot-game-definition";
+import mongoose from "mongoose";
 
 export default class SlotHistoryQuery {
     /**
-     * @param {SlotGameDefinition} definition
+     * @param {mongoose.Model} roundsRepository
      */
-    constructor(definition) {
-        this.definition = definition;
+    constructor(roundsRepository) {
+        this.roundsRepository = roundsRepository;
     }
 
     async queryHistory(player, page, pageSize = 8) {
@@ -15,7 +15,7 @@ export default class SlotHistoryQuery {
 
         const filter = { uid: player.UID, paid: true };
         const numberOfSkippedBets = (page - 1) * pageSize;
-        const total = await this.definition.roundRepository.countDocuments(filter).exec();
+        const total = await this.roundsRepository.countDocuments(filter).exec();
         const roundProjection = {
             _id: false,
             paid: false,
@@ -25,7 +25,7 @@ export default class SlotHistoryQuery {
             __v: false,
             __archive: false,
         };
-        const rawBetLogs = await this.definition.roundRepository
+        const rawBetLogs = await this.roundsRepository
             .find(filter, roundProjection, { sort: { _id: -1 }, skip: numberOfSkippedBets, limit: pageSize })
             .lean()
             .exec();

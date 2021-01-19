@@ -1,19 +1,21 @@
 import Chance from "chance";
 
-export default class BonusBoardGenerator {
-    constructor({ size, minRate, maxRate }) {
-        this.chance = new Chance();
+import SlotGameDefinition from "./../slot-game-definition";
 
-        this.size = size;
-        this.minRate = minRate;
-        this.maxRate = maxRate;
+export default class BonusBoardGenerator {
+    /**
+     * @param {SlotGameDefinition} definition
+     */
+    constructor(definition) {
+        this.chance = new Chance();
+        this.size = definition.bonusSize;
     }
 
-    generate(betAmount) {
+    generate(betAmount, minRate, maxRate) {
         let bonusBoard = [];
 
         for (let counter = 0; counter < this.size; counter++) {
-            const bonusRate = this.chance.natural({ min: this.minRate, max: this.maxRate });
+            const bonusRate = this.chance.natural({ min: minRate, max: maxRate });
             const bonus = { amount: bonusRate * betAmount, picked: false };
 
             bonusBoard.push(bonus);

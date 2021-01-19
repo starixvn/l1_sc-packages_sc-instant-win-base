@@ -13,11 +13,12 @@ export default class BonusConsumer {
      * @param {BonusPublisher} bonusPublisher
      * @param {SettleGameRoundConsumer} settleRoundConsumer
      */
-    constructor(definition, gameData, bonusPublisher = null, settleRoundConsumer = null) {
+    constructor(definition, gameData, bonusPublisher, settleRoundConsumer) {
         this.definition = definition;
         this.gameData = gameData;
-        this.publisher = bonusPublisher ?? new BonusPublisher(definition.name, gameData);
-        this.settleRoundConsumer = settleRoundConsumer ?? new SettleGameRoundConsumer({ definition, gameData });
+        this.bonusPublisher = bonusPublisher;
+        this.settleRoundConsumer = settleRoundConsumer;
+
         this.chance = new Chance();
     }
 
@@ -32,9 +33,9 @@ export default class BonusConsumer {
 
         bonusChests[chest].picked = true;
 
-        this.publisher.publishBonus(player.UID, { chest, amount: bonusChests[chest].amount });
+        this.bonusPublisher.publishBonus(player.UID, { chest, amount: bonusChests[chest].amount });
 
-        if (bonusChests.filter((chest) => chest.picked).length === finish.settlementResult.bonus.odds) {
+        if (bonusChests.filter((bonusChest) => bonusChest.picked).length === finish.settlementResult.bonus.odds) {
             await this.settleRoundConsumer.autoSettleRound(player, finish.roundId);
         }
     }
@@ -42,7 +43,7 @@ export default class BonusConsumer {
     getUnpickedChests(playerName) {
         const { bonusChests } = this.gameData.ingame[playerName] ?? {};
 
-        return bonusChests?.filter((chest) => !chest.picked);
+        return bonusChests?.filter((chest) => !chest.picked) ?? [];
     }
 
     async autoOpenRemainingChests(player) {
@@ -51,7 +52,7 @@ export default class BonusConsumer {
         if (finish?.settlementResult) {
             const unpickedChests = this.getUnpickedChests(player.profile.name);
 
-            if (unpickedChests?.length === 0) {
+            if (unpickedChests.length === 0) {
                 return;
             }
 
@@ -59,9 +60,10 @@ export default class BonusConsumer {
             const autoPickedChests = this.chance.pickset(unpickedChests, remainingChests);
 
             autoPickedChests.forEach((chest) => {
-                chest.picked = true;
                 const chestIndex = unpickedChests.indexOf(chest);
-                this.publisher.publishBonus(player.UID, { chest: chestIndex, amount: chest.amount });
+
+                chest.picked = true;
+                this.bonusPublisher.publishBonus(player.UID, { chest: chestIndex, amount: chest.amount });
             });
 
             await this.settleRoundConsumer.autoSettleRound(player, finish.roundId);
@@ -95,7 +97,7 @@ export default class BonusConsumer {
         const failedCriterion = criteria.find((criterion) => criterion.failure);
 
         if (failedCriterion) {
-            this.publisher.publishToUser(player.UID, { endBet: -1, notice: failedCriterion.notice });
+            this.bonusPublisher.publishToUser(player.UID, { endBet: -1, notice: failedCriterion.notice });
 
             return false;
         }

@@ -1,15 +1,15 @@
-import SlotGameDefinition from "./../slot-game-definition";
+import mongoose from "mongoose";
 
 export default class HallOfFameConsumer {
     /**
-     * @param {SlotGameDefinition} definition
+     * @param {mongoose.Model} famesRepository
      */
-    constructor(definition) {
-        this.definition = definition;
+    constructor(famesRepository) {
+        this.famesRepository = famesRepository;
     }
 
     async add(player, { roundId, bet, numberOfPaylines, totalAmount, winningAmount }) {
-        await this.definition.famesRepository.create({
+        await this.famesRepository.create({
             uid: player.UID,
             memberId: player.session?.memberId,
             name: player.profile.name,

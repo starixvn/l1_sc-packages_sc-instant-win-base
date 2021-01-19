@@ -1,7 +1,7 @@
+import mongoose from "mongoose";
 import { logger } from "sc-common";
 
 import { JackpotPublisher } from "./../event-publishers";
-import { Jackpots } from "./../models";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
@@ -10,11 +10,15 @@ export default class JackpotConsumer {
      * @param {SlotGameDefinition} definition
      * @param {SlotGameData} gameData
      * @param {JackpotPublisher} jackpotPublisher
+     * @param {logger} logService
+     * @param {mongoose.Model} jackpotsRepository
      */
-    constructor(definition, gameData, jackpotPublisher = null) {
+    constructor(definition, gameData, jackpotPublisher, logService, jackpotsRepository) {
         this.definition = definition;
         this.gameData = gameData;
-        this.jackpotPublisher = jackpotPublisher ?? new JackpotPublisher(definition.id, definition.name, gameData);
+        this.jackpotPublisher = jackpotPublisher;
+        this.logService = logService;
+        this.jackpotsRepository = jackpotsRepository;
     }
 
     async contribute(player, { pool, totalAmount, roundId }) {
@@ -39,7 +43,7 @@ export default class JackpotConsumer {
             byMembers: contributedByMember ? contributionAmount : 0,
         };
         const latestJackpotProjection = { _id: false, amount: true };
-        const latestJackpotPool = await Jackpots.findOneAndUpdate(
+        const latestJackpotPool = await this.jackpotsRepository.findOneAndUpdate(
             runningPoolFilter,
             {
                 $inc: poolAdjustment,
@@ -81,7 +85,7 @@ export default class JackpotConsumer {
             winnerName: true,
             amount: true,
         };
-        const winningJackpot = await Jackpots.findOneAndUpdate(
+        const winningJackpot = await this.jackpotsRepository.findOneAndUpdate(
             runningPoolFilter,
             {
                 $set: winnerAdjustment,
@@ -95,7 +99,7 @@ export default class JackpotConsumer {
         );
 
         if (!winningJackpot) {
-            logger.logCritical(`Couldn't find any running jackpot pool associated with: ${JSON.stringify(runningPoolFilter)}`);
+            this.logService.logCritical(`Couldn't find any running jackpot pool associated with: ${JSON.stringify(runningPoolFilter)}`);
 
             return { amount: 0 };
         }
@@ -119,7 +123,7 @@ export default class JackpotConsumer {
                     winnerName: { $exists: false },
                     createdAt: { $lte: roundId },
                 };
-                const numberOfExistingPools = await Jackpots.countDocuments(runningPoolFilter).exec();
+                const numberOfExistingPools = await this.jackpotsRepository.countDocuments(runningPoolFilter).exec();
 
                 if (numberOfExistingPools === 0) {
                     await this.initializeNewPool(stakeLevel.stake, roundId);
@@ -131,7 +135,7 @@ export default class JackpotConsumer {
     async initializeNewPool(pool, roundId) {
         const initAmount = this.gameData.gameConfigs.slotsConfig?.stakeLevels?.find((stakeLevel) => stakeLevel.stake === pool)?.jackpot ?? 0;
 
-        await Jackpots.create({
+        await this.jackpotsRepository.create({
             gameId: this.definition.id,
             gameName: this.definition.name,
             pool,

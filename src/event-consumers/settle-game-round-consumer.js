@@ -1,8 +1,11 @@
-import { hitJackpot } from "sc-base-apis";
+import mongoose from "mongoose";
+import { endGame as endGameApi, hitJackpot as hitJackpotApi } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
 import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "./../board";
 import { JackpotPublisher } from "./../event-publishers";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 import BoardCheatingConsumer from "./board-cheating-consumer";
 import FreeSpinsConsumer from "./free-spins-consumer";
 import HallOfFameConsumer from "./hall-of-fame-consumer";
@@ -10,31 +13,62 @@ import JackpotConsumer from "./jackpot-consumer";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     /**
+     * @param {Object} dependencies
+     * @param {SlotGameDefinition} dependencies.definition
+     * @param {SlotGameData} dependencies.gameData
+     * @param {Core.BaseEventConsumers.RoundResultPublisher} dependencies.roundResultPublisher
+     * @param {Core.BaseEventConsumers.UserBetResultPublisher} dependencies.userBetResultPublisher
+     * @param {JackpotPublisher} dependencies.jackpotPublisher
+     * @param {BoardCheatingConsumer} dependencies.boardCheatingConsumer
+     * @param {FreeSpinsConsumer} dependencies.freeSpinsConsumer
+     * @param {HallOfFameConsumer} dependencies.hallOfFameConsumer
+     * @param {JackpotConsumer} dependencies.jackpotConsumer
      * @param {BoardGenerator} boardGenerator
+     * @param {BonusBoardGenerator} bonusBoardGenerator
+     * @param {PaylineCalculator} paylineCalculator
+     * @param {endGameApi} endGame
+     * @param {hitJackpotApi} hitJackpot
+     * @param {mongoose.Model} dependencies.roundsRepository
+     * @param {mongoose.Model} dependencies.betsRepository
      */
 
     constructor({
         definition,
         gameData,
-        roundResultPublisher = null,
-        userBetResultPublisher = null,
-        boardGenerator = null,
-        paylineCalculator = null,
-        jackpotConsummer = null,
-        freeSpinsConsumer = null,
-        hallOfFameConsumer = null,
-        boardCheatingConsumer = null,
-        jackpotPublisher = null,
+        roundResultPublisher,
+        userBetResultPublisher,
+        jackpotPublisher,
+        boardCheatingConsumer,
+        freeSpinsConsumer,
+        hallOfFameConsumer,
+        jackpotConsumer,
+        boardGenerator,
+        bonusBoardGenerator,
+        paylineCalculator,
+        endGame,
+        hitJackpot,
+        roundsRepository,
+        betsRepository,
     }) {
-        super(definition, gameData, roundResultPublisher, userBetResultPublisher);
+        super({
+            definition,
+            gameData,
+            roundResultPublisher,
+            userBetResultPublisher,
+            endGame,
+            roundsRepository,
+            betsRepository,
+        });
 
-        this.boardGenerator = boardGenerator ?? new BoardGenerator();
-        this.paylineCalculator = paylineCalculator ?? new PaylineCalculator();
-        this.jackpotConsumer = jackpotConsummer ?? new JackpotConsumer(definition, gameData);
-        this.freeSpinsConumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
-        this.hallOfFameConsumer = hallOfFameConsumer ?? new HallOfFameConsumer(definition);
-        this.boardCheatingConsumer = boardCheatingConsumer ?? new BoardCheatingConsumer(gameData);
-        this.jackpotPublisher = jackpotPublisher ?? new JackpotPublisher(definition.id, definition.name, gameData);
+        this.jackpotPublisher = jackpotPublisher;
+        this.boardCheatingConsumer = boardCheatingConsumer;
+        this.freeSpinsConumer = freeSpinsConsumer;
+        this.hallOfFameConsumer = hallOfFameConsumer;
+        this.jackpotConsumer = jackpotConsumer;
+        this.boardGenerator = boardGenerator;
+        this.bonusBoardGenerator = bonusBoardGenerator;
+        this.paylineCalculator = paylineCalculator;
+        this.hitJackpot = hitJackpot;
     }
 
     async autoSettleRound(player, roundId) {
@@ -120,11 +154,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     async processBonus(player, finish, bet) {
         const { bonus: bonusConfig, icons: odds } = this.gameData.gameConfigs.slotsConfig;
         const { result, settlementResult } = finish;
-        finish.bonusChests = new BonusBoardGenerator({
-            size: this.definition.bonusSize,
-            minRate: bonusConfig.min,
-            maxRate: bonusConfig.max,
-        }).generate(bet.bet);
+
+        finish.bonusChests = this.bonusBoardGenerator.generate(bet.bet, bonusConfig.min, bonusConfig.max);
 
         bet.odds = odds;
         bet.result = result;
@@ -146,7 +177,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async processJackpot(player, roundId, betAmount, winningLine) {
         const winningAmount = (await this.jackpotConsumer.hit(player, { pool: betAmount, roundId })).amount;
-        const hitJackpotResult = await hitJackpot(player, { gameRoundId: roundId, gameId: this.definition.id, winningAmount });
+        const hitJackpotResult = await this.hitJackpot(player, { gameRoundId: roundId, gameId: this.definition.id, winningAmount });
         const error = hitJackpotResult.isOk ? null : hitJackpotResult.response.message;
 
         if (error) {
@@ -202,7 +233,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     queryBets(roundId) {
-        return this.definition.roundRepository.findOne({ id: roundId, paid: false }).exec();
+        return this.roundsRepository.findOne({ id: roundId, paid: false }).exec();
     }
 
     calculatePaylineResult(paylines, bet, bonus = 0) {

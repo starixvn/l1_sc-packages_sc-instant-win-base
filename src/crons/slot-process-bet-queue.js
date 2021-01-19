@@ -9,15 +9,40 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
     /**
      * @param {SlotGameDefinition} definition
      * @param {SlotGameData} gameData
-     * @param {Core.BaseEventPublishers.BasePublisher} publisher
+     * @param {Core.BaseEventPublishers.PlaceBetPublisher} placeBetPublisher
      * @param {FreeSpinsConsumer} freeSpinsConsumer
      * @param {SettleGameRoundConsumer} settleRoundConsumer
+     * @param {placeBetApi} dependencies.placeBet
+     * @param {logger} dependencies.logService
+     * @param {mongoose.Model} dependencies.roundsRepository
+     * @param {mongoose.Model} dependencies.betsRepository
+     * @param {mongoose.Model} dependencies.betLogsRepository
      */
-    constructor(definition, gameData, publisher = null, freeSpinsConsumer = null, settleRoundConsumer = null) {
-        super(definition, gameData, publisher);
+    constructor({
+        definition,
+        gameData,
+        placeBetPublisher,
+        freeSpinsConsumer,
+        settleRoundConsumer,
+        placeBet,
+        logService,
+        roundsRepository,
+        betsRepository,
+        betLogsRepository,
+    }) {
+        super({
+            definition,
+            gameData,
+            placeBetPublisher,
+            placeBet,
+            logService,
+            betsRepository,
+            betLogsRepository,
+        });
 
-        this.freeSpinsConsumer = freeSpinsConsumer ?? new FreeSpinsConsumer(definition, gameData);
-        this.settleRoundConsumer = settleRoundConsumer ?? new SettleGameRoundConsumer({ definition, gameData });
+        this.freeSpinsConsumer = freeSpinsConsumer;
+        this.settleRoundConsumer = settleRoundConsumer;
+        this.roundsRepository = roundsRepository;
     }
 
     async proceedBet(player, payload) {
@@ -28,7 +53,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
         payload.freeSpin = payload.freeSpin || (soonestExpiredFreeSpinSet == null ? false : true);
 
         if (payload.freeSpin && !soonestExpiredFreeSpinSet) {
-            this.publisher.publishGameFailedBet(player.UID, { endBet: -1, notice: SlotNoticeHelper.invalidFreeSpin });
+            this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1, notice: SlotNoticeHelper.invalidFreeSpin });
 
             return;
         }
@@ -90,7 +115,7 @@ export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
             newBet.siteId = player.session.siteId;
         }
 
-        await this.definition.roundRepository.create(newBet);
+        await this.roundsRepository.create(newBet);
     }
 
     generatePlacingBetResult(player, balance, bet) {

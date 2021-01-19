@@ -1,16 +1,19 @@
-import { gameNotifications } from "sc-base-database";
+import mongoose from "mongoose";
 
 import SlotGameData from "./../slot-game-data";
-import SlotGameDefinition from "./../slot-game-definition";
 
 export default class FreeSpinsConsumer {
     /**
-     * @param {SlotGameDefinition} definition
+     * @param {Number} gameId
      * @param {SlotGameData} gameData
+     * @param {mongoose.Model} freeSpinsRepository
+     * @param {mongoose.Model} gameNotificationsRepository
      */
-    constructor(definition, gameData) {
-        this.definition = definition;
+    constructor(gameId, gameData, freeSpinsRepository, gameNotificationsRepository) {
+        this.gameId = gameId;
         this.gameData = gameData;
+        this.freeSpinsRepository = freeSpinsRepository;
+        this.gameNotificationsRepository = gameNotificationsRepository;
     }
 
     hasFreeSpin(player) {
@@ -29,7 +32,7 @@ export default class FreeSpinsConsumer {
         const firstAvailableFreeSpinSet = this.getSoonestExpiredFreeSpinSet(player);
 
         if (firstAvailableFreeSpinSet) {
-            await this.definition.freeSpinsRepository.updateOne({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
+            await this.freeSpinsRepository.updateOne({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
             firstAvailableFreeSpinSet.available--;
         }
     }
@@ -67,7 +70,7 @@ export default class FreeSpinsConsumer {
             name: memberName,
             ...newlyCachedFreeSpin,
         };
-        const newlyCreatedFreeSpin = await this.definition.freeSpinsRepository.create(gainedFreeSpin);
+        const newlyCreatedFreeSpin = await this.freeSpinsRepository.create(gainedFreeSpin);
 
         if (newlyCreatedFreeSpin) {
             newlyCachedFreeSpin.id = newlyCreatedFreeSpin.id;
@@ -143,7 +146,7 @@ export default class FreeSpinsConsumer {
             __archive: false,
         };
 
-        return this.definition.freeSpinsRepository
+        return this.freeSpinsRepository
             .find(filter, projection, { sort: { expiryTime: 1 } })
             .lean()
             .exec();
@@ -152,12 +155,12 @@ export default class FreeSpinsConsumer {
     async cleanUpGameNotifications(freeSpinsGroupedByUIDs) {
         const excludingUIDs = Object.keys(freeSpinsGroupedByUIDs);
 
-        await gameNotifications.deleteMany({ uid: { $nin: excludingUIDs } });
+        await this.gameNotificationsRepository.deleteMany({ uid: { $nin: excludingUIDs } });
         await Promise.all(
             Object.entries(freeSpinsGroupedByUIDs).map(async ([uid, freeSpins]) => {
                 const filter = {
                     uid,
-                    gameId: this.definition.id,
+                    gameId: this.gameId,
                 };
                 const latestExpiredFreeSpinSet = freeSpins[freeSpins.length - 1];
                 const adjustment = {
@@ -166,7 +169,7 @@ export default class FreeSpinsConsumer {
                     },
                 };
 
-                await gameNotifications.updateOne(filter, { $set: adjustment }, { upsert: true });
+                await this.gameNotificationsRepository.updateOne(filter, { $set: adjustment }, { upsert: true });
             })
         );
     }

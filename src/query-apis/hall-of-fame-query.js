@@ -1,12 +1,15 @@
-import { Jackpots } from "./../models";
-import SlotGameDefinition from "./../slot-game-definition";
+import mongoose from "mongoose";
 
 export default class HallOfFameQuery {
     /**
-     * @param {SlotGameDefinition} definition
+     * @param {Number} gameId
+     * @param {mongoose.Model} famesRepository
+     * @param {mongoose.Model} jackpotsRepository
      */
-    constructor(definition) {
-        this.definition = definition;
+    constructor(gameId, famesRepository, jackpotsRepository) {
+        this.gameId = gameId;
+        this.famesRepository = famesRepository;
+        this.jackpotsRepository = jackpotsRepository;
     }
 
     async queryBigWinningWinners(page, pageSize = 10) {
@@ -15,7 +18,7 @@ export default class HallOfFameQuery {
         }
 
         const numberOfSkippedWinners = (page - 1) * pageSize;
-        const total = await this.definition.famesRepository.countDocuments().exec();
+        const total = await this.famesRepository.countDocuments().exec();
         const projection = {
             _id: false,
             time: true,
@@ -23,7 +26,7 @@ export default class HallOfFameQuery {
             totalAmount: true,
             winningAmount: true,
         };
-        const winners = await this.definition.famesRepository
+        const winners = await this.famesRepository
             .find({}, projection, { sort: { time: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
             .lean()
             .exec();
@@ -37,11 +40,11 @@ export default class HallOfFameQuery {
         }
 
         const filter = {
-            gameId: this.definition.id,
+            gameId: this.gameId,
             winnerName: { $exists: true },
         };
         const numberOfSkippedWinners = (page - 1) * pageSize;
-        const total = await Jackpots.countDocuments(filter).exec();
+        const total = await this.jackpotsRepository.countDocuments(filter).exec();
         const projection = {
             _id: false,
             hitTime: true,
@@ -50,7 +53,8 @@ export default class HallOfFameQuery {
             amount: true,
             winningRatio: true,
         };
-        const jackpotWinners = await Jackpots.find(filter, projection, { sort: { hitTime: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
+        const jackpotWinners = await this.jackpotsRepository
+            .find(filter, projection, { sort: { hitTime: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
             .lean()
             .exec();
         const winners = jackpotWinners.map((jackpotWinner) => {

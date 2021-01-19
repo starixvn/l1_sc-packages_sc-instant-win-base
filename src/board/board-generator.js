@@ -4,9 +4,12 @@ import defaultDefinition from "./default-definition";
 import difficulties from "./difficulties";
 
 export default class BoardGenerator {
-    constructor(definition) {
+    /**
+     * @param {defaultDefinition} boardDefinition
+     */
+    constructor(boardDefinition) {
         this.chance = new Chance();
-        this.definition = definition ?? defaultDefinition;
+        this.definition = boardDefinition ?? defaultDefinition;
         this.numberOfPaylines = this.definition.paylines.length;
 
         this.lowPrizedSymbolPossibilityGap = Object.keys(this.definition.specialSymbols).length;
