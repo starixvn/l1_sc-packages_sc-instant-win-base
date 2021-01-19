@@ -145,9 +145,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const winningAmount = (await this.jackpotConsumer.hit(player, { pool: betAmount, roundId })).amount;
         const hitJackpotResult = await hitJackpot(player, { gameRoundId: roundId, gameId: this.definition.id, winningAmount });
         const error = hitJackpotResult.isOk ? "" : hitJackpotResult.response.message;
-        const symbol = this.boardGenerator.definition.specialSymbols.jackpot;
 
-        return { winningAmount, error, winningLine, symbol };
+        return { winningAmount, error, winningLine };
     }
 
     async settleBets(player, { result, settlementResult, roundId }, bet, bonusChests = []) {
@@ -232,8 +231,22 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     collectRoundResult({ player, result, settlementResult, roundId, betWin = 0, bigWin = false }) {
-        const { winningPaylines, bonus, freeSpins, jackpot } = settlementResult;
         const totalOfFreeSpins = this.freeSpinsConumer.getTotalAvaiableFreeSpins(player);
+        const settlementResult = this.collectRoundSettlementResult(settlementResult);
+
+        return {
+            finish: {
+                roundId,
+                result,
+                settlementResult,
+                betWin,
+                bigWin,
+                totalOfFreeSpins,
+            },
+        };
+    }
+
+    collectRoundSettlementResult({ winningPaylines, bonus, freeSpins, jackpot }) {
         const winningLines = winningPaylines.map((winningPayline) => {
             return {
                 payline: winningPayline.payline,
@@ -250,22 +263,17 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             symbol: this.boardGenerator.definition.specialSymbols.freeSpins,
             count: freeSpins.odds,
         };
-        const roundSettlementResult = {
-            winningLines,
-            bonus: winningBonus,
-            freeSpins: winningFreeSpins,
-            jackpot,
+        const winningJackpot = {
+            ...jackpot,
+            symbol: this.boardGenerator.definition.specialSymbols.jackpot,
+            positions: this.paylineCalculator.definition.paylines[jackpot.winningLine],
         };
 
         return {
-            finish: {
-                roundId,
-                result,
-                settlementResult: roundSettlementResult,
-                betWin,
-                bigWin,
-                totalOfFreeSpins,
-            },
+            winningLines,
+            bonus: winningBonus,
+            freeSpins: winningFreeSpins,
+            jackpot: winningJackpot,
         };
     }
 
