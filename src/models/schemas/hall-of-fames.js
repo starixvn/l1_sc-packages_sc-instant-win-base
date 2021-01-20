@@ -9,5 +9,6 @@ export default new mongoose.Schema({
     totalAmount: { type: Number, required: true },
     winningAmount: { type: Number, required: true },
     numberOfPaylines: { type: Number, required: true },
+    freeSpin: { type: Boolean, default: false },
     time: { type: Date },
 });

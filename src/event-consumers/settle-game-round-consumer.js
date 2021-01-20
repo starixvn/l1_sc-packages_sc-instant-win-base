@@ -220,9 +220,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 await this.hallOfFameConsumer.add(player, {
                     roundId,
                     bet: bet.bet,
-                    numberOfPaylines: bet.paylines.length,
                     totalAmount: bet.totalAmount,
                     winningAmount: betResult.totalWin,
+                    numberOfPaylines: bet.paylines.length,
+                    freeSpin: bet.freeSpin,
                 });
             }
 

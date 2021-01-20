@@ -25,6 +25,7 @@ export default class HallOfFameQuery {
             name: true,
             totalAmount: true,
             winningAmount: true,
+            freeSpin: true,
         };
         const winners = await this.famesRepository
             .find({}, projection, { sort: { time: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
