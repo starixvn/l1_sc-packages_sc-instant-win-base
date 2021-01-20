@@ -1,6 +1,7 @@
 import awilix from "awilix";
 import { hitJackpot } from "sc-base-apis";
 import { gameNotifications } from "sc-base-database";
+import { Core } from "sc-game-base";
 
 import * as Board from "./board";
 import { SlotGameBot, SlotGameCron, SlotProcessBetQueue } from "./crons";
@@ -14,7 +15,7 @@ import SlotGameDefinition from "./slot-game-definition";
 
 const { asClass, asValue } = awilix;
 
-export default class SlotContainerRegistry {
+export default class SlotContainerRegistry extends Core.ContainerRegistry {
     /**
      * @param {Object} appConfigs
      * @param {SlotGameDefinition} definition
