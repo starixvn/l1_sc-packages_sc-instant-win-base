@@ -9,16 +9,16 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
     /**
      * @param {Number} gameId
      * @param {SlotGameData} gameData
-     * @param {BonusConsumer} gameData
-     * @param {FreeSpinsConsumer} gameData
+     * @param {BonusConsumer} bonusConsumer
+     * @param {FreeSpinsConsumer} freeSpinsConsumer
      * @param {mongoose.Model} gameNotificationsRepository
      */
-    constructor(gameId, gameData, bonusConsumer, freeSpinConsumer, gameNotificationsRepository) {
+    constructor(gameId, gameData, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository) {
         super(gameData);
 
         this.gameId = gameId;
         this.bonusConsumer = bonusConsumer;
-        this.freeSpinConsumer = freeSpinConsumer;
+        this.freeSpinsConsumer = freeSpinsConsumer;
         this.gameNotificationsRepository = gameNotificationsRepository;
     }
 
@@ -37,7 +37,7 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
     }
 
     async upsertFreeSpinNotification(realPlayer) {
-        const latestExpiredFreeSpinSet = this.freeSpinConsumer.getLatestExpiredFreeSpinSet(realPlayer);
+        const latestExpiredFreeSpinSet = this.freeSpinsConsumer.getLatestExpiredFreeSpinSet(realPlayer);
         const filter = {
             uid: realPlayer.UID,
             gameId: this.gameId,
