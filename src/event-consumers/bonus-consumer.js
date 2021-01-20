@@ -12,13 +12,13 @@ export default class BonusConsumer {
      * @param {SlotGameDefinition} definition
      * @param {SlotGameData} gameData
      * @param {BonusPublisher} bonusPublisher
-     * @param {SettleGameRoundConsumer} settleRoundConsumer
+     * @param {SettleGameRoundConsumer} settleGameRoundConsumer
      */
-    constructor(definition, gameData, bonusPublisher, settleRoundConsumer) {
+    constructor(definition, gameData, bonusPublisher, settleGameRoundConsumer) {
         this.definition = definition;
         this.gameData = gameData;
         this.bonusPublisher = bonusPublisher;
-        this.settleRoundConsumer = settleRoundConsumer;
+        this.settleGameRoundConsumer = settleGameRoundConsumer;
 
         this.chance = new Chance();
     }
@@ -37,7 +37,7 @@ export default class BonusConsumer {
         this.bonusPublisher.publishBonus(player.UID, { chest, amount: bonusChests[chest].amount });
 
         if (bonusChests.filter((bonusChest) => bonusChest.picked).length === finish.settlementResult.bonus.odds) {
-            await this.settleRoundConsumer.autoSettleRound(player, finish.roundId);
+            await this.settleGameRoundConsumer.autoSettleRound(player, finish.roundId);
         }
     }
 
@@ -67,7 +67,7 @@ export default class BonusConsumer {
                 this.bonusPublisher.publishBonus(player.UID, { chest: chestIndex, amount: chest.amount });
             });
 
-            await this.settleRoundConsumer.autoSettleRound(player, finish.roundId);
+            await this.settleGameRoundConsumer.autoSettleRound(player, finish.roundId);
         }
     }
 
