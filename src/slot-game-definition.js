@@ -7,11 +7,12 @@ export default class SlotGameDefinition extends Core.GameDefinition {
         durations = {},
         choices = [],
         choicesMapper = {},
+        historyPageSize = 10,
         freeSpinLiveSeconds = 86400, // 1 day
         bonusSize = 10,
         bonusLiveSeconds = 120,
     }) {
-        super({ id, name, durations, choices, choicesMapper }, null, null);
+        super({ id, name, durations, choices, choicesMapper, historyPageSize }, null, null);
         this.freeSpinLiveSeconds = freeSpinLiveSeconds;
         this.bonusSize = bonusSize;
         this.bonusLiveSeconds = bonusLiveSeconds;
