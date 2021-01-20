@@ -11,7 +11,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
      * @param {SlotGameData} gameData
      * @param {Core.BaseEventPublishers.PlaceBetPublisher} placeBetPublisher
      * @param {FreeSpinsConsumer} freeSpinsConsumer
-     * @param {SettleGameRoundConsumer} settleRoundConsumer
+     * @param {SettleGameRoundConsumer} settleGameRoundConsumer
      * @param {placeBetApi} dependencies.placeBet
      * @param {logger} dependencies.logService
      * @param {mongoose.Model} dependencies.roundsRepository
@@ -23,7 +23,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         gameData,
         placeBetPublisher,
         freeSpinsConsumer,
-        settleRoundConsumer,
+        settleGameRoundConsumer,
         placeBet,
         logService,
         roundsRepository,
@@ -41,7 +41,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         });
 
         this.freeSpinsConsumer = freeSpinsConsumer;
-        this.settleRoundConsumer = settleRoundConsumer;
+        this.settleGameRoundConsumer = settleGameRoundConsumer;
         this.roundsRepository = roundsRepository;
     }
 
@@ -94,7 +94,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         await this.upsertBet(player, roundId, bet);
         this.notifyPlacingBetResult(player, balance, bet);
 
-        await this.settleRoundConsumer.settleRound(player, roundId);
+        await this.settleGameRoundConsumer.settleRound(player, roundId);
     }
 
     async upsertBet(player, roundId, bet) {
