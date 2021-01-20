@@ -3,7 +3,7 @@ import { Core } from "sc-game-base";
 
 import SlotGameData from "./../slot-game-data";
 
-export default class JackpotPublisher extends Core.BaseEventPublishers.BasePublisher {
+export default class JackpotPublisher extends Core.BaseEventPublishers.BaseEventPublisher {
     /**
      * @param {Number} gameId
      * @param {String} gameName

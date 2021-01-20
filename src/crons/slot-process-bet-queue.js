@@ -5,7 +5,7 @@ import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
-export default class SlotProcessBetQueue extends Core.Cron.ProcessBetQueue {
+export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
     /**
      * @param {SlotGameDefinition} definition
      * @param {SlotGameData} gameData

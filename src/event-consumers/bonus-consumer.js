@@ -1,15 +1,16 @@
 import Chance from "chance";
 import moment from "moment";
-import { Core } from "sc-game-base";
 
 import { BonusPublisher } from "./../event-publishers";
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
 
 export default class BonusConsumer {
     /**
-     * @param {Core.GameDefinition} definition
-     * @param {Core.GameData} gameData
+     * @param {SlotGameDefinition} definition
+     * @param {SlotGameData} gameData
      * @param {BonusPublisher} bonusPublisher
      * @param {SettleGameRoundConsumer} settleRoundConsumer
      */

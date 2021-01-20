@@ -7,7 +7,7 @@ import * as EventConsumers from "./../event-consumers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
-export default class SlotGameCron extends Core.Cron.BaseGameCron {
+export default class SlotGameCron extends Core.Crons.BaseGameCron {
     /**
      * @param {Object} dependencies
      * @param {SlotGameDefinition} dependencies.definition
