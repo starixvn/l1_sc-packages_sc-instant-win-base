@@ -29,7 +29,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     composeBetChoiceValidationCriteria(betChoice) {
         return [
             {
-                failure: betChoice.length < 1,
+                failure: betChoice.length < 1 || betChoice.length > this.definition.choices.length,
                 notice: SlotNoticeHelper.invalidPaylines,
             },
             {
