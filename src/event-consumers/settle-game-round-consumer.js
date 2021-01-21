@@ -213,6 +213,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                     roundId,
                     betWin: bet.betWin,
                     bigWin: betResult.bigWin,
+                    betByFreeSpin: bet.freeSpin,
                 })
             );
 
@@ -269,13 +270,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return bonusChests?.reduce((bonusAmount, chest) => bonusAmount + chest.amount, 0) ?? 0;
     }
 
-    collectRoundResult({ player, result, settlementResult, roundId, betWin = 0, bigWin = false }) {
+    collectRoundResult({ player, result, settlementResult, roundId, betWin, bigWin, betByFreeSpin }) {
         const totalOfFreeSpins = this.freeSpinsConumer.getTotalAvaiableFreeSpins(player);
         const roundSettlementResult = this.collectRoundSettlementResult(settlementResult);
 
         return {
             finish: {
                 roundId,
+                betByFreeSpin,
                 result,
                 settlementResult: roundSettlementResult,
                 betWin,
