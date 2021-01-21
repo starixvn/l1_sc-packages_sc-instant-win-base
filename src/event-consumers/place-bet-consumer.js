@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
@@ -34,6 +35,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             },
             {
                 failure: betChoice.filter((choice) => !this.definition.choices.includes(choice)).length > 0,
+                notice: SlotNoticeHelper.invalidPaylines,
+            },
+            {
+                failure: _.uniq(betChoice).length !== betChoice.length,
                 notice: SlotNoticeHelper.invalidPaylines,
             },
         ];

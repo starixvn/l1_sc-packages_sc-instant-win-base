@@ -1,3 +1,4 @@
+import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
 import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
@@ -46,6 +47,12 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
     }
 
     async proceedBet(player, payload) {
+        if (this.gameData.ingame[player.profile.name]?.finish) {
+            this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1, notice: helpers.noticeHelper.cannotPlaceBet });
+
+            return;
+        }
+
         const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(player);
         const { slotsConfig } = this.gameData.gameConfigs;
         const contributionRate = slotsConfig.jackpot ? slotsConfig.jackpot.playerContributionRatio : 0;
