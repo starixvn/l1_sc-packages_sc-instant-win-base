@@ -159,7 +159,11 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
                     playerInGame.betProcessing = true;
                     this.proceedBet(player, payload)
-                        .then(() => (playerInGame.betProcessing = false))
+                        .then(() => {
+                            playerInGame.betProcessing = false;
+
+                            logger.log(`proceedBet for ${player.profile.name} finished.`);
+                        })
                         .catch(this.logService.logError);
                 }
             });
