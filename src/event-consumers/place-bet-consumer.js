@@ -47,7 +47,6 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     consume(player, payload) {
         payload.freeSpin = payload.freeSpin ?? false;
 
-        logger.logWarning(`Received bet for ${player.profile.name}. Current bet with roundId ${finish.roundId} is processing...`);
         super.consume(player, payload);
     }
 
