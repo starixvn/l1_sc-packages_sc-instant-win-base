@@ -144,6 +144,8 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
                 if (!playerInGame.betProcessing && playerInGame.betQueue && playerInGame.betQueue.length > 0) {
                     const { player, payload } = playerInGame.betQueue.shift();
 
+                    logger.log(`Dequeue bet for ${player.profile.name}, bet queue length is ${playerInGame.betQueue.length}. Logged by logger.`);
+
                     if (playerInGame.betQueue.length > 0) {
                         this.logService.log(`Player ${player.profile.name} still have bets in queue.`);
                         logger.log(`Player ${player.profile.name} still have bets in queue. Logged by logger.`);
