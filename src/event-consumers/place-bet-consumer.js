@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { helpers } from "sc-common";
+import { helpers, logger } from "sc-common";
 import { Core } from "sc-game-base";
 
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
@@ -46,7 +46,30 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
 
     consume(player, payload) {
         payload.freeSpin = payload.freeSpin ?? false;
+
+        logger.logWarning(`Received bet for ${player.profile.name}. Current bet with roundId ${finish.roundId} is processing...`);
         super.consume(player, payload);
+    }
+
+    validateBetRequest(player, betChoice, amount, freeBet) {
+        logger.logWarning(`Validating bet for ${player.profile.name}. Bet amount ${amount} and choices ${betChoice}`);
+
+        if (!amount || !betChoice) {
+            logger.logWarning(`Validating bet FAILED for ${player.profile.name} for amount and choice.`);
+            return false;
+        }
+
+        const criteria = this.composeValidationCriteria(player, betChoice, amount, freeBet);
+        const failedCriterion = criteria.find((criterion) => criterion.failure);
+
+        if (failedCriterion) {
+            logger.logWarning(`Validating bet FAILED for ${player.profile.name}: ${failedCriterion.notice}.`);
+            this.publisher.publishToUser(player.UID, { endBet: -1, notice: failedCriterion.notice });
+
+            return false;
+        }
+
+        return true;
     }
 
     adjustBetTracks(playerName, bet) {}
