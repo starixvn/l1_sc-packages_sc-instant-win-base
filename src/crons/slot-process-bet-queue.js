@@ -137,4 +137,23 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
     }
 
     decreaseBetTracks(playerName, bet) {}
+
+    dequeueBets() {
+        if (this.gameData.ingame) {
+            Object.values(this.gameData.ingame).forEach((playerInGame) => {
+                if (!playerInGame.betProcessing && playerInGame.betQueue && playerInGame.betQueue.length > 0) {
+                    const { player, payload } = playerInGame.betQueue.shift();
+
+                    if (playerInGame.betQueue.length > 0) {
+                        this.logService.log(`Player ${player.profile.name} still have bets in queue.`);
+                    }
+
+                    playerInGame.betProcessing = true;
+                    this.proceedBet(player, payload)
+                        .then(() => (playerInGame.betProcessing = false))
+                        .catch(this.logService.logError);
+                }
+            });
+        }
+    }
 }
