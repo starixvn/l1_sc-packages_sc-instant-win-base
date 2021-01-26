@@ -141,6 +141,12 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
     dequeueBets() {
         if (this.gameData.ingame) {
             Object.values(this.gameData.ingame).forEach((playerInGame) => {
+                if (this.gameData.ingame["Max42959"]) {
+                    logger.log(`Checking bet: processing ${playerInGame.betProcessing}, bet queue length is ${playerInGame.betQueue?.length}.`);
+                } else {
+                    logger.log(`Not found player Max42959 in ingame object.`);
+                }
+
                 if (!playerInGame.betProcessing && playerInGame.betQueue && playerInGame.betQueue.length > 0) {
                     const { player, payload } = playerInGame.betQueue.shift();
 
