@@ -48,6 +48,8 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         payload.freeSpin = payload.freeSpin ?? false;
 
         super.consume(player, payload);
+
+        logger.log(`Bet queue length is ${this.gameData.ingame[player.profile.name].betQueue.length}`);
     }
 
     validateBetRequest(player, betChoice, amount, freeBet) {

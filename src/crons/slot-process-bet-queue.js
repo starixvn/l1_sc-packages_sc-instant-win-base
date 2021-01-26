@@ -146,6 +146,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
                     if (playerInGame.betQueue.length > 0) {
                         this.logService.log(`Player ${player.profile.name} still have bets in queue.`);
+                        logger.log(`Player ${player.profile.name} still have bets in queue. Logged by logger.`);
                     }
 
                     playerInGame.betProcessing = true;
