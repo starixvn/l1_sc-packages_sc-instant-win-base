@@ -1,4 +1,4 @@
-import { helpers } from "sc-common";
+import { helpers, logger } from "sc-common";
 import { Core } from "sc-game-base";
 
 import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
@@ -48,6 +48,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     async proceedBet(player, payload) {
         if (this.gameData.ingame[player.profile.name]?.finish) {
+            logger.logWarning(`Cannot proceed bet for ${player.profile.name}. Current bet with roundId ${finish.roundId} is processing...`);
             this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1, notice: helpers.noticeHelper.cannotPlaceBet });
 
             return;
