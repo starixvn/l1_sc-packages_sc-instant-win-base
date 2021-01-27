@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { helpers, logger } from "sc-common";
+import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";

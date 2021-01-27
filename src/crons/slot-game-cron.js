@@ -131,6 +131,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             };
 
             ingame[name] = {
+                name,
                 player,
                 bonusChests,
                 finish: {
@@ -140,6 +141,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
                     settlementResult,
                     jackpotWin: jackpot?.winningAmount ?? 0,
                 },
+                betQueue: [],
             };
 
             return ingame;
