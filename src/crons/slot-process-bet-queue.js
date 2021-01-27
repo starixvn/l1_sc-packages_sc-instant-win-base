@@ -141,20 +141,15 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
     dequeueBets() {
         if (this.gameData.ingame) {
             Object.values(this.gameData.ingame).forEach((playerInGame) => {
-                if (this.gameData.ingame["Max42959"]) {
-                    logger.log(`Checking bet: processing ${playerInGame.betProcessing}, bet queue length is ${playerInGame.betQueue?.length}.`);
-                } else {
-                    logger.log(`Not found player Max42959 in ingame object.`);
-                }
-
                 if (!playerInGame.betProcessing && playerInGame.betQueue && playerInGame.betQueue.length > 0) {
                     const { player, payload } = playerInGame.betQueue.shift();
 
-                    logger.log(`Dequeue bet for ${player.profile.name}, bet queue length is ${playerInGame.betQueue.length}. Logged by logger.`);
+                    this.logService.log(
+                        `Dequeue bet for ${player.profile.name}, bet queue length is ${playerInGame.betQueue.length}. Logged by logger.`
+                    );
 
                     if (playerInGame.betQueue.length > 0) {
                         this.logService.log(`Player ${player.profile.name} still have bets in queue.`);
-                        logger.log(`Player ${player.profile.name} still have bets in queue. Logged by logger.`);
                     }
 
                     playerInGame.betProcessing = true;
@@ -163,7 +158,12 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
                             playerInGame.betProcessing = false;
                             this.gameData.ingame[player.profile.name].betProcessing = false;
 
-                            logger.log(`proceedBet for ${player.profile.name} finished. playerInGame ${playerInGame}.`);
+                            this.logService.log(
+                                `proceedBet for ${player.profile.name} finished. playerInGame and ingame is the same object: ${Object.is(
+                                    playerInGame,
+                                    this.gameData.ingame[player.profile.name]
+                                )}.`
+                            );
                         })
                         .catch(this.logService.logError);
                 }
