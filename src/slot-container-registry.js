@@ -1,7 +1,7 @@
 import awilix from "awilix";
 import { hitJackpot } from "sc-base-apis";
 import { gameNotifications } from "sc-base-database";
-import { Table } from "sc-game-base";
+import { Core, Table } from "sc-game-base";
 
 import * as Board from "./board";
 import { SlotGameBot, SlotGameCron, SlotProcessBetQueue } from "./crons";
@@ -70,6 +70,7 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
         super.registerPublishers();
 
         this.container.register({
+            placeBetPublisher: asClass(Core.BaseEventPublishers.PlaceBetPublisher).singleton(),
             jackpotPublisher: asClass(JackpotPublisher).singleton(),
             bonusPublisher: asClass(BonusPublisher).singleton(),
         });
