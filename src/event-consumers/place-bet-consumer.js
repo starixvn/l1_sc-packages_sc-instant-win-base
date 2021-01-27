@@ -48,29 +48,6 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         payload.freeSpin = payload.freeSpin ?? false;
 
         super.consume(player, payload);
-
-        logger.log(`Bet queue length is ${this.gameData.ingame[player.profile.name].betQueue.length}`);
-    }
-
-    validateBetRequest(player, betChoice, amount, freeBet) {
-        logger.logWarning(`Validating bet for ${player.profile.name}. Bet amount ${amount} and choices ${betChoice}`);
-
-        if (!amount || !betChoice) {
-            logger.logWarning(`Validating bet FAILED for ${player.profile.name} for amount and choice.`);
-            return false;
-        }
-
-        const criteria = this.composeValidationCriteria(player, betChoice, amount, freeBet);
-        const failedCriterion = criteria.find((criterion) => criterion.failure);
-
-        if (failedCriterion) {
-            logger.logWarning(`Validating bet FAILED for ${player.profile.name}: ${failedCriterion.notice}.`);
-            this.publisher.publishToUser(player.UID, { endBet: -1, notice: failedCriterion.notice });
-
-            return false;
-        }
-
-        return true;
     }
 
     adjustBetTracks(playerName, bet) {}

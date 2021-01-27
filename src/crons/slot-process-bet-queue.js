@@ -48,7 +48,6 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
     async proceedBet(player, payload) {
         if (this.gameData.ingame[player.profile.name]?.finish) {
-            this.logService.logWarning(`Cannot proceed bet for ${player.profile.name}. Current bet with roundId ${finish.roundId} is processing...`);
             this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1, notice: helpers.noticeHelper.cannotPlaceBet });
 
             return;
@@ -137,37 +136,4 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
     }
 
     decreaseBetTracks(playerName, bet) {}
-
-    dequeueBets() {
-        if (this.gameData.ingame) {
-            Object.values(this.gameData.ingame).forEach((playerInGame) => {
-                if (!playerInGame.betProcessing && playerInGame.betQueue && playerInGame.betQueue.length > 0) {
-                    const { player, payload } = playerInGame.betQueue.shift();
-
-                    this.logService.log(
-                        `Dequeue bet for ${player.profile.name}, bet queue length is ${playerInGame.betQueue.length}. Logged by logger.`
-                    );
-
-                    if (playerInGame.betQueue.length > 0) {
-                        this.logService.log(`Player ${player.profile.name} still have bets in queue.`);
-                    }
-
-                    playerInGame.betProcessing = true;
-                    this.proceedBet(player, payload)
-                        .then(() => {
-                            playerInGame.betProcessing = false;
-                            this.gameData.ingame[player.profile.name].betProcessing = false;
-
-                            this.logService.log(
-                                `proceedBet for ${player.profile.name} finished. playerInGame and ingame is the same object: ${Object.is(
-                                    playerInGame,
-                                    this.gameData.ingame[player.profile.name]
-                                )}.`
-                            );
-                        })
-                        .catch(this.logService.logError);
-                }
-            });
-        }
-    }
 }
