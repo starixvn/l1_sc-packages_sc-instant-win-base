@@ -11,7 +11,6 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
      * @param {Object} dependencies
      * @param {SlotGameDefinition} dependencies.definition
      * @param {SlotGameData} dependencies.gameData
-     * @param {Core.BaseEventPublishers.BaseEventPublisher} dependencies.publisher
      * @param {EventConsumers.JackpotConsumer} dependencies.jackpotConsumer
      * @param {EventConsumers.IdCountersConsumer} dependencies.idCountersConsumer
      * @param {EventConsumers.HallOfFameConsumer} dependencies.hallOfFameConsumer
@@ -23,7 +22,6 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
     constructor({
         definition,
         gameData,
-        publisher,
         jackpotConsumer,
         idCountersConsumer,
         hallOfFameConsumer,
@@ -32,7 +30,7 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         paylineCalculator,
         userInfosRepository,
     }) {
-        super(definition, gameData, publisher);
+        super(definition, gameData, userInfosRepository);
 
         this.idCountersConsumer = idCountersConsumer;
         this.jackpotConsumer = jackpotConsumer;
@@ -40,7 +38,6 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         this.boardCheatingConsumer = boardCheatingConsumer;
         this.boardGenerator = boardGenerator;
         this.paylineCalculator = paylineCalculator;
-        this.userInfosRepository = userInfosRepository;
 
         this.totalNumberOfTickets = 0;
         this.odds = {};
