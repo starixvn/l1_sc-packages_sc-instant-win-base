@@ -35,6 +35,6 @@ export default class IdCountersConsumer {
     async getLatestId() {
         const latestCounter = await this.idCountersRepository.findOne({ m: this.modelName }, "c").lean().exec();
 
-        return latestCounter?.c;
+        return latestCounter?.c ?? 0;
     }
 }
