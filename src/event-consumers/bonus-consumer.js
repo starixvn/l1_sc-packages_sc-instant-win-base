@@ -79,12 +79,12 @@ export default class BonusConsumer {
     }
 
     validate(player, chest) {
-        const { bonusChests, settlementResult } = this.gameData.ingame[player.profile.name] ?? { bonusChests: [], settlementResult: {} };
+        const { bonusChests, finish } = this.gameData.ingame[player.profile.name] ?? { bonusChests: [], finish: {} };
         const totalPicked = bonusChests.filter((chest) => chest.picked).length + 1;
 
         const criteria = [
             {
-                failure: bonusChests?.length === 0 || totalPicked > settlementResult.bonus.odds,
+                failure: bonusChests?.length === 0 || totalPicked > finish.settlementResult.bonus.odds,
                 notice: SlotNoticeHelper.invalidBonus,
             },
             {
