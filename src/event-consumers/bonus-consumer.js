@@ -80,7 +80,7 @@ export default class BonusConsumer {
 
     validate(player, chest) {
         const { bonusChests, finish } = this.gameData.ingame[player.profile.name] ?? { bonusChests: [], finish: {} };
-        const totalPicked = bonusChests.filter((chest) => chest.picked).length + 1;
+        const totalPicked = (bonusChests?.filter((chest) => chest.picked)?.length ?? 0) + 1;
 
         const criteria = [
             {
