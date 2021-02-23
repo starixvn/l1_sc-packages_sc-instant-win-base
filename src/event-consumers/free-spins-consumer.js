@@ -97,7 +97,7 @@ export default class FreeSpinsConsumer {
         });
 
         Object.entries(freeSpinsGroupedByNames).forEach(([name, loadedFreeSpins]) => {
-            this.gameData.ingame[name] = this.gameData.ingame[name] ?? {};
+            this.gameData.ingame[name] = this.gameData.ingame[name] ?? { betQueue: [] };
             this.gameData.ingame[name].freeSpins = loadedFreeSpins ?? [];
         });
     }
