@@ -51,7 +51,7 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         const configs = this.gameData.gameConfigs;
 
         if (configs?.botenabled) {
-            const bots = await this.userInfosRepository.find({ type: true, disabled: false }, "id name").lean().exec();
+            const bots = await this.userInfosRepository.find({ type: true, disabled: false, inRoom: false }, "id name").lean().exec();
 
             this.bots = this.chance.shuffle(this.standardizeBots(bots)).slice(0, this.maxNumberOfBots);
         } else {
