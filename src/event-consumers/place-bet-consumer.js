@@ -21,6 +21,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
 
         return [
             {
+                failure: amount < 0,
+                notice: SlotNoticeHelper.invalidStakeLevel,
+            },
+            {
                 failure: !stakeLevels.find((stakeLevel) => stakeLevel.stake === amount),
                 notice: SlotNoticeHelper.invalidStakeLevel,
             },
@@ -45,10 +49,30 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     }
 
     consume(player, payload) {
-        payload.freeSpin = payload.freeSpin ?? false;
+        Object.assign(payload, {
+            amount: payload.amount,
+            freeBet: payload.freeBet ?? false,
+            freeSpin: payload.freeSpin ?? false,
+        });
 
-        super.consume(player, payload);
+        const { amount, betChoice, freeBet } = payload;
+        const name = player.profile.name;
+
+        if (!this.validateBetRequest(player, betChoice, amount, freeBet)) {
+            return;
+        }
+
+        if (!this.gameData.ingame[name]) {
+            const newPlayer = {
+                name: player.profile.name,
+                currency: player.session.currency,
+                betTracks: {},
+                betQueue: [],
+            };
+
+            this.gameData.ingame[name] = newPlayer;
+        }
+
+        this.gameData.ingame[name].betQueue.push({ player, payload });
     }
-
-    adjustBetTracks(playerName, bet) {}
 }
