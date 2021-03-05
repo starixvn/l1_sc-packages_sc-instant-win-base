@@ -26,7 +26,7 @@ export default class JackpotConsumer {
         const contributionRatio = contributedByMember
             ? this.gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio
             : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
-        const contributionAmount = totalAmount * contributionRatio;
+        const contributionAmount = parseFloat((totalAmount * contributionRatio).toFixed(4));
 
         const runningPoolFilter = {
             gameId: this.definition.id,

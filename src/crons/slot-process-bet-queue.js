@@ -72,9 +72,10 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             payload.amount = bet;
         }
 
-        payload.totalAmount = payload.amount * payload.betChoice.length;
-        payload.contributionRate = contributionRate;
-        payload.contributionAmount = contributionRate * payload.totalAmount;
+        payload.totalAmount = parseFloat((payload.amount * payload.betChoice.length).toFixed(2));
+        payload.contributionRate = parseFloat(contributionRate.toFixed(4));
+        payload.contributionAmount = parseFloat((contributionRate * payload.totalAmount).toFixed(4));
+
         this.gameData.roundId += 1;
 
         await super.proceedBet(player, payload);

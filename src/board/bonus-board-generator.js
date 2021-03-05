@@ -16,7 +16,8 @@ export default class BonusBoardGenerator {
 
         for (let counter = 0; counter < this.size; counter++) {
             const bonusRate = this.chance.natural({ min: minRate, max: maxRate });
-            const bonus = { amount: bonusRate * betAmount, picked: false };
+            const amount = parseFloat((bonusRate * betAmount).toFixed(2));
+            const bonus = { amount, picked: false };
 
             bonusBoard.push(bonus);
         }
