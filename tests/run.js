@@ -1,9 +1,12 @@
-import BoardGenerator from "./../src/board/board-generator";
-import BonusBoardGenerator from "./../src/board/bonus-board-generator";
-import difficulties from "./../src/board/difficulties";
-import PaylineCalculator from "./../src/board/payline-calculator";
-import odds from "./odds";
+// import BoardGenerator from "./../src/board/board-generator";
+import Chance from "chance";
 
+import BonusBoardGenerator from "./../src/board/bonus-board-generator";
+
+// import odds from "./odds";
+
+// import difficulties from "./../src/board/difficulties";
+// import PaylineCalculator from "./../src/board/payline-calculator";
 function formatBoard(board) {
     const formattedBoard = [];
 
@@ -124,9 +127,35 @@ function calculateSettlementResultOfSpecificBoard() {
 }
 
 function generateBonusBonus() {
-    const board = new BonusBoardGenerator(10).generate(100, 8, 28);
+    const board = new BonusBoardGenerator({ bonusSize: 10 }).generate(100, 8, 28);
 
     console.log(board);
+}
+
+function checkedUnpickedBonus() {
+    const bonusChests = new BonusBoardGenerator({ bonusSize: 10 }).generate(100, 8, 28);
+    const chance = new Chance();
+
+    console.log("==========Generate bonus===========");
+    console.log(bonusChests);
+
+    bonusChests[0].picked = true;
+    bonusChests[6].picked = true;
+    bonusChests[3].picked = true;
+
+    const unpickedChests = bonusChests.filter((chest) => !chest.picked);
+    const remainingChests = 4 - (10 - unpickedChests.length);
+    const autoPickedChests = chance.pickset(unpickedChests, remainingChests);
+
+    console.log("===========After picking bonus============");
+    console.log(bonusChests);
+    autoPickedChests.forEach((chest) => {
+        const chestIndex = bonusChests.indexOf(chest);
+
+        console.log(`auto open chest number ${chestIndex} - amount ${chest.amount}`);
+
+        chest.picked = true;
+    });
 }
 
 function checkPosibility() {
@@ -135,4 +164,4 @@ function checkPosibility() {
     console.log(generator.anySymbolPossibilities);
 }
 
-calculateSettlementResultOfSpecificBoard();
+checkedUnpickedBonus();

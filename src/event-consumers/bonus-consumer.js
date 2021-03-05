@@ -41,17 +41,12 @@ export default class BonusConsumer {
         }
     }
 
-    getUnpickedChests(playerName) {
-        const { bonusChests } = this.gameData.ingame[playerName] ?? {};
-
-        return bonusChests?.filter((chest) => !chest.picked) ?? [];
-    }
-
     async autoOpenRemainingChests(player) {
         const { finish } = this.gameData.ingame[player.profile.name] ?? {};
+        const { bonusChests } = this.gameData.ingame[playerName] ?? {};
 
         if (finish?.settlementResult) {
-            const unpickedChests = this.getUnpickedChests(player.profile.name);
+            const unpickedChests = bonusChests?.filter((chest) => !chest.picked) ?? [];
 
             if (unpickedChests.length === 0) {
                 return;
@@ -61,7 +56,7 @@ export default class BonusConsumer {
             const autoPickedChests = this.chance.pickset(unpickedChests, remainingChests);
 
             autoPickedChests.forEach((chest) => {
-                const chestIndex = unpickedChests.indexOf(chest);
+                const chestIndex = bonusChests.indexOf(chest);
 
                 chest.picked = true;
                 this.bonusPublisher.publishBonus(player.UID, { chest: chestIndex, amount: chest.amount });
