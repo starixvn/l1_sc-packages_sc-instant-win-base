@@ -112,12 +112,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async generateRoundResult(player, roundId, bet) {
+        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
         const result = this.generateResult(bet.name);
         const odds = this.gameData.gameConfigs.slotsConfig.icons;
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
 
         settlementResult.jackpot =
-            settlementResult.jackpotPayline > -1 && this.isUserEnableJackpot(player)
+            jackpot.enabled && settlementResult.jackpotPayline > -1 && this.isUserEnableJackpot(player)
                 ? await this.processJackpot(player, roundId, bet.bet, settlementResult.jackpotPayline)
                 : null;
 
