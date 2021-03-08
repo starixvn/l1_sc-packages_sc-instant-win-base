@@ -18,6 +18,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
      * @param {mongoose.Model} dependencies.roundsRepository
      * @param {mongoose.Model} dependencies.betsRepository
      * @param {mongoose.Model} dependencies.betLogsRepository
+     * @param {mongoose.Model} dependencies.userInfosRepository
      */
     constructor({
         definition,
@@ -30,6 +31,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         roundsRepository,
         betsRepository,
         betLogsRepository,
+        userInfosRepository,
     }) {
         super({
             definition,
@@ -39,6 +41,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             logService,
             betsRepository,
             betLogsRepository,
+            userInfosRepository,
         });
 
         this.freeSpinsConsumer = freeSpinsConsumer;
