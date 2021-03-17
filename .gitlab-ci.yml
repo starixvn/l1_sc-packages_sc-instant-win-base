@@ -1,3 +1,6 @@
+variables:
+    PROJECT_NAME: sc-slot-game-base
+
 stages:
     - test
     - publish

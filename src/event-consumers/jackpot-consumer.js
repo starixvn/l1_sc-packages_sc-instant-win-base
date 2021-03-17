@@ -1,0 +1,148 @@
+import mongoose from "mongoose";
+import { logger } from "sc-common";
+
+import { JackpotPublisher } from "./../event-publishers";
+import SlotGameData from "./../slot-game-data";
+import SlotGameDefinition from "./../slot-game-definition";
+
+export default class JackpotConsumer {
+    /**
+     * @param {SlotGameDefinition} definition
+     * @param {SlotGameData} gameData
+     * @param {JackpotPublisher} jackpotPublisher
+     * @param {logger} logService
+     * @param {mongoose.Model} jackpotsRepository
+     */
+    constructor(definition, gameData, jackpotPublisher, logService, jackpotsRepository) {
+        this.definition = definition;
+        this.gameData = gameData;
+        this.jackpotPublisher = jackpotPublisher;
+        this.logService = logService;
+        this.jackpotsRepository = jackpotsRepository;
+    }
+
+    async contribute(player, { pool, totalAmount, roundId }) {
+        const contributedByMember = !!player.session;
+        const contributionRatio = contributedByMember
+            ? this.gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio
+            : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
+        const contributionAmount = parseFloat((totalAmount * contributionRatio).toFixed(4));
+
+        const runningPoolFilter = {
+            gameId: this.definition.id,
+            pool,
+            winnerName: { $exists: false },
+            createdAt: { $lte: roundId },
+        };
+        const nearestPoolOrder = {
+            createdAt: -1,
+        };
+        const poolAdjustment = {
+            amount: contributionAmount,
+            byBots: contributedByMember ? 0 : contributionAmount,
+            byMembers: contributedByMember ? contributionAmount : 0,
+        };
+        const latestJackpotProjection = { _id: false, amount: true };
+        const latestJackpotPool = await this.jackpotsRepository.findOneAndUpdate(
+            runningPoolFilter,
+            {
+                $inc: poolAdjustment,
+            },
+            {
+                new: true,
+                lean: true,
+                fields: latestJackpotProjection,
+                sort: nearestPoolOrder,
+            }
+        );
+
+        this.jackpotPublisher.publishLatestPool({ pool, amount: latestJackpotPool.amount });
+    }
+
+    async hit(player, { pool, roundId }) {
+        await this.initializeNewPool(pool, roundId);
+
+        const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningRatio;
+        const runningPoolFilter = {
+            gameId: this.definition.id,
+            pool,
+            winnerName: { $exists: false },
+            createdAt: { $lt: roundId },
+        };
+        const nearestRunningPoolOrder = {
+            createdAt: -1,
+        };
+        const winnerAdjustment = {
+            winningRatio,
+            winnerName: player.profile.name,
+            winnerId: player.session?.memberId,
+            hitAt: roundId,
+            hitTime: new Date(),
+        };
+        const winnerProjection = {
+            _id: false,
+            pool: true,
+            winnerName: true,
+            amount: true,
+        };
+        const winningJackpot = await this.jackpotsRepository.findOneAndUpdate(
+            runningPoolFilter,
+            {
+                $set: winnerAdjustment,
+            },
+            {
+                new: true,
+                lean: true,
+                fields: winnerProjection,
+                sort: nearestRunningPoolOrder,
+            }
+        );
+
+        if (!winningJackpot) {
+            this.logService.logCritical(`Couldn't find any running jackpot pool associated with: ${JSON.stringify(runningPoolFilter)}`);
+
+            return { amount: 0 };
+        }
+
+        winningJackpot.amount *= winningRatio;
+
+        await this.jackpotPublisher.publishWinner(player.UID, winningJackpot);
+
+        return winningJackpot;
+    }
+
+    async initialize() {
+        const stakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
+        const roundId = this.gameData.roundId;
+
+        await Promise.all(
+            stakeLevels.map(async (stakeLevel) => {
+                const runningPoolFilter = {
+                    gameId: this.definition.id,
+                    pool: stakeLevel.stake,
+                    winnerName: { $exists: false },
+                    createdAt: { $lte: roundId },
+                };
+                const numberOfExistingPools = await this.jackpotsRepository.countDocuments(runningPoolFilter).exec();
+
+                if (numberOfExistingPools === 0) {
+                    await this.initializeNewPool(stakeLevel.stake, roundId);
+                }
+            })
+        );
+    }
+
+    async initializeNewPool(pool, roundId) {
+        const initAmount = this.gameData.gameConfigs.slotsConfig?.stakeLevels?.find((stakeLevel) => stakeLevel.stake === pool)?.jackpot ?? 0;
+
+        await this.jackpotsRepository.create({
+            gameId: this.definition.id,
+            gameName: this.definition.name,
+            pool,
+            initAmount,
+            amount: initAmount,
+            createdAt: roundId,
+            createdTime: new Date(),
+        });
+    }
+}

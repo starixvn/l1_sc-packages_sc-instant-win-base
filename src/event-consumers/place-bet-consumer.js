@@ -1,0 +1,78 @@
+import _ from "lodash";
+import { helpers } from "sc-common";
+import { Core } from "sc-game-base";
+
+import SlotNoticeHelper from "./../helpers/slot-notice-helper";
+
+export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
+    composeBettingTimeValidationCriteria() {
+        const gameConfigs = this.gameData.gameConfigs;
+
+        return [
+            {
+                failure: !gameConfigs.enabled,
+                notice: helpers.noticeHelper.placeBetNextRound,
+            },
+        ];
+    }
+
+    composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
+        const stakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
+
+        return [
+            {
+                failure: amount < 0,
+                notice: SlotNoticeHelper.invalidStakeLevel,
+            },
+            {
+                failure: !stakeLevels.find((stakeLevel) => stakeLevel.stake === amount),
+                notice: SlotNoticeHelper.invalidStakeLevel,
+            },
+        ];
+    }
+
+    composeBetChoiceValidationCriteria(betChoice) {
+        return [
+            {
+                failure: betChoice.length < 1 || betChoice.length > this.definition.choices.length,
+                notice: SlotNoticeHelper.invalidPaylines,
+            },
+            {
+                failure: betChoice.filter((choice) => !this.definition.choices.includes(choice)).length > 0,
+                notice: SlotNoticeHelper.invalidPaylines,
+            },
+            {
+                failure: _.uniq(betChoice).length !== betChoice.length,
+                notice: SlotNoticeHelper.invalidPaylines,
+            },
+        ];
+    }
+
+    consume(player, payload) {
+        Object.assign(payload, {
+            amount: payload.amount,
+            freeBet: payload.freeBet ?? false,
+            freeSpin: payload.freeSpin ?? false,
+        });
+
+        const { amount, betChoice, freeBet } = payload;
+        const name = player.profile.name;
+
+        if (!this.validateBetRequest(player, betChoice, amount, freeBet)) {
+            return;
+        }
+
+        if (!this.gameData.ingame[name]) {
+            const newPlayer = {
+                name: player.profile.name,
+                currency: player.session.currency,
+                betTracks: {},
+                betQueue: [],
+            };
+
+            this.gameData.ingame[name] = newPlayer;
+        }
+
+        this.gameData.ingame[name].betQueue.push({ player, payload });
+    }
+}

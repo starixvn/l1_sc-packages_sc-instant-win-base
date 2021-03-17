@@ -1,13 +1,14 @@
 export default {
     numberOfColumns: 5,
+    numberOfRows: 3,
     numberOfSymbols: 11,
     specialSymbols: {
-        wild: 10,
-        jackpot: 9,
+        jackpot: 10,
+        replacement: 9,
         bonus: 8,
         freeSpins: 7,
     },
-    fillingStratergies: {
+    fillingStrategies: {
         hard: [
             "randomAnySymbol",
             "randomAnySymbol",
@@ -60,17 +61,17 @@ export default {
             0,
         ],
     },
-    fillingStratergyForBots: {
+    fillingStrategyForBots: {
         jackpot: [
             "randomAnySymbol",
             "randomAnySymbol",
             "randomAnySymbol",
             "randomAnySymbol",
             "randomAnySymbol",
-            9,
-            9,
-            9,
-            9,
+            10,
+            10,
+            10,
+            10,
             1,
             1,
             "randomAnySymbol",
@@ -79,8 +80,38 @@ export default {
             0,
         ],
         normal: ["randomAnySymbol", "randomAnySymbol", "randomAnySymbol", 8, 7, 7, 8, "randomAnySymbol", "randomAnySymbol", 1, 1, 2, 0, 0, 0],
-        jackpotPosibilityRange: 50,
+        jackpotPossibilityRange: 50,
     },
     numberOfShuffles: 3,
-    paylines: [],
+    paylines: [
+        [1, 4, 7, 10, 13],
+        [0, 3, 6, 9, 12],
+        [2, 5, 8, 11, 14],
+        [2, 4, 6, 10, 14],
+        [0, 4, 8, 10, 12],
+
+        [1, 3, 6, 9, 13],
+        [1, 5, 8, 11, 13],
+        [0, 3, 7, 11, 14],
+        [2, 5, 7, 9, 12],
+        [1, 5, 7, 9, 13],
+
+        [1, 3, 7, 11, 13],
+        [0, 4, 7, 10, 12],
+        [2, 4, 7, 10, 14],
+        [0, 4, 6, 10, 12],
+        [2, 4, 8, 10, 14],
+
+        [1, 4, 6, 10, 13],
+        [1, 4, 8, 10, 13],
+        [0, 3, 8, 9, 12],
+        [2, 5, 6, 11, 14],
+        [0, 5, 8, 11, 12],
+
+        [2, 3, 6, 9, 14],
+        [1, 3, 8, 9, 13],
+        [1, 5, 6, 11, 13],
+        [0, 5, 6, 11, 12],
+        [2, 3, 8, 9, 14],
+    ],
 };
