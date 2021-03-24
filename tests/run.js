@@ -47,7 +47,7 @@ function generateThreeBoards() {
     }
 }
 
-function runOneMillions() {
+function runOneMillions(mode) {
     const chance = new Chance();
     const stakes = [0.1, 1, 5];
     const generator = new BoardGenerator();
@@ -66,19 +66,22 @@ function runOneMillions() {
             8000: 0,
         },
         winningPaylinesWithOdds: {},
-        totalAmount: 0,
-        winAmount: 0,
-        winLoss: 0,
         totalPaylines: 0,
         stakes: {
             0.1: 0,
             1: 0,
             5: 0,
         },
+        totalAmount: 0,
+        winAmount: 0,
+        bonusAmount: 0,
+        freeSpinAmount: 0,
+        winLoss: 0,
+        payoutRatio: 0,
     };
     for (let counter = 0; counter < 100000; counter++) {
         const amount = chance.pickone(stakes);
-        const board = generator.generate(difficulties.hard);
+        const board = generator.generate(mode);
         const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
         const result = calculator.calculate(board, randomPaylines, odds);
         summary.totalAmount += amount * randomPaylines.length;
@@ -103,13 +106,47 @@ function runOneMillions() {
             }
         });
 
+        if (result.bonus.odds > 0) {
+            for (let index = 0; index < result.bonus.odds; index++) {
+                const bonus = chance.integer({ min: 8, max: 28 }) * amount;
+                summary.bonusAmount += bonus;
+                summary.winAmount += bonus;
+            }
+        }
+
+        if (result.freeSpins.odds > 0) {
+            for (let index = 0; index < result.freeSpins.odds; index++) {
+                const freeSpinBoard = generator.generate(mode);
+                const freeSpinResult = calculator.calculate(freeSpinBoard, randomPaylines, odds);
+                const freeSpinAmount =
+                    freeSpinResult.paylines
+                        .filter((payline) => payline.odds > 0)
+                        .reduce((totalAmount, payline) => totalAmount + amount * payline.odds, 0) ?? 0;
+
+                summary.freeSpinAmount += freeSpinAmount;
+                summary.winAmount += freeSpinAmount;
+            }
+        }
+
         summary.freeSpins += result.freeSpins.odds;
         summary.bonus += result.bonus.odds;
     }
 
     summary.winLoss = summary.totalAmount - summary.winAmount;
+    summary.payoutRatio = ((summary.winAmount / summary.totalAmount) * 100).toFixed(2) + "%";
 
     console.log(summary);
+}
+
+function runAllModes() {
+    console.log("===================EASY===================");
+    runOneMillions(difficulties.easy);
+
+    console.log("===================MEDIUM===================");
+    runOneMillions(difficulties.medium);
+
+    console.log("===================HARD===================");
+    runOneMillions(difficulties.hard);
 }
 
 function runOneMillionsForBots() {
@@ -189,4 +226,4 @@ function checkPosibility() {
     console.log(generator.anySymbolPossibilities);
 }
 
-runOneMillions();
+runAllModes();
