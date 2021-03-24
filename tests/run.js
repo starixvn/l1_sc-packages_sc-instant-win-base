@@ -1,12 +1,11 @@
-// import BoardGenerator from "./../src/board/board-generator";
 import Chance from "chance";
 
+import BoardGenerator from "./../src/board/board-generator";
 import BonusBoardGenerator from "./../src/board/bonus-board-generator";
+import difficulties from "./../src/board/difficulties";
+import PaylineCalculator from "./../src/board/payline-calculator";
+import odds from "./odds";
 
-// import odds from "./odds";
-
-// import difficulties from "./../src/board/difficulties";
-// import PaylineCalculator from "./../src/board/payline-calculator";
 function formatBoard(board) {
     const formattedBoard = [];
 
@@ -49,9 +48,12 @@ function generateThreeBoards() {
 }
 
 function runOneMillions() {
+    const chance = new Chance();
+    const stakes = [0.1, 1, 5];
     const generator = new BoardGenerator();
     const calculator = new PaylineCalculator();
     const paylines = [...Array(25).keys()];
+
     const summary = {
         jackpot: 0,
         freeSpins: 0,
@@ -63,11 +65,25 @@ function runOneMillions() {
             1000: 0,
             8000: 0,
         },
+        winningPaylinesWithOdds: {},
+        totalAmount: 0,
+        winAmount: 0,
+        winLoss: 0,
+        totalPaylines: 0,
+        stakes: {
+            0.1: 0,
+            1: 0,
+            5: 0,
+        },
     };
-
-    for (let counter = 0; counter < 1000000; counter++) {
-        const board = generator.generate(difficulties.medium);
-        const result = calculator.calculate(board, paylines, odds);
+    for (let counter = 0; counter < 100000; counter++) {
+        const amount = chance.pickone(stakes);
+        const board = generator.generate(difficulties.hard);
+        const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
+        const result = calculator.calculate(board, randomPaylines, odds);
+        summary.totalAmount += amount * randomPaylines.length;
+        summary.totalPaylines += randomPaylines.length;
+        summary.stakes[amount] += 1;
 
         if (result.jackpotPayline >= 0) {
             summary.jackpot += 1;
@@ -78,11 +94,20 @@ function runOneMillions() {
                 summary.wild += 1;
                 summary.wildByOdds[payline.odds] += 1;
             }
+
+            if (payline.odds > 0) {
+                summary.winningPaylinesWithOdds[payline.odds] = summary.winningPaylinesWithOdds[payline.odds]
+                    ? summary.winningPaylinesWithOdds[payline.odds] + 1
+                    : 1;
+                summary.winAmount += amount * payline.odds;
+            }
         });
 
-        summary.freeSpins += result.freeSpins;
-        summary.bonus += result.bonus;
+        summary.freeSpins += result.freeSpins.odds;
+        summary.bonus += result.bonus.odds;
     }
+
+    summary.winLoss = summary.totalAmount - summary.winAmount;
 
     console.log(summary);
 }
@@ -97,7 +122,7 @@ function runOneMillionsForBots() {
         bonus: 0,
     };
 
-    for (let counter = 0; counter < 1000000; counter++) {
+    for (let counter = 0; counter < 100000; counter++) {
         const board = generator.generateForBots();
         const result = calculator.calculate(board, paylines, odds);
 
@@ -105,8 +130,8 @@ function runOneMillionsForBots() {
             summary.jackpot += 1;
         }
 
-        summary.freeSpins += result.freeSpins;
-        summary.bonus += result.bonus;
+        summary.freeSpins += result.freeSpins.odds;
+        summary.bonus += result.bonus.odds;
     }
 
     console.log(summary);
@@ -164,4 +189,4 @@ function checkPosibility() {
     console.log(generator.anySymbolPossibilities);
 }
 
-checkedUnpickedBonus();
+runOneMillions();
