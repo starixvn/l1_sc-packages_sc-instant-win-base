@@ -50,7 +50,7 @@ export default {
             "randomAnySymbol",
             "randomAnySymbol",
             "randomLowPrizedSymbol",
-            "randomLowPrizedSymbol",
+            "randomAnySymbol",
             0,
             3,
             1,
