@@ -1,3 +1,14 @@
+## [1.0.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.0...v1.0.1) (2021-03-29)
+
+
+### Bug Fixes
+
+* adjust filling strategy for easy ([bcf7118](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/bcf71185b64f5abb9cbda8393a2072196eeac5a2))
+* adjust filling strategy for easy and medium ([9ab7589](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/9ab758905c2c2bcaa304cdf9e3844d6f7b174525))
+* change filling strategies to adjust payout ratios according to difficulty ([995761f](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/995761f79e391d06abd48dc4828c1aa229d1a4d5))
+* correct slot difficulties ([4c74645](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/4c74645cb726571ac9aec5240827dcc8b3fcc0de))
+* update code to test board ([51eff72](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/51eff72a93b0f83fcbed06821de030a201fc649c))
+
 # 1.0.0 (2021-03-17)
 
 
