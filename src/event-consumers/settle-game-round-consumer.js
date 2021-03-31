@@ -86,6 +86,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async settleRound(player, roundId) {
+        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
         const bet = await this.queryBets(roundId);
 
         if (bet) {
@@ -99,7 +100,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 await this.processBonus(player, finish, bet);
             }
 
-            if (!bet.freeSpin && this.isUserEnableJackpot(player)) {
+            if (jackpot.enabled && !bet.freeSpin && this.isUserEnableJackpot(player)) {
                 await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
             }
         }
@@ -112,9 +113,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async generateRoundResult(player, roundId, bet) {
-        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
+        const { jackpot, icons: odds } = this.gameData.gameConfigs.slotsConfig;
         const result = this.generateResult(bet.name);
-        const odds = this.gameData.gameConfigs.slotsConfig.icons;
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
 
         settlementResult.jackpot =

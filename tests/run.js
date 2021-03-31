@@ -153,6 +153,7 @@ function runOneMillionsForBots() {
     const generator = new BoardGenerator();
     const calculator = new PaylineCalculator();
     const paylines = [...Array(25).keys()];
+    const jackpotEnabled = true;
     const summary = {
         jackpot: 0,
         freeSpins: 0,
@@ -160,7 +161,7 @@ function runOneMillionsForBots() {
     };
 
     for (let counter = 0; counter < 100000; counter++) {
-        const board = generator.generateForBots();
+        const board = generator.generateForBots(jackpotEnabled);
         const result = calculator.calculate(board, paylines, odds);
 
         if (result.jackpotPayline >= 0) {
