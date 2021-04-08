@@ -90,21 +90,24 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
     async placeBet(bot) {
         await this.increaseRoundId();
 
+        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
         const name = bot.profile.name;
         const roundId = this.gameData.roundId;
         const paylines = this.randomizePaylines();
         const numberOfPaylines = paylines.length;
         const amount = this.getBetAmount();
         const totalAmount = amount * numberOfPaylines;
-        const board = this.boardCheatingConsumer.consume(name, this.boardGenerator.generateForBots());
+        const board = this.boardCheatingConsumer.consume(name, this.boardGenerator.generateForBots(jackpot.enabled));
         const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
         const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
 
-        if (betResult.jackpotPayline >= 0) {
-            await this.jackpotConsumer.hit(bot, { pool: amount, roundId });
-        }
+        if (jackpot.enabled) {
+            if (betResult.jackpotPayline >= 0) {
+                await this.jackpotConsumer.hit(bot, { pool: amount, roundId });
+            }
 
-        await this.jackpotConsumer.contribute(bot, { pool: amount, totalAmount, roundId });
+            await this.jackpotConsumer.contribute(bot, { pool: amount, totalAmount, roundId });
+        }
 
         if (totalAmount * this.bigWinRatio <= winningAmount) {
             await this.hallOfFameConsumer.add(bot, { roundId, bet: amount, totalAmount, winningAmount, numberOfPaylines });
