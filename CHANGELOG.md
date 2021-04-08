@@ -1,3 +1,10 @@
+## [1.0.2](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.1...v1.0.2) (2021-04-08)
+
+
+### Bug Fixes
+
+* avoid bot hit jackpot if it was disabled ([9ba3677](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/9ba3677bc54f2d7f243efc4ac1c48f6ccc9989fa))
+
 ## [1.0.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.0...v1.0.1) (2021-03-29)
 
 
