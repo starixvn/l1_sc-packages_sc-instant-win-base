@@ -53,6 +53,7 @@ const bonusChestSchema = new mongoose.Schema(
 );
 
 export default new mongoose.Schema({
+    id: { type: Number, required: true },
     name: { type: String, required: true },
     memberId: { type: Number },
     siteId: { type: String },
