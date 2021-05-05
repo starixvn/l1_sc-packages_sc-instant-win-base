@@ -8,4 +8,4 @@ const idCountersSchema = new mongoose.Schema({
     m: { type: String, required: true },
 });
 
-export default mongoose.model(modelName) ?? mongoose.model(modelName, idCountersSchema);
+export default mongoose.model(modelName, idCountersSchema);
