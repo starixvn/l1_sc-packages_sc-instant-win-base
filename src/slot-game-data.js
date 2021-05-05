@@ -3,6 +3,6 @@ import { Core } from "sc-game-base";
 export default class SlotGameData extends Core.GameData {
     constructor(remainingTime) {
         super(remainingTime);
-        this.gameData.freeSpinId = 0;
+        this.freeSpinId = 1;
     }
 }
