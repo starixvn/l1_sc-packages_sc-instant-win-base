@@ -58,7 +58,8 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
     }
 
     async start() {
-        this.gameData.roundId = await this.idCountersConsumer.getLatestId();
+        this.gameData.roundId = await this.idCountersConsumer.getLatestId("round");
+        this.gameData.freeSpinId = await this.idCountersConsumer.getLatestId("freespin");
 
         await this.loadUnsettledBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
