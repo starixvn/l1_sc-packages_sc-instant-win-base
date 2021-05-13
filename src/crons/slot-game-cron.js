@@ -23,6 +23,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
      * @param {logger} dependencies.logService
      * @param {mongoose.Model} dependencies.gameConfigsRepository
      * @param {mongoose.Model} dependencies.roundsRepository
+     * @param {mongoose.Model} dependencies.archiveStatusesRepository
      */
     constructor({
         definition,
@@ -38,6 +39,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         logService,
         gameConfigsRepository,
         roundsRepository,
+        archiveStatusesRepository,
     }) {
         super({
             definition,
@@ -49,6 +51,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             logService,
             gameConfigsRepository,
             roundsRepository,
+            archiveStatusesRepository,
         });
 
         this.freeSpinsConsumer = freeSpinsConsumer;
@@ -60,6 +63,10 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
     async start() {
         this.gameData.roundId = await this.idCountersConsumer.getLatestId("round");
         this.gameData.freeSpinId = await this.idCountersConsumer.getLatestId("freespin");
+
+        if (this.gameData.roundId < 1 && this.gameData.freeSpinId < 1) {
+            await this.getLastArchiveRound();
+        }
 
         await this.loadUnsettledBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
@@ -76,6 +83,14 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         );
 
         job.start();
+    }
+
+    async getLastArchiveRound() {
+        const { configName } = this.definition;
+        const archiveStatus = await this.archiveStatusesRepository.findOne({ name: configName }, "lastArcId").lean().exec();
+
+        this.gameData.roundId = archiveStatus && archiveStatus.lastArcId["_phiens"] > 0 ? archiveStatus.lastArcId["_phiens"] + 1 : 1;
+        this.gameData.freeSpinId = archiveStatus && archiveStatus.lastArcId["_freespins"] > 0 ? archiveStatus.lastArcId["_freespins"] + 1 : 1;
     }
 
     async proceed() {
