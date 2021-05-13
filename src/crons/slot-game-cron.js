@@ -71,7 +71,10 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         await this.loadUnsettledBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
-        await this.jackpotConsumer.initialize();
+
+        if (this.gameData.gameConfigs.slotsConfig?.jackpot.enabled) {
+            await this.jackpotConsumer.initialize();
+        }
 
         const job = new cron.CronJob(
             "* * * * * *",
