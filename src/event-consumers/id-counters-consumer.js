@@ -48,12 +48,15 @@ export default class IdCountersConsumer {
             f: "id",
         };
 
-        const updateOptions = {
-            setDefaultsOnInsert: true,
-            upsert: true,
+        const updates = {
             fields: { c: id },
         };
 
-        await this.idCountersRepository.findOneAndUpdate(filter, updateOptions);
+        const updateOptions = {
+            setDefaultsOnInsert: true,
+            upsert: true,
+        };
+
+        await this.idCountersRepository.findOneAndUpdate(filter, updates, updateOptions);
     }
 }
