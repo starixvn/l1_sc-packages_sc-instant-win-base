@@ -92,7 +92,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         const { configName } = this.definition;
         const archiveStatus = await this.archiveStatusesRepository.findOne({ name: configName }, "lastArcId").lean().exec();
 
-        this.gameData.roundId = archiveStatus && archiveStatus.lastArcId["_phiens"] > 0 ? archiveStatus.lastArcId["_phiens"] + 1 : 0;
+        this.gameData.roundId = archiveStatus && archiveStatus.lastArcId["_rounds"] > 0 ? archiveStatus.lastArcId["_rounds"] + 1 : 0;
         this.gameData.freeSpinId = archiveStatus && archiveStatus.lastArcId["_freespins"] > 0 ? archiveStatus.lastArcId["_freespins"] + 1 : 0;
     }
 
