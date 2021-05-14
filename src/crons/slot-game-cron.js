@@ -65,7 +65,17 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         this.gameData.freeSpinId = await this.idCountersConsumer.getLatestId("freespin");
 
         if (this.gameData.roundId < 1 && this.gameData.freeSpinId < 1) {
-            await this.getLastArchiveRound();
+            const { roundId, freeSpinId } = await this.getLastArchiveRound();
+
+            await this.idCountersConsumer.updateLatestId("round", roundId);
+            await this.idCountersConsumer.updateLatestId("freespin", freespinId);
+
+            this.gameData.roundId = roundId;
+            this.gameData.freeSpinId = freeSpinId;
+
+            this.logService.logError(
+                `${this.definition.name} get roundId #${this.gameData.roundId} and freeSpinId #${this.gameData.freeSpinId} from archive.`
+            );
         }
 
         await this.loadUnsettledBetsToIngame();
@@ -78,9 +88,11 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
         const job = new cron.CronJob(
             "* * * * * *",
-            () => this.proceed().catch(logger.logError),
+            () => this.proceed().catch(this.logService.logError),
             () => {
-                logger.logError(`${this.definition.name} unexpectedly stopped at round #${this.gameData.roundId} because some other tasks halt it.`);
+                this.logService.logError(
+                    `${this.definition.name} unexpectedly stopped at round #${this.gameData.roundId} because some other tasks halt it.`
+                );
                 job.start();
             }
         );
@@ -92,8 +104,10 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         const { configName } = this.definition;
         const archiveStatus = await this.archiveStatusesRepository.findOne({ name: configName }, "lastArcId").lean().exec();
 
-        this.gameData.roundId = archiveStatus && archiveStatus.lastArcId["_rounds"] > 0 ? archiveStatus.lastArcId["_rounds"] : 0;
-        this.gameData.freeSpinId = archiveStatus && archiveStatus.lastArcId["_freespins"] > 0 ? archiveStatus.lastArcId["_freespins"] : 0;
+        const roundId = archiveStatus && archiveStatus.lastArcId["_rounds"] > 0 ? archiveStatus.lastArcId["_rounds"] : 0;
+        const freeSpinId = archiveStatus && archiveStatus.lastArcId["_freespins"] > 0 ? archiveStatus.lastArcId["_freespins"] : 0;
+
+        return { roundId, freeSpinId };
     }
 
     async proceed() {

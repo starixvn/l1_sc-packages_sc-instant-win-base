@@ -41,4 +41,19 @@ export default class IdCountersConsumer {
 
         return latestCounter?.c ?? 0;
     }
+
+    async updateLatestId(modelNamePostFix, id) {
+        const filter = {
+            m: `${this.gameName}_${modelNamePostFix}`,
+            f: "id",
+        };
+
+        const updateOptions = {
+            setDefaultsOnInsert: true,
+            upsert: true,
+            fields: { c: id },
+        };
+
+        await this.idCountersRepository.findOneAndUpdate(filter, updateOptions);
+    }
 }
