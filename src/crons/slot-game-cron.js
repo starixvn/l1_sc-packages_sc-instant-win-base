@@ -68,7 +68,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             const { roundId, freeSpinId } = await this.getLastArchiveRound();
 
             await this.idCountersConsumer.updateLatestId("round", roundId);
-            await this.idCountersConsumer.updateLatestId("freespin", freespinId);
+            await this.idCountersConsumer.updateLatestId("freespin", freeSpinId);
 
             this.gameData.roundId = roundId;
             this.gameData.freeSpinId = freeSpinId;
