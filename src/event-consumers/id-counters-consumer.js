@@ -49,7 +49,7 @@ export default class IdCountersConsumer {
         };
 
         const updates = {
-            fields: { c: id },
+            $set: { c: id },
         };
 
         const updateOptions = {
