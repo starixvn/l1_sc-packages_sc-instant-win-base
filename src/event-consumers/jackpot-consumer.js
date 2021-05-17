@@ -135,6 +135,8 @@ export default class JackpotConsumer {
     async initializeNewPool(pool, roundId) {
         const initAmount = this.gameData.gameConfigs.slotsConfig?.stakeLevels?.find((stakeLevel) => stakeLevel.stake === pool)?.jackpot ?? 0;
 
+        this.logService.log(`Init new jackpot pool ${pool} at round ${roundId}`);
+
         await this.jackpotsRepository.create({
             gameId: this.definition.id,
             gameName: this.definition.name,
