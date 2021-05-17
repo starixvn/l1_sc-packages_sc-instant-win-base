@@ -121,12 +121,15 @@ export default class JackpotConsumer {
                     gameId: this.definition.id,
                     pool: stakeLevel.stake,
                     winnerName: { $exists: false },
-                    createdAt: { $lte: roundId },
                 };
                 const numberOfExistingPools = await this.jackpotsRepository.countDocuments(runningPoolFilter).exec();
 
                 if (numberOfExistingPools === 0) {
                     await this.initializeNewPool(stakeLevel.stake, roundId);
+                }
+
+                if (numberOfExistingPools > 1) {
+                    this.logService.logCritical(`Found ${numberOfExistingPools} running jackpot pool for stake level ${stakeLevel.stake}`);
                 }
             })
         );
