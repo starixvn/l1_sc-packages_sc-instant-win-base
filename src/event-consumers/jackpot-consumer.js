@@ -154,7 +154,6 @@ export default class JackpotConsumer {
     async getLatestRoundId() {
         const runningPoolFilter = {
             gameId: this.definition.id,
-            pool,
             winnerName: { $exists: false },
         };
 
