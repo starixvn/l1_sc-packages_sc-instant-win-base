@@ -150,4 +150,23 @@ export default class JackpotConsumer {
             createdTime: new Date(),
         });
     }
+
+    async getLatestRoundId() {
+        const runningPoolFilter = {
+            gameId: this.definition.id,
+            pool,
+            winnerName: { $exists: false },
+        };
+
+        const pool = await this.jackpotsRepository
+            .findOne(runningPoolFilter, "createdAt", {
+                sort: {
+                    createdAt: -1,
+                },
+            })
+            .lean()
+            .exec();
+
+        return pool.createdAt;
+    }
 }

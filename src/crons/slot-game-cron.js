@@ -103,11 +103,12 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
     async getLastArchiveRound() {
         const { configName } = this.definition;
         const archiveStatus = await this.archiveStatusesRepository.findOne({ name: configName }, "lastArcId").lean().exec();
+        const latestJackpotRoundId = await this.jackpotConsumer.getLatestRoundId();
 
         const roundId = archiveStatus && archiveStatus.lastArcId["_rounds"] > 0 ? archiveStatus.lastArcId["_rounds"] : 0;
         const freeSpinId = archiveStatus && archiveStatus.lastArcId["_freespins"] > 0 ? archiveStatus.lastArcId["_freespins"] : 0;
 
-        return { roundId, freeSpinId };
+        return { roundId: Math.max(roundId, latestJackpotRoundId), freeSpinId };
     }
 
     async proceed() {
