@@ -65,7 +65,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         this.gameData.freeSpinId = await this.idCountersConsumer.getLatestId("freespin");
 
         if (this.gameData.roundId < 1 && this.gameData.freeSpinId < 1) {
-            const { roundId, freeSpinId } = await this.getLastArchiveRound();
+            const { roundId, freeSpinId } = await this.getLastArchiveRound(this.gameData.gameConfigs.slotsConfig?.jackpot.enabled);
 
             await this.idCountersConsumer.updateLatestId("round", roundId);
             await this.idCountersConsumer.updateLatestId("freespin", freeSpinId);
@@ -100,10 +100,10 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         job.start();
     }
 
-    async getLastArchiveRound() {
+    async getLastArchiveRound(jackpotEnabled) {
         const { configName } = this.definition;
         const archiveStatus = await this.archiveStatusesRepository.findOne({ name: configName }, "lastArcId").lean().exec();
-        const latestJackpotRoundId = await this.jackpotConsumer.getLatestRoundId();
+        const latestJackpotRoundId = jackpotEnabled ? await this.jackpotConsumer.getLatestRoundId() : 0;
 
         const roundId = archiveStatus && archiveStatus.lastArcId["_rounds"] > 0 ? archiveStatus.lastArcId["_rounds"] : 0;
         const freeSpinId = archiveStatus && archiveStatus.lastArcId["_freespins"] > 0 ? archiveStatus.lastArcId["_freespins"] : 0;
