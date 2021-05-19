@@ -1,3 +1,28 @@
+## [1.0.3](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.2...v1.0.3) (2021-05-19)
+
+
+### Bug Fixes
+
+* add $set for idcounter ([6922317](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/692231747df7593eccd5fba748b9f02c94d0202d))
+* add log when init new jackpot pool ([248eb48](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/248eb484893a93b1af36a8d2053a69d4d7223f48))
+* alert if jackpot pool greater than 1 ([6a0a839](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/6a0a839e60d9fe7a53442999e16de6ce0c3e714c))
+* correct freeSpin id ([17c38a5](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/17c38a538ac51ca9add953c7ec806041f21a0a63))
+* correct freeSpinId ([0c88c73](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/0c88c73248cc1dbcf4f48811e9961db0cd46eac0))
+* correct name of archive status ([81869da](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/81869da8b2478d8f69605ca78f121c36499c8f5b))
+* correct round and freespins value ([6e2b3b9](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/6e2b3b976ff970df4b1bd82dfde2c7e04ccffaac))
+* get latest round from jackpot if it greater than archive ([88939f9](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/88939f9f4c2bf4db189b47c3ee48b99b6a20edfa))
+* get latest round from jackpot if it greater than archive ([94d88df](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/94d88df9c83c37a5ff6b765a7884da878a8178f2))
+* implement archive status for round and freespin ([91b81e8](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/91b81e838496c3eacefc16eee34e95ec6cb1a2b6))
+* increase round and free spin id ([5d0f8ee](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/5d0f8ee2e55ba9d98461013e94d5b7dc201d0e54))
+* only get round from jackpot if enabled ([39dcbb7](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/39dcbb75fb9e204b72f9cdd87bb082e570f98e0c))
+* only init jackpot if enabled ([c222d3a](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/c222d3a83b7b9e5008b125bea9ae0f938ac3050b))
+* update id_counter if get from archive, update log service ([9897371](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/9897371f20ad92c63d3f29c965548afccccb0927))
+* update id-counters model ([9824780](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/9824780c494f5af48a7d9164ca182268d965d6da))
+* update init value of round and freespin ([f8153b7](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/f8153b7282c353edc945dde9679bbf92f59413ca))
+* update latest id counter ([dbbbbd9](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/dbbbbd90c37b0e2e9154dbceb41464d8eb1c6135))
+* update round and free-spins model after removing mongoose plugin ([bc2672a](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/bc2672afe674c236f8dec9a2e848736ef4c1df04))
+* upgrade sc-game-base ([8d2dcb6](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8d2dcb6127d973d82de1762d0941f6b64f0212e5))
+
 ## [1.0.2](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.1...v1.0.2) (2021-04-08)
 
 
