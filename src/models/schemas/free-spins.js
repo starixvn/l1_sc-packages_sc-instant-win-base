@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 export default new mongoose.Schema({
+    id: { type: Number, required: true },
     uid: { type: String, required: true },
     memberId: { type: Number, required: true },
     name: { type: String, required: true },

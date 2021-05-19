@@ -23,6 +23,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
      * @param {logger} dependencies.logService
      * @param {mongoose.Model} dependencies.gameConfigsRepository
      * @param {mongoose.Model} dependencies.roundsRepository
+     * @param {mongoose.Model} dependencies.archiveStatusesRepository
      */
     constructor({
         definition,
@@ -38,6 +39,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         logService,
         gameConfigsRepository,
         roundsRepository,
+        archiveStatusesRepository,
     }) {
         super({
             definition,
@@ -49,6 +51,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             logService,
             gameConfigsRepository,
             roundsRepository,
+            archiveStatusesRepository,
         });
 
         this.freeSpinsConsumer = freeSpinsConsumer;
@@ -58,23 +61,54 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
     }
 
     async start() {
-        this.gameData.roundId = await this.idCountersConsumer.getLatestId();
+        this.gameData.roundId = await this.idCountersConsumer.getLatestId("round");
+        this.gameData.freeSpinId = await this.idCountersConsumer.getLatestId("freespin");
+
+        if (this.gameData.roundId < 1 && this.gameData.freeSpinId < 1) {
+            const { roundId, freeSpinId } = await this.getLastArchiveRound(this.gameData.gameConfigs.slotsConfig?.jackpot.enabled);
+
+            await this.idCountersConsumer.updateLatestId("round", roundId);
+            await this.idCountersConsumer.updateLatestId("freespin", freeSpinId);
+
+            this.gameData.roundId = roundId;
+            this.gameData.freeSpinId = freeSpinId;
+
+            this.logService.logError(
+                `${this.definition.name} get roundId #${this.gameData.roundId} and freeSpinId #${this.gameData.freeSpinId} from archive.`
+            );
+        }
 
         await this.loadUnsettledBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
-        await this.jackpotConsumer.initialize();
+
+        if (this.gameData.gameConfigs.slotsConfig?.jackpot.enabled) {
+            await this.jackpotConsumer.initialize();
+        }
 
         const job = new cron.CronJob(
             "* * * * * *",
-            () => this.proceed().catch(logger.logError),
+            () => this.proceed().catch(this.logService.logError),
             () => {
-                logger.logError(`${this.definition.name} unexpectedly stopped at round #${this.gameData.roundId} because some other tasks halt it.`);
+                this.logService.logError(
+                    `${this.definition.name} unexpectedly stopped at round #${this.gameData.roundId} because some other tasks halt it.`
+                );
                 job.start();
             }
         );
 
         job.start();
+    }
+
+    async getLastArchiveRound(jackpotEnabled) {
+        const { configName } = this.definition;
+        const archiveStatus = await this.archiveStatusesRepository.findOne({ name: configName }, "lastArcId").lean().exec();
+        const latestJackpotRoundId = jackpotEnabled ? await this.jackpotConsumer.getLatestRoundId() : 0;
+
+        const roundId = archiveStatus && archiveStatus.lastArcId["_rounds"] > 0 ? archiveStatus.lastArcId["_rounds"] : 0;
+        const freeSpinId = archiveStatus && archiveStatus.lastArcId["_freespins"] > 0 ? archiveStatus.lastArcId["_freespins"] : 0;
+
+        return { roundId: Math.max(roundId, latestJackpotRoundId), freeSpinId };
     }
 
     async proceed() {

@@ -121,12 +121,15 @@ export default class JackpotConsumer {
                     gameId: this.definition.id,
                     pool: stakeLevel.stake,
                     winnerName: { $exists: false },
-                    createdAt: { $lte: roundId },
                 };
                 const numberOfExistingPools = await this.jackpotsRepository.countDocuments(runningPoolFilter).exec();
 
                 if (numberOfExistingPools === 0) {
                     await this.initializeNewPool(stakeLevel.stake, roundId);
+                }
+
+                if (numberOfExistingPools > 1) {
+                    this.logService.logCritical(`Found ${numberOfExistingPools} running jackpot pool for stake level ${stakeLevel.stake}`);
                 }
             })
         );
@@ -134,6 +137,8 @@ export default class JackpotConsumer {
 
     async initializeNewPool(pool, roundId) {
         const initAmount = this.gameData.gameConfigs.slotsConfig?.stakeLevels?.find((stakeLevel) => stakeLevel.stake === pool)?.jackpot ?? 0;
+
+        this.logService.log(`Init new jackpot pool ${pool} at round ${roundId}`);
 
         await this.jackpotsRepository.create({
             gameId: this.definition.id,
@@ -144,5 +149,23 @@ export default class JackpotConsumer {
             createdAt: roundId,
             createdTime: new Date(),
         });
+    }
+
+    async getLatestRoundId() {
+        const runningPoolFilter = {
+            gameId: this.definition.id,
+            winnerName: { $exists: false },
+        };
+
+        const pool = await this.jackpotsRepository
+            .findOne(runningPoolFilter, "createdAt", {
+                sort: {
+                    createdAt: -1,
+                },
+            })
+            .lean()
+            .exec();
+
+        return pool.createdAt;
     }
 }

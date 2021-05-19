@@ -117,7 +117,7 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
     }
 
     async increaseRoundId() {
-        await this.idCountersConsumer.consume();
+        await this.idCountersConsumer.consume("round");
         this.gameData.roundId++;
     }
 

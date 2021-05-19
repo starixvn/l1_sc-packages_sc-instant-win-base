@@ -19,6 +19,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
      * @param {mongoose.Model} dependencies.betsRepository
      * @param {mongoose.Model} dependencies.betLogsRepository
      * @param {mongoose.Model} dependencies.userInfosRepository
+     * @param {EventConsumers.IdCountersConsumer} dependencies.idCountersConsumer
      */
     constructor({
         definition,
@@ -32,6 +33,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         betsRepository,
         betLogsRepository,
         userInfosRepository,
+        idCountersConsumer,
     }) {
         super({
             definition,
@@ -47,6 +49,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         this.freeSpinsConsumer = freeSpinsConsumer;
         this.settleGameRoundConsumer = settleGameRoundConsumer;
         this.roundsRepository = roundsRepository;
+        this.idCountersConsumer = idCountersConsumer;
     }
 
     async proceedBet(player, payload) {
@@ -79,7 +82,8 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         payload.contributionRate = parseFloat(contributionRate.toFixed(4));
         payload.contributionAmount = parseFloat((contributionRate * payload.totalAmount).toFixed(4));
 
-        this.gameData.roundId += 1;
+        await this.idCountersConsumer.consume("round");
+        this.gameData.roundId++;
 
         await super.proceedBet(player, payload);
     }

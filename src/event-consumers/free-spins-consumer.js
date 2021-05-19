@@ -8,12 +8,14 @@ export default class FreeSpinsConsumer {
      * @param {SlotGameData} gameData
      * @param {mongoose.Model} freeSpinsRepository
      * @param {mongoose.Model} gameNotificationsRepository
+     * @param {EventConsumers.IdCountersConsumer} dependencies.idCountersConsumer
      */
-    constructor(gameId, gameData, freeSpinsRepository, gameNotificationsRepository) {
+    constructor(gameId, gameData, freeSpinsRepository, gameNotificationsRepository, idCountersConsumer) {
         this.gameId = gameId;
         this.gameData = gameData;
         this.freeSpinsRepository = freeSpinsRepository;
         this.gameNotificationsRepository = gameNotificationsRepository;
+        this.idCountersConsumer = idCountersConsumer;
     }
 
     hasFreeSpin(player) {
@@ -55,7 +57,12 @@ export default class FreeSpinsConsumer {
         const createdTime = new Date();
         const expiryTime = new Date(createdTime.getTime()).setSeconds(createdTime.getSeconds() + timeToLive);
         const memberName = player.profile.name;
+
+        await this.idCountersConsumer.consume("freespin");
+        this.gameData.freeSpinId++;
+
         const newlyCachedFreeSpin = {
+            id: this.gameData.freeSpinId,
             roundId,
             bet,
             paylines,

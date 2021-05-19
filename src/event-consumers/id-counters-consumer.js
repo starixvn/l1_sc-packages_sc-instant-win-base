@@ -10,13 +10,13 @@ export default class IdCountersConsumer {
      */
     constructor(gameName, gameData, idCountersRepository) {
         this.gameData = gameData;
-        this.modelName = `${gameName}_round`;
+        this.gameName = gameName;
         this.idCountersRepository = idCountersRepository;
     }
 
-    async consume() {
+    async consume(modelNamePostFix) {
         const filter = {
-            m: this.modelName,
+            m: `${this.gameName}_${modelNamePostFix}`,
             f: "id",
         };
         const increment = { $inc: { c: 1 } };
@@ -27,14 +27,36 @@ export default class IdCountersConsumer {
             upsert: true,
             fields: { c: 1 },
         };
+
         const latestCounter = await this.idCountersRepository.findOneAndUpdate(filter, increment, updateOptions);
 
         return latestCounter.c;
     }
 
-    async getLatestId() {
-        const latestCounter = await this.idCountersRepository.findOne({ m: this.modelName }, "c").lean().exec();
+    async getLatestId(modelNamePostFix) {
+        const latestCounter = await this.idCountersRepository
+            .findOne({ m: `${this.gameName}_${modelNamePostFix}` }, "c")
+            .lean()
+            .exec();
 
         return latestCounter?.c ?? 0;
+    }
+
+    async updateLatestId(modelNamePostFix, id) {
+        const filter = {
+            m: `${this.gameName}_${modelNamePostFix}`,
+            f: "id",
+        };
+
+        const updates = {
+            $set: { c: id },
+        };
+
+        const updateOptions = {
+            setDefaultsOnInsert: true,
+            upsert: true,
+        };
+
+        await this.idCountersRepository.findOneAndUpdate(filter, updates, updateOptions);
     }
 }
