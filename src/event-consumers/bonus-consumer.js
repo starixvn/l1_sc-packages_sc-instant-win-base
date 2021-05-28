@@ -80,21 +80,21 @@ export default class BonusConsumer {
         const criteria = [
             {
                 failure: bonusChests?.length === 0 || (finish?.settlementResult?.bonus && totalPicked > finish.settlementResult.bonus.odds),
-                notice: SlotNoticeHelper.invalidBonus,
+                errorCode: SlotNoticeHelper.invalidBonus,
             },
             {
                 failure: typeof chest !== "number" || chest < 0 || chest >= this.definition.bonusSize,
-                notice: SlotNoticeHelper.invalidBonus,
+                errorCode: SlotNoticeHelper.invalidBonus,
             },
             {
                 failure: bonusChests && bonusChests[chest]?.picked,
-                notice: SlotNoticeHelper.openedBonus,
+                errorCode: SlotNoticeHelper.openedBonus,
             },
         ];
         const failedCriterion = criteria.find((criterion) => criterion.failure);
 
         if (failedCriterion) {
-            this.bonusPublisher.publishToUser(player.UID, { endBet: -1, notice: failedCriterion.notice });
+            this.bonusPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: failedCriterion.errorCode } });
 
             return false;
         }
