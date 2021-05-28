@@ -66,7 +66,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         payload.freeSpin = payload.freeSpin || (soonestExpiredFreeSpinSet == null ? false : true);
 
         if (payload.freeSpin && !soonestExpiredFreeSpinSet) {
-            this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1, notice: SlotNoticeHelper.invalidFreeSpin });
+            this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidFreeSpin } });
 
             return;
         }
