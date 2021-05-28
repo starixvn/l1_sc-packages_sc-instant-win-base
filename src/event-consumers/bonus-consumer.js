@@ -79,7 +79,10 @@ export default class BonusConsumer {
 
         const criteria = [
             {
-                failure: bonusChests?.length === 0 || (finish?.settlementResult?.bonus && totalPicked > finish.settlementResult.bonus.odds),
+                failure:
+                    bonusChests?.length === 0 ||
+                    (finish?.settlementResult?.bonus && totalPicked > finish.settlementResult.bonus.odds) ||
+                    !bonusChests[chest],
                 errorCode: SlotNoticeHelper.invalidBonus,
             },
             {
