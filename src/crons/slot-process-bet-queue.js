@@ -34,6 +34,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         betLogsRepository,
         userInfosRepository,
         idCountersConsumer,
+        validateBalance,
     }) {
         super({
             definition,
@@ -44,6 +45,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             betsRepository,
             betLogsRepository,
             userInfosRepository,
+            validateBalance,
         });
 
         this.freeSpinsConsumer = freeSpinsConsumer;
