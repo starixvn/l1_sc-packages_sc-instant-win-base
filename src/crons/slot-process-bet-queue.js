@@ -103,6 +103,10 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         };
     }
 
+    composeBettingTimeValidationCriteria(roundId) {
+        return [];
+    }
+
     async handleSuccessBet(player, balance, roundId, bet) {
         if (bet.freeSpin) {
             await this.freeSpinsConsumer.useFreeSpin(player);
