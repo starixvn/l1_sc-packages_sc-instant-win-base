@@ -1,3 +1,18 @@
+## [1.0.4](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.3...v1.0.4) (2021-06-10)
+
+
+### Bug Fixes
+
+* expose query opening bonus ([2c519cd](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/2c519cdd5c383307f60e8c3c1e7901f44465a945))
+* format error ([957a982](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/957a9826c9ed5ad000d811ec323dd1149d2a91e6))
+* inject notification in game cron ([d87ba9a](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/d87ba9a5fd11e1c4b6201d70b22c987fb057f632))
+* inject validateBalance api ([b080807](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/b080807a3f5a77e7464be3b9274042f6831e61fe))
+* not validate betting time when dequeue bet ([03d8ff4](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/03d8ff49073e77ec65136dd423958d33d53b774a))
+* update bonus error code ([371ea97](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/371ea97875c2bf515ed692cb128615398d8f5727))
+* update error codes ([27e8687](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/27e8687327f71320efc4bb4def1869644aa1f373))
+* update freespin error code ([d7ec613](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/d7ec613647d7434c2497975eb8ccac245810c29c))
+* validate bonus chest ([48a6fd9](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/48a6fd97d78b69b9a2a572dec36d91c318a90a3a))
+
 ## [1.0.3](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.2...v1.0.3) (2021-05-19)
 
 
