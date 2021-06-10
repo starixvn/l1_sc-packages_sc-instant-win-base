@@ -24,6 +24,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
      * @param {mongoose.Model} dependencies.gameConfigsRepository
      * @param {mongoose.Model} dependencies.roundsRepository
      * @param {mongoose.Model} dependencies.archiveStatusesRepository
+     * @param {mongoose.Model} dependencies.notificationRepository
      */
     constructor({
         definition,
@@ -40,6 +41,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         gameConfigsRepository,
         roundsRepository,
         archiveStatusesRepository,
+        notificationRepository,
     }) {
         super({
             definition,
@@ -52,6 +54,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             gameConfigsRepository,
             roundsRepository,
             archiveStatusesRepository,
+            notificationRepository,
         });
 
         this.freeSpinsConsumer = freeSpinsConsumer;

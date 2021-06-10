@@ -29,6 +29,15 @@ export default class SlotHttpRouter extends Core.Routers.HttpRouter {
             }),
             (_req, res) => this.handleSetBoard(_req.body, res)
         );
+
+        app.post(
+            "/api/get-opening-bonus",
+            utils.authentication.useAuthenticate({
+                authUrl: this.appConfigs.apiSettings.authUrl,
+                audiences: this.appConfigs.authenticateSettings.audiences,
+            }),
+            (_req, res) => this.handleGetOpeningBonus(res)
+        );
     }
 
     handleSetBoard(params, res) {
@@ -46,6 +55,24 @@ export default class SlotHttpRouter extends Core.Routers.HttpRouter {
             this.gameData.settlementResultFromAdmin[params.name] = params.result;
 
             res.send(settlementResult);
+        } catch (error) {
+            this.logService.logError(error);
+            res.send({ error: true });
+        }
+    }
+
+    handleGetOpeningBonus(res) {
+        try {
+            const usersOpeningBonus = [];
+            Object.values(this.gameData.ingame).forEach((playerInGame) => {
+                const { bonusChests, player } = playerInGame ?? { player: {}, bonusChests: {} };
+
+                if (bonusChests) {
+                    usersOpeningBonus.push(player.profile.name);
+                }
+            });
+
+            res.send({ usersOpeningBonus });
         } catch (error) {
             this.logService.logError(error);
             res.send({ error: true });

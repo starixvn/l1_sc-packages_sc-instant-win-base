@@ -22,11 +22,11 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         return [
             {
                 failure: amount < 0,
-                notice: SlotNoticeHelper.invalidStakeLevel,
+                notice: this.getNoticeObj(SlotNoticeHelper.invalidStakeLevel),
             },
             {
                 failure: !stakeLevels.find((stakeLevel) => stakeLevel.stake === amount),
-                notice: SlotNoticeHelper.invalidStakeLevel,
+                notice: this.getNoticeObj(SlotNoticeHelper.invalidStakeLevel),
             },
         ];
     }
@@ -35,15 +35,15 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         return [
             {
                 failure: betChoice.length < 1 || betChoice.length > this.definition.choices.length,
-                notice: SlotNoticeHelper.invalidPaylines,
+                notice: this.getNoticeObj(SlotNoticeHelper.invalidPaylines),
             },
             {
                 failure: betChoice.filter((choice) => !this.definition.choices.includes(choice)).length > 0,
-                notice: SlotNoticeHelper.invalidPaylines,
+                notice: this.getNoticeObj(SlotNoticeHelper.invalidPaylines),
             },
             {
                 failure: _.uniq(betChoice).length !== betChoice.length,
-                notice: SlotNoticeHelper.invalidPaylines,
+                notice: this.getNoticeObj(SlotNoticeHelper.invalidPaylines),
             },
         ];
     }
