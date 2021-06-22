@@ -4,12 +4,18 @@
     "description": "The codebase of Saba slot games.",
     "main": "src/index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
+        "test": "jest",
+        "test-coverage": "jest --collect-coverage",
         "reg": "npm set registry http://npm.lumigame.com",
         "pub": "npm publish --registry http://npm.lumigame.com",
         "betaver": "npm version prerelease --preid beta",
         "pubbeta": "npm publish --registry http://npm.lumigame.com --tag beta",
         "semantic-release": "semantic-release"
+    },
+    "jestSonar": {
+        "reportPath": "reports",
+        "reportFile": "test-reporter.xml",
+        "indent": 4
     },
     "repository": {
         "type": "git",
@@ -32,6 +38,7 @@
         "sc-game-base": "~1.23.0"
     },
     "devDependencies": {
+        "@babel/preset-env": "^7.12.11",
         "@commitlint/cli": "^9.1.2",
         "@commitlint/config-conventional": "^9.1.2",
         "@semantic-release/changelog": "^5.0.1",
@@ -40,8 +47,14 @@
         "@semantic-release/gitlab": "^6.0.4",
         "@semantic-release/npm": "^7.0.5",
         "@semantic-release/release-notes-generator": "^9.0.1",
+        "@types/jest": "^26.0.20",
+        "babel-jest": "^26.6.3",
         "husky": "^4.2.5",
         "install": "^0.13.0",
+        "jest": "^26.6.3",
+        "jest-extended": "^0.11.5",
+        "jest-micro-auto-stub": "^1.0.6",
+        "jest-sonar-reporter": "^2.0.0",
         "sc-semantic-release": "^1.2.0",
         "semantic-release": "^17.1.1"
     },
