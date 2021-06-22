@@ -21,7 +21,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
 
         return [
             {
-                failure: amount < 0,
+                failure: amount <= 0,
                 notice: this.getNoticeObj(SlotNoticeHelper.invalidStakeLevel),
             },
             {
@@ -34,7 +34,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     composeBetChoiceValidationCriteria(betChoice) {
         return [
             {
-                failure: betChoice.length < 1 || betChoice.length > this.definition.choices.length,
+                failure: betChoice.length < 1,
                 notice: this.getNoticeObj(SlotNoticeHelper.invalidPaylines),
             },
             {
