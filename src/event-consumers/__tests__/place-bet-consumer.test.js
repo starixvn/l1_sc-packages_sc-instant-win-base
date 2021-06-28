@@ -1,12 +1,15 @@
+import { stub } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
+import { BaseEventPublishers } from "sc-game-base/src/core";
 
 import SlotNoticeHelper from "../../helpers/slot-notice-helper";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
 import PlaceBetConsumer from "../place-bet-consumer";
 
-const gameData = mockGameData();
-const gameDefinition = mockGameDefinition();
+const gameData = stubGameData();
+const gameDefinition = stubGameDefinition();
+const publisher = stub(BaseEventPublishers);
 
 describe("composeBettingTimeValidationCriteria", () => {
     it("should return placeBetNextRound when game was disabled", () => {
@@ -108,9 +111,67 @@ describe("composeBetChoiceValidationCriteria", () => {
             notice: { errorCode: SlotNoticeHelper.invalidPaylines },
         });
     });
+
+    it("should return invalidPaylines when bet choices are undefined", () => {
+        // arrange
+        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
+        const betChoices = [5, 6];
+
+        // act
+        const criterions = placeBetConsumer.composeBetChoiceValidationCriteria(betChoices);
+
+        // assert
+        expect(criterions.filter((x) => x.failure).length).toBe(1);
+        expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
+            failure: true,
+            notice: { errorCode: SlotNoticeHelper.invalidPaylines },
+        });
+    });
 });
 
-function mockGameData() {
+describe("consume", () => {
+    it("should push payload into betQueue", () => {
+        // arrange
+        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher);
+        const player = stubPlayer();
+        const payload = stubPayload();
+
+        // act
+        consumer.consume(player, payload);
+
+        // assert
+        expect(consumer.gameData.ingame[player.profile.name].betQueue).not.toBeEmpty();
+    });
+
+    it("should NOT push payload into betQueue if invalid bet", () => {
+        // arrange
+        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher);
+        const player = stubPlayer();
+        const payload = stubPayload(1.5);
+
+        // act
+        consumer.consume(player, payload);
+
+        // assert
+        expect(consumer.gameData.ingame[player.profile.name]).toBeUndefined();
+    });
+
+    it("betQueue should be doubled if it already contains once", () => {
+        // arrange
+        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher);
+        const player = stubPlayer();
+        const payload = stubPayload(1);
+
+        // act
+        consumer.consume(player, payload);
+        consumer.consume(player, payload);
+
+        // assert
+        expect(consumer.gameData.ingame[player.profile.name].betQueue.length).toBe(2);
+    });
+});
+
+function stubGameData() {
     const gameData = new SlotGameData();
 
     gameData.remainingTime = 20;
@@ -119,15 +180,37 @@ function mockGameData() {
         minbet: 1,
         maxbet: 1000,
         slotsConfig: {
-            stakeLvels: [0.1, 1, 5],
+            stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }],
         },
     };
 
     return gameData;
 }
 
-function mockGameDefinition() {
+function stubGameDefinition() {
     return new SlotGameDefinition({
         choices: [1, 2, 3, 4, 5],
     });
+}
+
+function stubPlayer() {
+    return {
+        UID: "123",
+        profile: {
+            name: "player",
+            minBet: 1,
+            maxBet: 500,
+        },
+        session: {
+            currency: "US",
+        },
+    };
+}
+
+function stubPayload(amount = 1, freeSpin = null) {
+    return {
+        amount,
+        betChoice: [1, 2, 3],
+        freeSpin,
+    };
 }
