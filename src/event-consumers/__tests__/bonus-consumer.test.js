@@ -237,11 +237,11 @@ function stubBonusChests(picked = false) {
         { amount: 7, picked },
         { amount: 8, picked },
         { amount: 9, picked },
-        { amount: 5, picked },
-        { amount: 6, picked },
-        { amount: 7, picked },
-        { amount: 8, picked },
-        { amount: 9, picked },
+        { amount: 5, picked: false },
+        { amount: 6, picked: false },
+        { amount: 7, picked: false },
+        { amount: 8, picked: false },
+        { amount: 9, picked: false },
     ];
 }
 
