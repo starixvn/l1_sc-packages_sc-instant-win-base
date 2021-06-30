@@ -215,6 +215,35 @@ describe("handleBonus", () => {
     });
 });
 
+describe("handleDisconnect", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("should call userDisconnectConsumer when valid request", async () => {
+        // arrange
+        const router = initRouter();
+
+        // act
+        await router.handleDisconnect({});
+
+        // assert
+        expect(userDisconnectConsumer.consume).toHaveBeenCalled();
+    });
+
+    it("should log error when have exception", async () => {
+        // arrange
+        const router = initRouter();
+        spyOn(userDisconnectConsumer, "consume").and.throwError("error");
+
+        // act
+        await router.handleDisconnect({});
+
+        // assert
+        expect(logService.logError).toHaveBeenCalled();
+    });
+});
+
 function initRouter() {
     return new SlotSocketRouter({
         definition,
