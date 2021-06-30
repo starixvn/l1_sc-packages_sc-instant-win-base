@@ -1,3 +1,10 @@
+## [1.0.5](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.4...v1.0.5) (2021-06-30)
+
+
+### Bug Fixes
+
+* add errorCode to notice ([2116168](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/21161684ebce995732939ec1385483c263026144))
+
 ## [1.0.4](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.3...v1.0.4) (2021-06-10)
 
 
