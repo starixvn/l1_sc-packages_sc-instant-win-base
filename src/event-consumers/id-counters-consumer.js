@@ -1,15 +1,11 @@
 import mongoose from "mongoose";
 
-import SlotGameData from "./../slot-game-data";
-
 export default class IdCountersConsumer {
     /**
      * @param {String} gameName
-     * @param {SlotGameData} gameData
      * @param {mongoose.Model} idCountersRepository
      */
-    constructor(gameName, gameData, idCountersRepository) {
-        this.gameData = gameData;
+    constructor(gameName, idCountersRepository) {
         this.gameName = gameName;
         this.idCountersRepository = idCountersRepository;
     }
