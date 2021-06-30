@@ -25,7 +25,7 @@ const res = {
 
 describe("SlotHttpRouter", () => {
     it("instance should inherit HttpRouter", () => {
-        // arrange
+        // act
         const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
 
         // assert
