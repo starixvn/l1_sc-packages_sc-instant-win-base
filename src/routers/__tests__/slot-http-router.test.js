@@ -1,9 +1,9 @@
-import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
-import mongoose from "mongoose";
-import { logger } from "sc-common";
+import { stub } from "jest-micro-auto-stub";
+import { logger } from "sc-common/logger";
 import { HttpRouter } from "sc-game-base/src/core/routers";
 
 import { SlotHttpRouter } from "..";
+import odds from "../../../tests/odds";
 import { PaylineCalculator } from "../../board";
 import SlotGameData from "../../slot-game-data";
 
@@ -17,8 +17,11 @@ const appConfigs = {
     },
 };
 const app = { get: jest.fn(), post: jest.fn() };
-const paylineCalculator = stub(PaylineCalculator);
+const paylineCalculator = new PaylineCalculator();
 const logService = stub(logger);
+const res = {
+    send: jest.fn(),
+};
 
 describe("SlotHttpRouter", () => {
     it("instance should inherit HttpRouter", () => {
@@ -56,15 +59,80 @@ describe("init", () => {
 });
 
 describe("handleSetBoard", () => {
-    it("should call app.post", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("should logError if params are invalid", () => {
         // arrange
         const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
 
         // act
-        router.init(app);
+        router.handleSetBoard({}, res);
 
         // assert
-        expect(app.post).toHaveBeenCalled();
+        expect(logService.logError).toHaveBeenCalled();
+        expect(res.send).toHaveBeenCalledWith({ error: true });
+    });
+
+    it("should logError if monitor result is invalid", () => {
+        // arrange
+        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+
+        // act
+        router.handleSetBoard({ name: "A", result: [] }, res);
+
+        // assert
+        expect(logService.logError).toHaveBeenCalled();
+        expect(res.send).toHaveBeenCalledWith({ error: true });
+    });
+
+    it("should assign monitoring result to settlement", () => {
+        // arrange
+        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const playerName = "A";
+        const result = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
+
+        // act
+        router.handleSetBoard({ name: playerName, result }, res);
+
+        // assert
+        expect(logService.logError).not.toHaveBeenCalled();
+        expect(res.send).toHaveBeenCalled();
+        expect(gameData.settlementResultFromAdmin[playerName]).toBe(result);
+    });
+});
+
+describe("handleGetOpeningBonus", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("should send empty if no bonuses", () => {
+        // arrange
+        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+
+        // act
+        router.handleGetOpeningBonus(res);
+
+        // assert
+        expect(res.send).toHaveBeenCalledWith({ usersOpeningBonus: [] });
+    });
+
+    it("should send users who are opening bonuses", () => {
+        // arrange
+        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const playerName = "A";
+        gameData.ingame[playerName] = {
+            player: { profile: { name: playerName } },
+            bonusChests: [{ amount: 1, picked: false }],
+        };
+
+        // act
+        router.handleGetOpeningBonus(res);
+
+        // assert
+        expect(res.send).toHaveBeenCalledWith({ usersOpeningBonus: [playerName] });
     });
 });
 
@@ -78,6 +146,7 @@ function stubGameData() {
         maxbet: 1000,
         slotsConfig: {
             stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }],
+            icons: odds,
         },
     };
 
