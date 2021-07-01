@@ -271,6 +271,40 @@ describe("queryFreeSpins", () => {
     });
 });
 
+describe("cleanUpGameNotifications", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        gameData.ingame = {};
+    });
+
+    it("always call gameNotificationsRepository to delete", async () => {
+        // arrange
+        const consumer = initConsumer();
+        freeSpinsRepository.find().lean().exec.mockReturnValueOnce({});
+
+        // act
+        await consumer.cleanUpGameNotifications({});
+
+        // assert
+        expect(gameNotificationsRepository.deleteMany).toBeCalledWith({ uid: { $nin: [] } });
+    });
+
+    it("should update notification with latest expiry time of spin", async () => {
+        // arrange
+        const consumer = initConsumer();
+        const freeSpinsGroupedByUIDs = {
+            uid1: [{ name: "A", available: 2, total: 3, expiryTime: Date.now() + 3000 * 60 }],
+            uid2: [{ name: "B", available: 3, total: 3, expiryTime: Date.now() + 2000 * 60 }],
+        };
+
+        // act
+        await consumer.cleanUpGameNotifications(freeSpinsGroupedByUIDs);
+
+        // assert
+        expect(gameNotificationsRepository.updateOne).toBeCalledTimes(2);
+    });
+});
+
 function initConsumer() {
     return new FreeSpinsConsumer(1, gameData, freeSpinsRepository, gameNotificationsRepository, idCountersConsumer);
 }
