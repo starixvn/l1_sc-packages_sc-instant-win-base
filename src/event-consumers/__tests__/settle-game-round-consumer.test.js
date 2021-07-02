@@ -10,6 +10,10 @@ import { JackpotPublisher } from "../../event-publishers";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
 
+beforeEach(() => {
+    jest.clearAllMocks();
+});
+
 describe("SettleGameRoundConsumer", () => {
     it("instance should inherit Core.SettleGameRoundConsumer", () => {
         // act
@@ -45,7 +49,8 @@ describe("autoSettleRound", () => {
             { amount: 1, picked: false },
             { amount: 2, picked: true },
         ];
-        consumer.gameData.ingame[player.profile.name] = { finish: stubFinish(), bonusChests };
+        const finish = stubFinish();
+        consumer.gameData.ingame[player.profile.name] = { finish, bonusChests };
         spyOn(consumer, "queryBets").and.returnValue({ amount: 5 });
         spyOn(consumer, "settleBets");
 
@@ -53,7 +58,7 @@ describe("autoSettleRound", () => {
         await consumer.autoSettleRound(player, 1);
 
         // assert
-        expect(consumer.settleBets).toBeCalledWith(player, stubFinish(), { amount: 5 }, [{ amount: 2, picked: true }]);
+        expect(consumer.settleBets).toBeCalledWith(player, finish, { amount: 5 }, [{ amount: 2, picked: true }]);
     });
 });
 
