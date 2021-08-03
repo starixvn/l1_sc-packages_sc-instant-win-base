@@ -1,3 +1,10 @@
+## [1.0.6](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.5...v1.0.6) (2021-08-03)
+
+
+### Bug Fixes
+
+* include gameId to filter when delete free spin notifications ([d8fae15](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/d8fae15739f0228f9df87e6411e33ab44d024b40))
+
 ## [1.0.5](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.4...v1.0.5) (2021-06-30)
 
 
