@@ -286,7 +286,7 @@ describe("cleanUpGameNotifications", () => {
         await consumer.cleanUpGameNotifications({});
 
         // assert
-        expect(gameNotificationsRepository.deleteMany).toBeCalledWith({ uid: { $nin: [] } });
+        expect(gameNotificationsRepository.deleteMany).toBeCalledWith({ gameId: consumer.gameId, uid: { $nin: [] } });
     });
 
     it("should update notification with latest expiry time of spin", async () => {
