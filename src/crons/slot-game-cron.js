@@ -140,6 +140,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         const filter = {
             paid: false,
         };
+
         const projection = {
             _id: false,
             __v: false,
@@ -153,6 +154,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             freeSpin: false,
         };
         const sort = { id: -1 };
+
         const bets = await this.roundsRepository.find(filter, projection, { sort }).lean().exec();
 
         this.gameData.ingame = this.mapToIngameData(bets);
