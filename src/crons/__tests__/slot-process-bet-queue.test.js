@@ -215,8 +215,20 @@ describe("slot-process-bet-queue", () => {
             const validateBalance = () => {
                 return { isOk: false, response: { inSufficientBalance: false } };
             };
-
-            const cron = new SlotProcessBetQueue({ gameData, definition, placeBetPublisher, freeSpinsConsumer, idCountersConsumer, validateBalance });
+            const placeBet = () => {
+                return { response: {} };
+            };
+            const baseMetrics = { collectBetProcessedTime: jest.fn() };
+            const cron = new SlotProcessBetQueue({
+                gameData,
+                definition,
+                placeBetPublisher,
+                freeSpinsConsumer,
+                idCountersConsumer,
+                validateBalance,
+                placeBet,
+                baseMetrics,
+            });
             const player = { profile: { name: "player1" } };
             const payload = { freeSpin: false, betChoice: [] };
 
