@@ -1,3 +1,16 @@
+## [1.0.7](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.6...v1.0.7) (2021-09-16)
+
+
+### Bug Fixes
+
+* code smells ([593b567](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/593b5674c026ef1a34ab452b2a95a81c57a37324))
+* remove unused gameData in id-counters-consumer ([5e4d7df](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/5e4d7df91c43879cec19ef487981d1aa43c907d8))
+* update latest sc-game-base ([455e408](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/455e408349eaadd97045cf5916331a2582f5d2f3))
+* update latest sc-game-base ([6a0ec2c](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/6a0ec2c54e17afd0fe78f0a3396052aff49c3708))
+* update latest sc-game-base ([7a5e934](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/7a5e934bb102391b765135c264a43cefd28a973e))
+* update latest sc-game-base ([3751285](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/375128527171e6f7b483ec5f43f5ea4919972139))
+* update latest sc-game-base ([cfed7b3](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/cfed7b3ce84343d7bb51834a62ec01bdd90f3c52))
+
 ## [1.0.6](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.5...v1.0.6) (2021-08-03)
 
 
