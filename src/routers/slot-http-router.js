@@ -44,6 +44,9 @@ export default class SlotHttpRouter extends Core.Routers.HttpRouter {
         try {
             if (!params || !params.name || !params.result) {
                 this.logService.logError("receives a result cheating call with invalid params.");
+                res.send({ error: true });
+
+                return;
             }
 
             const paylines = [...Array(this.paylineCalculator.definition.paylines.length).keys()];

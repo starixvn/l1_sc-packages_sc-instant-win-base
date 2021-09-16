@@ -1,0 +1,279 @@
+import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import mongoose from "mongoose";
+import { logger } from "sc-common/logger";
+
+import { JackpotPublisher } from "../../event-publishers";
+import SlotGameData from "../../slot-game-data";
+import SlotGameDefinition from "../../slot-game-definition";
+import JackpotConsumer from "../jackpot-consumer";
+
+const gameData = stubGameData();
+const gameDefinition = stubGameDefinition();
+
+/** @type {mongoose.Model}*/
+const jackpotsRepository = stubMongooseModelStupidly(mongoose.Model);
+
+const jackpotPublisher = stub(JackpotPublisher);
+const logService = stub(logger);
+
+describe("contribute", () => {
+    const pool = 1;
+    const runningPoolFilter = {
+        gameId: gameDefinition.id,
+        pool,
+        winnerName: { $exists: false },
+        createdAt: { $lte: gameData.roundId },
+    };
+
+    const sort = {
+        new: true,
+        lean: true,
+        fields: { _id: false, amount: true },
+        sort: {
+            createdAt: -1,
+        },
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("should update approriate contribution for bot and publish pool info", async () => {
+        // arrange
+        const consumer = initConsumer();
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
+            amount: 12,
+        });
+        const contributeAmount = 5 * gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
+        const poolAdjustment = {
+            amount: contributeAmount,
+            byBots: contributeAmount,
+            byMembers: 0,
+        };
+
+        // act
+        await consumer.contribute({}, bet);
+
+        // assert
+        expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
+            runningPoolFilter,
+            {
+                $inc: poolAdjustment,
+            },
+            sort
+        );
+        expect(jackpotPublisher.publishLatestPool).toBeCalledWith({ pool, amount: 12 });
+    });
+
+    it("should update approriate contribution for player and publish pool info", async () => {
+        // arrange
+        const consumer = initConsumer();
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
+            amount: 12,
+        });
+        const contributeAmount = 5 * gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio;
+        const poolAdjustment = {
+            amount: contributeAmount,
+            byBots: 0,
+            byMembers: contributeAmount,
+        };
+
+        // act
+        await consumer.contribute({ session: {} }, bet);
+
+        // assert
+        expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
+            runningPoolFilter,
+            {
+                $inc: poolAdjustment,
+            },
+            sort
+        );
+        expect(jackpotPublisher.publishLatestPool).toBeCalledWith({ pool, amount: 12 });
+    });
+});
+
+describe("hit", () => {
+    const pool = 1;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("should call initializeNewPool", async () => {
+        // arrange
+        const consumer = initConsumer();
+        const player = { profile: { name: "A" }, session: { memberId: 12 } };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+
+        spyOn(consumer, "initializeNewPool");
+
+        // act
+        await consumer.hit(player, bet);
+
+        // assert
+        expect(consumer.initializeNewPool).toBeCalledWith(bet.pool, gameData.roundId);
+        expect(jackpotsRepository.findOneAndUpdate).toBeCalled();
+    });
+
+    it("should log error and return 0 if no winning jackpot", async () => {
+        // arrange
+        const consumer = initConsumer();
+        const player = { profile: { name: "A" }, session: { memberId: 12 } };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        // jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
+        //     amount: 12,
+        // });
+
+        spyOn(consumer, "initializeNewPool");
+
+        // act
+        const jackpot = await consumer.hit(player, bet);
+
+        // assert
+        expect(consumer.initializeNewPool).toBeCalledWith(bet.pool, gameData.roundId);
+        expect(jackpotsRepository.findOneAndUpdate).toBeCalled();
+        expect(logService.logCritical).toBeCalled();
+        expect(jackpot).toStrictEqual({ amount: 0 });
+        //expect(jackpotPublisher.publishLatestPool).toBeCalledWith({ pool, amount: 12 });
+    });
+
+    it("should publish winning jackpot amount", async () => {
+        // arrange
+        const consumer = initConsumer();
+        const player = { UID: "uid", profile: { name: "A" }, session: { memberId: 12 } };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        const winningJackpot = { amount: 12000 };
+        jackpotsRepository.findOneAndUpdate.mockReturnValueOnce(winningJackpot);
+        const expectJackpotAmount = { amount: winningJackpot.amount * gameData.gameConfigs.slotsConfig.jackpot.winningRatio };
+
+        spyOn(consumer, "initializeNewPool");
+
+        // act
+        const jackpot = await consumer.hit(player, bet);
+
+        // assert
+        expect(jackpot).toStrictEqual(expectJackpotAmount);
+        expect(jackpotPublisher.publishWinner).toBeCalledWith(player.UID, jackpot);
+    });
+});
+
+describe("initialize", () => {
+    const pool = 1;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("should call initializeNewPool", async () => {
+        // arrange
+        const consumer = initConsumer();
+        const player = { profile: { name: "A" }, session: { memberId: 12 } };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        jackpotsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
+        jackpotsRepository.countDocuments().exec.mockReturnValue(0);
+
+        spyOn(consumer, "initializeNewPool");
+
+        // act
+        await consumer.initialize(player, bet);
+
+        // assert
+        expect(consumer.initializeNewPool).toBeCalledTimes(3);
+    });
+
+    it("should logCritical if exist pool", async () => {
+        // arrange
+        const consumer = initConsumer();
+        const player = { profile: { name: "A" }, session: { memberId: 12 } };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        jackpotsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
+        jackpotsRepository.countDocuments().exec.mockReturnValue(2);
+
+        spyOn(consumer, "initializeNewPool");
+
+        // act
+        await consumer.initialize(player, bet);
+
+        // assert
+        expect(logService.logCritical).toBeCalledTimes(3);
+        expect(consumer.initializeNewPool).not.toBeCalled();
+    });
+});
+
+describe("initializeNewPool", () => {
+    const pool = 1;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("should create pool and log", async () => {
+        // arrange
+        const consumer = initConsumer();
+
+        // act
+        await consumer.initializeNewPool(pool, gameData.roundId);
+
+        // assert
+        expect(jackpotsRepository.create).toBeCalledTimes(1);
+        expect(logService.log).toBeCalledTimes(1);
+    });
+});
+
+describe("getLatestRoundId", () => {
+    const pool = 1;
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("should return value get from jackpotsRepository", async () => {
+        // arrange
+        const consumer = initConsumer();
+        jackpotsRepository.findOne().lean().exec.mockReturnValueOnce({
+            createdAt: 1,
+        });
+
+        // act
+        const roundId = await consumer.getLatestRoundId();
+
+        // assert
+        expect(roundId).toBe(1);
+    });
+});
+
+function initConsumer() {
+    return new JackpotConsumer(gameDefinition, gameData, jackpotPublisher, logService, jackpotsRepository);
+}
+
+function stubGameData() {
+    const gameData = new SlotGameData();
+
+    gameData.remainingTime = 20;
+    gameData.gameConfigs = {
+        enabled: true,
+        minbet: 1,
+        maxbet: 1000,
+        slotsConfig: {
+            stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }],
+            jackpot: {
+                playerContributionRatio: 0.025,
+                botContributionRatio: 0.005,
+                winningRatio: 0.98,
+            },
+        },
+    };
+    gameData.freeSpinId = 1;
+
+    return gameData;
+}
+
+function stubGameDefinition() {
+    return new SlotGameDefinition({
+        id: 2,
+        choices: [1, 2, 3, 4, 5],
+    });
+}

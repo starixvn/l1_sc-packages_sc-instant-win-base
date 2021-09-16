@@ -133,7 +133,7 @@ function runOneMillions(mode) {
     }
 
     summary.winLoss = summary.totalAmount - summary.winAmount;
-    summary.payoutRatio = ((summary.winAmount / summary.totalAmount) * 100).toFixed(2) + "%";
+    summary.payoutRatio = `${((summary.winAmount / summary.totalAmount) * 100).toFixed(2)}%`;
 
     console.log(summary);
 }

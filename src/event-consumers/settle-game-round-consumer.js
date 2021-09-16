@@ -16,8 +16,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
      * @param {Object} dependencies
      * @param {SlotGameDefinition} dependencies.definition
      * @param {SlotGameData} dependencies.gameData
-     * @param {Core.BaseEventConsumers.RoundResultPublisher} dependencies.roundResultPublisher
-     * @param {Core.BaseEventConsumers.UserBetResultPublisher} dependencies.userBetResultPublisher
+     * @param {Core.BaseEventPublisher.RoundResultPublisher} dependencies.roundResultPublisher
+     * @param {Core.BaseEventPublisher.UserBetResultPublisher} dependencies.userBetResultPublisher
      * @param {JackpotPublisher} dependencies.jackpotPublisher
      * @param {BoardCheatingConsumer} dependencies.boardCheatingConsumer
      * @param {FreeSpinsConsumer} dependencies.freeSpinsConsumer
@@ -236,7 +236,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     formatEndGameInfo(bet, roundId, time, betResult) {
-        let { gameInfo, settlementInfo } = super.formatEndGameInfo(bet, roundId, time, betResult);
+        const { gameInfo, settlementInfo } = super.formatEndGameInfo(bet, roundId, time, betResult);
 
         settlementInfo.redPlay = bet.freeSpin ? 0 : settlementInfo.redPlay;
 
