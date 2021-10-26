@@ -13,6 +13,13 @@ const gameDefinition = stubGameDefinition();
 /** @type {mongoose.Model}*/
 const jackpotsRepository = stubMongooseModelStupidly(mongoose.Model);
 
+/** @type {mongoose.Model}*/
+const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+currencyGroupGamesRepository
+    .findOne()
+    .lean()
+    .exec.mockReturnValue([{ stake: 0.1 }, { stake: 1 }]);
+
 const jackpotPublisher = stub(JackpotPublisher);
 const logService = stub(logger);
 
@@ -45,15 +52,17 @@ describe("contribute", () => {
         jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
             amount: 12,
         });
+
         const contributeAmount = 5 * gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
         const poolAdjustment = {
             amount: contributeAmount,
             byBots: contributeAmount,
             byMembers: 0,
         };
+        const player = {};
 
         // act
-        await consumer.contribute({}, bet);
+        await consumer.contribute(player, bet);
 
         // assert
         expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
@@ -81,7 +90,7 @@ describe("contribute", () => {
         };
 
         // act
-        await consumer.contribute({ session: {} }, bet);
+        await consumer.contribute({ session: { multiplier: 1, currencyCode: 0 } }, bet);
 
         // assert
         expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
@@ -201,6 +210,26 @@ describe("initialize", () => {
         expect(logService.logCritical).toBeCalledTimes(3);
         expect(consumer.initializeNewPool).not.toBeCalled();
     });
+
+    it("when not have stakeLevels should not call initializeNewPool", async () => {
+        // arrange
+        const gd = stubGameData();
+        gd.gameConfigs.slotsConfig = null;
+        const consumer = new JackpotConsumer(gameDefinition, gd, jackpotPublisher, logService, jackpotsRepository, currencyGroupGamesRepository);
+
+        const player = { profile: { name: "A" }, session: { memberId: 12 } };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        jackpotsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
+        jackpotsRepository.countDocuments().exec.mockReturnValue(0);
+
+        spyOn(consumer, "initializeNewPool");
+
+        // act
+        await consumer.initialize(player, bet);
+
+        // assert
+        expect(consumer.initializeNewPool).not.toBeCalled();
+    });
 });
 
 describe("initializeNewPool", () => {
@@ -245,8 +274,62 @@ describe("getLatestRoundId", () => {
     });
 });
 
+describe("getBasePool", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("when not have session should return original stake", async () => {
+        // arrange
+        const consumer = initConsumer();
+        const player = {};
+        const stake = 1;
+        const expectedValue = 1;
+
+        // act
+        const basePool = await consumer.getBasePool(player, stake);
+
+        // assert
+        expect(basePool).toBe(expectedValue);
+    });
+
+    it("when not have base stake levels should return null", async () => {
+        // arrange
+        const gd = stubGameData();
+        gd.gameConfigs.slotsConfig = null;
+        const consumer = new JackpotConsumer(gameDefinition, gd, jackpotPublisher, logService, jackpotsRepository, currencyGroupGamesRepository);
+
+        const player = { session: {} };
+        const stake = 1;
+        const expectedValue = null;
+
+        // act
+        const basePool = await consumer.getBasePool(player, stake);
+
+        // assert
+        expect(basePool).toBe(expectedValue);
+    });
+
+    it("when not have currency stake levels should return null", async () => {
+        // arrange
+        const cg = stubMongooseModelStupidly(mongoose.Model);
+        cg.findOne().lean().exec.mockReturnValue(null);
+        const consumer = new JackpotConsumer(gameDefinition, gameData, jackpotPublisher, logService, jackpotsRepository, cg);
+
+        const player = { session: {} };
+        const stake = 1;
+        const expectedValue = null;
+
+        // act
+        const basePool = await consumer.getBasePool(player, stake);
+
+        // assert
+        expect(basePool).toBe(expectedValue);
+    });
+});
+
 function initConsumer() {
-    return new JackpotConsumer(gameDefinition, gameData, jackpotPublisher, logService, jackpotsRepository);
+    return new JackpotConsumer(gameDefinition, gameData, jackpotPublisher, logService, jackpotsRepository, currencyGroupGamesRepository);
 }
 
 function stubGameData() {
@@ -267,6 +350,9 @@ function stubGameData() {
         },
     };
     gameData.freeSpinId = 1;
+    gameData.exchangeRates = {
+        code: [1],
+    };
 
     return gameData;
 }

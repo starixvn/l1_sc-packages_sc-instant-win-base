@@ -16,16 +16,31 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
      * @param {getBalanceApi} dependencies.getBalance
      * @param {mongoose.Model} dependencies.userInfosRepository
      * @param {mongoose.Model} dependencies.jackpotsRepository
+     * @param {mongoose.Model} dependencies.currencyGroupGamesRepository
      */
-    constructor({ definition, gameData, roundQuery, publisher, freeSpinsConsumer, getBalance, userInfosRepository, jackpotsRepository }) {
-        super(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository);
+    constructor({
+        definition,
+        gameData,
+        roundQuery,
+        publisher,
+        freeSpinsConsumer,
+        getBalance,
+        userInfosRepository,
+        jackpotsRepository,
+        currencyGroupGamesRepository,
+    }) {
+        super(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository, currencyGroupGamesRepository);
 
         this.freeSpinsConsumer = freeSpinsConsumer;
         this.jackpotsRepository = jackpotsRepository;
     }
 
     async buildPayload(realPlayer) {
-        const { stakeLevels, icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
+        const { session } = realPlayer;
+        const stakeLevels =
+            (await this.currencyGroupGamesRepository.findOne({ groupId: session.currencyGroupId }, "stakeLevels").lean().exec()) ?? [];
+
+        const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = {
             stakeLevels: stakeLevels.map((level) => level.stake),
             odds,

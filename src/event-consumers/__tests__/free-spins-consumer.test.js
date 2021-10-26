@@ -95,7 +95,20 @@ describe("getSoonestExpiredFreeSpinSet", () => {
         jest.clearAllMocks();
     });
 
-    it("should return first avalable spin", () => {
+    it("when not in game should return undefined", () => {
+        // arrange
+        const consumer = initConsumer();
+        const player = stubPlayer();
+        gameData.ingame[player.profile.name] = null;
+
+        // act
+        const spin = consumer.getSoonestExpiredFreeSpinSet(player);
+
+        // assert
+        expect(spin).toBeUndefined();
+    });
+
+    it("should return first available spin", () => {
         // arrange
         const consumer = initConsumer();
         const player = stubPlayer();
@@ -132,6 +145,19 @@ describe("getLatestExpiredFreeSpinSet", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         gameData.ingame = {};
+    });
+
+    it("when not in game should return undefined", () => {
+        // arrange
+        const consumer = initConsumer();
+        const player = stubPlayer();
+        gameData.ingame[player.profile.name] = null;
+
+        // act
+        const spin = consumer.getLatestExpiredFreeSpinSet(player);
+
+        // assert
+        expect(spin).toBeUndefined();
     });
 
     it("should return latest expiry spin", () => {
@@ -219,7 +245,9 @@ describe("gainFreeSpin", () => {
 describe("reload", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        gameData.ingame = {};
+        gameData.ingame = {
+            A: {},
+        };
     });
 
     it("should cleanUpGameNotifications", async () => {

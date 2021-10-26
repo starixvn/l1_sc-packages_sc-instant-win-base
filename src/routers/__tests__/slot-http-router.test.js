@@ -108,7 +108,7 @@ describe("handleGetOpeningBonus", () => {
         jest.clearAllMocks();
     });
 
-    it("should send empty if no bonuses", () => {
+    it("should send empty if not have player ingame", () => {
         // arrange
         const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
 
@@ -133,6 +133,18 @@ describe("handleGetOpeningBonus", () => {
 
         // assert
         expect(res.send).toHaveBeenCalledWith({ usersOpeningBonus: [playerName] });
+    });
+
+    it("when has error should write log", () => {
+        // arrange
+        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        gameData.ingame = null;
+
+        // act
+        router.handleGetOpeningBonus(res);
+
+        // assert
+        expect(router.logService.logError).toHaveBeenCalled();
     });
 });
 

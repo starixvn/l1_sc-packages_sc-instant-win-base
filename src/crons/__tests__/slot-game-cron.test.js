@@ -5,6 +5,7 @@ import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
 
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
 const archiveStatusesRepository = stubMongooseModelStupidly(mongoose.Model);
+const exchangeRatesRepository = stubMongooseModelStupidly(mongoose.Model);
 
 jest.mock("cron", () => {
     const mScheduleJob = {
@@ -65,6 +66,7 @@ describe("slot-game-cron", () => {
                 bonusConsumer,
                 freeSpinsConsumer,
                 roundsRepository,
+                exchangeRatesRepository,
             });
             roundsRepository
                 .find()
@@ -98,6 +100,7 @@ describe("slot-game-cron", () => {
                 bonusConsumer,
                 freeSpinsConsumer,
                 roundsRepository,
+                exchangeRatesRepository,
             });
             roundsRepository
                 .find()
@@ -131,6 +134,7 @@ describe("slot-game-cron", () => {
                 bonusConsumer,
                 freeSpinsConsumer,
                 roundsRepository,
+                exchangeRatesRepository,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -170,6 +174,7 @@ describe("slot-game-cron", () => {
                 freeSpinsConsumer,
                 roundsRepository,
                 jackpotConsumer,
+                exchangeRatesRepository,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });

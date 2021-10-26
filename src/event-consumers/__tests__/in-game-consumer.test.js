@@ -15,6 +15,8 @@ const roundQuery = stub(RoundQuery);
 const userInfosRepository = stubMongooseModelStupidly(mongoose.Model);
 /** @type {mongoose.Model}*/
 const jackpotsRepository = stubMongooseModelStupidly(mongoose.Model);
+const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+
 const freeSpinsConsumer = stub(FreeSpinsConsumer);
 const getBalance = jest.fn();
 
@@ -41,8 +43,11 @@ describe("buildPayload", () => {
         const expectPools = [{ pool: 1, amount: 1000 }];
         jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
 
+        const expectStakes = [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }];
+        currencyGroupGamesRepository.findOne().lean().exec.mockReturnValueOnce(expectStakes);
+
         // act
-        const payload = await consumer.buildPayload({});
+        const payload = await consumer.buildPayload({ session: {} });
 
         // assert
         expect(payload.jackpotPools).not.toBeNull();
@@ -64,8 +69,11 @@ describe("buildPayload", () => {
             paylines: expectedFreeSpins.paylines,
         });
 
+        const expectStakes = null;
+        currencyGroupGamesRepository.findOne().lean().exec.mockReturnValueOnce(expectStakes);
+
         // act
-        const payload = await consumer.buildPayload({});
+        const payload = await consumer.buildPayload({ session: {} });
 
         // assert
         expect(payload.freeSpins).not.toBeNull();
@@ -83,6 +91,7 @@ function createInGameConsumer() {
         getBalance,
         userInfosRepository,
         jackpotsRepository,
+        currencyGroupGamesRepository,
     });
 }
 

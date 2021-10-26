@@ -89,11 +89,12 @@ describe("validate", () => {
         expect(publisher.publishToUser).toBeCalledWith(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
     });
 
-    it("should return true if bonus chest is valid", () => {
+    const testCases = [{ bonusChests: stubBonusChests() }];
+    it.each(testCases)("should return true if bonus chest is valid", (testCase) => {
         // arrange
         const gameData = stubGameData();
         const player = stubPlayer();
-        gameData.ingame[player.profile.name] = { bonusChests: stubBonusChests(), finish: stubFinish() };
+        gameData.ingame[player.profile.name] = { bonusChests: testCase.bonusChests, finish: stubFinish() };
         const consumer = new BonusConsumer(gameDefinition, gameData, publisher, settleConsumer);
 
         // act
@@ -185,6 +186,76 @@ describe("processExpiredBonus", () => {
         // assert
         expect(publisher.publishBonus).toBeCalled();
         expect(settleConsumer.autoSettleRound).toBeCalled();
+    });
+});
+
+describe("autoOpenRemainingChests", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("when player not in game should not call settleConsumer.autoSettleRound", async () => {
+        // arrange
+        const gameData = stubGameData();
+        gameData.ingame["player"] = null;
+
+        const consumer = new BonusConsumer(gameDefinition, gameData, publisher, settleConsumer);
+        const player = { profile: { name: "player" } };
+
+        // act
+        await consumer.autoOpenRemainingChests(player);
+
+        // assert
+        expect(settleConsumer.autoSettleRound).not.toBeCalled();
+    });
+
+    it("when player in game and not have bonus should not call settleConsumer.autoSettleRound", async () => {
+        // arrange
+        const gameData = stubGameData();
+        gameData.ingame["player"] = {
+            finish: stubFinish(),
+            bonusChests: null,
+            player: stubPlayer(),
+        };
+
+        const consumer = new BonusConsumer(gameDefinition, gameData, publisher, settleConsumer);
+        const player = { profile: { name: "player" } };
+
+        // act
+        await consumer.autoOpenRemainingChests(player);
+
+        // assert
+        expect(settleConsumer.autoSettleRound).not.toBeCalled();
+    });
+
+    it("when player in game and all chests picked should not call settleConsumer.autoSettleRound", async () => {
+        // arrange
+        const gameData = stubGameData();
+        gameData.ingame["player"] = {
+            finish: stubFinish(),
+            bonusChests: [
+                { amount: 5, picked: true },
+                { amount: 6, picked: true },
+                { amount: 7, picked: true },
+                { amount: 8, picked: true },
+                { amount: 9, picked: true },
+                { amount: 5, picked: true },
+                { amount: 6, picked: true },
+                { amount: 7, picked: true },
+                { amount: 8, picked: true },
+                { amount: 9, picked: true },
+            ],
+            player: stubPlayer(),
+        };
+
+        const consumer = new BonusConsumer(gameDefinition, gameData, publisher, settleConsumer);
+        const player = { profile: { name: "player" } };
+
+        // act
+        await consumer.autoOpenRemainingChests(player);
+
+        // assert
+        expect(settleConsumer.autoSettleRound).not.toBeCalled();
     });
 });
 

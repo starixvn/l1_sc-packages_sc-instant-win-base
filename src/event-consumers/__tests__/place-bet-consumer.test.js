@@ -1,4 +1,4 @@
-import { stub } from "jest-micro-auto-stub";
+import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
 import { BaseEventPublishers } from "sc-game-base/src/core";
 
@@ -6,6 +6,7 @@ import SlotNoticeHelper from "../../helpers/slot-notice-helper";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
 import PlaceBetConsumer from "../place-bet-consumer";
+import mongoose from "mongoose";
 
 const gameData = stubGameData();
 const gameDefinition = stubGameDefinition();
@@ -30,13 +31,15 @@ describe("composeBettingTimeValidationCriteria", () => {
 });
 
 describe("composeBetAmountValidationCriteria", () => {
-    it("should return invalidStakeLevel when amount is 0", () => {
+    const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+
+    it("should return invalidStakeLevel when amount is 0", async () => {
         // arrange
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
+        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, undefined, currencyGroupGamesRepository);
         const amount = 0;
 
         // act
-        const criterions = placeBetConsumer.composeBetAmountValidationCriteria({}, {}, amount, {});
+        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria({ session: {} }, {}, amount, {});
 
         // assert
         expect(criterions.filter((x) => x.failure).length).toBe(2);
@@ -46,13 +49,13 @@ describe("composeBetAmountValidationCriteria", () => {
         });
     });
 
-    it("should return invalidStakeLevel when amount is less than 0", () => {
+    it("should return invalidStakeLevel when amount is less than 0", async () => {
         // arrange
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
+        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, undefined, currencyGroupGamesRepository);
         const amount = -1;
 
         // act
-        const criterions = placeBetConsumer.composeBetAmountValidationCriteria({}, {}, amount, {});
+        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria({ session: {} }, {}, amount, {});
 
         // assert
         expect(criterions.filter((x) => x.failure).length).toBe(2);
@@ -62,13 +65,13 @@ describe("composeBetAmountValidationCriteria", () => {
         });
     });
 
-    it("should return invalidStakeLevel when amount is not belongs to stake level configurations", () => {
+    it("should return invalidStakeLevel when amount is not belongs to stake level configurations", async () => {
         // arrange
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
+        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, undefined, currencyGroupGamesRepository);
         const amount = 2;
 
         // act
-        const criterions = placeBetConsumer.composeBetAmountValidationCriteria({}, {}, amount, {});
+        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria({ session: {} }, {}, amount, {});
 
         // assert
         expect(criterions.filter((x) => x.failure).length).toBe(1);
@@ -130,41 +133,46 @@ describe("composeBetChoiceValidationCriteria", () => {
 });
 
 describe("consume", () => {
-    it("should push payload into betQueue", () => {
+    const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+    const expectStakes = [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }];
+    currencyGroupGamesRepository.findOne().lean().exec.mockReturnValue(expectStakes);
+
+    it("should push payload into betQueue", async () => {
         // arrange
-        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher);
+        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher, currencyGroupGamesRepository);
         const player = stubPlayer();
         const payload = stubPayload();
 
         // act
-        consumer.consume(player, payload);
+        await consumer.consume(player, payload);
 
         // assert
         expect(consumer.gameData.ingame[player.profile.name].betQueue).not.toBeEmpty();
     });
 
-    it("should NOT push payload into betQueue if invalid bet", () => {
+    it("should NOT push payload into betQueue if invalid bet", async () => {
         // arrange
-        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher);
+        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher, currencyGroupGamesRepository);
+
         const player = stubPlayer();
         const payload = stubPayload(1.5);
 
         // act
-        consumer.consume(player, payload);
+        await consumer.consume(player, payload);
 
         // assert
         expect(consumer.gameData.ingame[player.profile.name]).toBeUndefined();
     });
 
-    it("betQueue should be doubled if it already contains once", () => {
+    it("betQueue should be doubled if it already contains once", async () => {
         // arrange
-        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher);
+        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher, currencyGroupGamesRepository);
         const player = stubPlayer();
         const payload = stubPayload(1);
 
         // act
-        consumer.consume(player, payload);
-        consumer.consume(player, payload);
+        await consumer.consume(player, payload);
+        await consumer.consume(player, payload);
 
         // assert
         expect(consumer.gameData.ingame[player.profile.name].betQueue.length).toBe(2);

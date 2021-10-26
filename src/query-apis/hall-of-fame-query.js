@@ -1,18 +1,22 @@
 import mongoose from "mongoose";
+import GameData from "sc-game-base/src/core/game-data";
+import { CurrencyRateHelper } from "./../helpers";
 
 export default class HallOfFameQuery {
     /**
      * @param {Number} gameId
      * @param {mongoose.Model} famesRepository
      * @param {mongoose.Model} jackpotsRepository
+     * @param {GameData} dependencies.gameData
      */
-    constructor(gameId, famesRepository, jackpotsRepository) {
+    constructor(gameId, famesRepository, jackpotsRepository, gameData) {
         this.gameId = gameId;
         this.famesRepository = famesRepository;
         this.jackpotsRepository = jackpotsRepository;
+        this.gameData = gameData;
     }
 
-    async queryBigWinningWinners(page, pageSize = 10) {
+    async queryBigWinningWinners(player, page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
             return { bigWinningWinners: {} };
         }
@@ -26,16 +30,28 @@ export default class HallOfFameQuery {
             totalAmount: true,
             winningAmount: true,
             freeSpin: true,
+            rate: true,
         };
         const winners = await this.famesRepository
             .find({}, projection, { sort: { time: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
             .lean()
             .exec();
 
+        if (winners) {
+            const playerRate = CurrencyRateHelper.calculateRate(player.session, this.gameData);
+
+            winners.forEach((w) => {
+                if (w.rate) {
+                    w.totalAmount = (w.totalAmount * w.rate) / playerRate;
+                    w.winningAmount = (w.winningAmount * w.rate) / playerRate;
+                }
+            });
+        }
+
         return { bigWinningWinners: { winners, page, pageSize, total } };
     }
 
-    async queryJackpotWinners(page, pageSize = 10) {
+    async queryJackpotWinners(player, page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
             return { jackpotWinners: {} };
         }
@@ -58,8 +74,10 @@ export default class HallOfFameQuery {
             .find(filter, projection, { sort: { hitTime: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
             .lean()
             .exec();
+
+        const playerRate = CurrencyRateHelper.calculateRate(player.session, this.gameData);
         const winners = jackpotWinners.map((jackpotWinner) => {
-            const winningAmount = jackpotWinner.amount * jackpotWinner.winningRatio;
+            const winningAmount = jackpotWinner.amount * jackpotWinner.winningRatio * playerRate;
 
             return {
                 time: jackpotWinner.hitTime,

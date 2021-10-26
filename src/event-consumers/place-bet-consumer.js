@@ -16,8 +16,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         ];
     }
 
-    composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
-        const stakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
+    async composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
+        const { session } = player;
+        const stakeLevels =
+            (await this.currencyGroupGamesRepository.findOne({ groupId: session.currencyGroupId }, "stakeLevels").lean().exec()) ?? [];
 
         return [
             {
@@ -48,7 +50,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         ];
     }
 
-    consume(player, payload) {
+    async consume(player, payload) {
         Object.assign(payload, {
             amount: payload.amount,
             freeBet: payload.freeBet ?? false,
@@ -58,7 +60,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         const { amount, betChoice, freeBet } = payload;
         const name = player.profile.name;
 
-        if (!this.validateBetRequest(player, betChoice, amount, freeBet)) {
+        if (!(await this.validateBetRequest(player, betChoice, amount, freeBet))) {
             return;
         }
 

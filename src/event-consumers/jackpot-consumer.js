@@ -4,6 +4,7 @@ import { logger } from "sc-common";
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
+import { CurrencyRateHelper } from "./../helpers";
 
 export default class JackpotConsumer {
     /**
@@ -12,25 +13,30 @@ export default class JackpotConsumer {
      * @param {JackpotPublisher} jackpotPublisher
      * @param {logger} logService
      * @param {mongoose.Model} jackpotsRepository
+     * @param {mongoose.Model} currencyGroupGamesRepository
      */
-    constructor(definition, gameData, jackpotPublisher, logService, jackpotsRepository) {
+    constructor(definition, gameData, jackpotPublisher, logService, jackpotsRepository, currencyGroupGamesRepository) {
         this.definition = definition;
         this.gameData = gameData;
         this.jackpotPublisher = jackpotPublisher;
         this.logService = logService;
         this.jackpotsRepository = jackpotsRepository;
+        this.currencyGroupGamesRepository = currencyGroupGamesRepository;
     }
 
     async contribute(player, { pool, totalAmount, roundId }) {
+        const basePool = await this.getBasePool(player, pool);
+        const baseTotalAmount = totalAmount * CurrencyRateHelper.calculateRate(player.session, this.gameData);
+
         const contributedByMember = !!player.session;
         const contributionRatio = contributedByMember
             ? this.gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio
             : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
-        const contributionAmount = parseFloat((totalAmount * contributionRatio).toFixed(4));
+        const contributionAmount = parseFloat((baseTotalAmount * contributionRatio).toFixed(4));
 
         const runningPoolFilter = {
             gameId: this.definition.id,
-            pool,
+            pool: basePool,
             winnerName: { $exists: false },
             createdAt: { $lte: roundId },
         };
@@ -60,12 +66,14 @@ export default class JackpotConsumer {
     }
 
     async hit(player, { pool, roundId }) {
-        await this.initializeNewPool(pool, roundId);
+        const basePool = await this.getBasePool(player, pool);
+
+        await this.initializeNewPool(basePool, roundId);
 
         const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningRatio;
         const runningPoolFilter = {
             gameId: this.definition.id,
-            pool,
+            pool: basePool,
             winnerName: { $exists: false },
             createdAt: { $lt: roundId },
         };
@@ -167,5 +175,20 @@ export default class JackpotConsumer {
             .exec();
 
         return pool.createdAt;
+    }
+
+    async getBasePool(player, stake) {
+        const { session } = player;
+        if (!session) {
+            return stake;
+        }
+
+        const stakeLevels =
+            (await this.currencyGroupGamesRepository.findOne({ groupId: session.currencyGroupId }, "stakeLevels").lean().exec()) ?? [];
+        const poolIndex = stakeLevels.map((s) => s.stake).indexOf(stake);
+
+        const baseStakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels;
+
+        return poolIndex !== -1 && baseStakeLevels ? baseStakeLevels[poolIndex].stake : null;
     }
 }

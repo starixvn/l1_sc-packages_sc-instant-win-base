@@ -20,6 +20,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
      * @param {SlotHistoryQuery} dependencies.historyQuery
      * @param {HallOfFameQuery} dependencies.hallOfFameQuery
      * @param {logger} ldependencies.logService
+     * @param {PlayGamePermissionValidator} dependencies.playGamePermissionValidator
      */
     constructor({
         definition,
@@ -33,6 +34,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
         historyQuery,
         hallOfFameQuery,
         logService,
+        playGamePermissionValidator,
     }) {
         super({
             definition,
@@ -44,6 +46,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
             userSignInPublisher,
             historyQuery,
             logService,
+            playGamePermissionValidator,
         });
 
         this.bonusConsumer = bonusConsumer;
@@ -63,11 +66,14 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
     async handleGettingBigWinningWinners(payload) {
         try {
-            if (!this.verify()) {
+            if (!(await this.verify())) {
                 return;
             }
 
-            const bigWinningWinners = await this.hallOfFameQuery.queryBigWinningWinners(payload.page ?? 0);
+            const bigWinningWinners = await this.hallOfFameQuery.queryBigWinningWinners(
+                this.gameData.realPlayers[this.socketClient.id],
+                payload.page ?? 0
+            );
 
             this.socketClient.emit(this.definition.name, bigWinningWinners);
         } catch (error) {
@@ -77,11 +83,11 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
     async handleGettingJackpotWinners(payload) {
         try {
-            if (!this.verify()) {
+            if (!(await this.verify())) {
                 return;
             }
 
-            const jackpotWinners = await this.hallOfFameQuery.queryJackpotWinners(payload.page ?? 0);
+            const jackpotWinners = await this.hallOfFameQuery.queryJackpotWinners(this.gameData.realPlayers[this.socketClient.id], payload.page ?? 0);
 
             this.socketClient.emit(this.definition.name, jackpotWinners);
         } catch (error) {
@@ -91,7 +97,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
     async handleBonus(payload) {
         try {
-            if (!this.verify()) {
+            if (!(await this.verify())) {
                 return;
             }
 
