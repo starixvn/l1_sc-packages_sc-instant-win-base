@@ -7940,10 +7940,10 @@ sc-api-client@^1.3.0:
     axios "^0.19.2"
     openid-client "^3.15.9"
 
-sc-base-apis@1.12.1-beta.2:
-  version "1.12.1-beta.2"
-  resolved "http://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.12.1-beta.2.tgz#3efc4f632130adb475d90e10bc80e0affd55e952"
-  integrity sha512-3tC8ixYu0VdbK7MiREONEk+I3TgcnHkk7F/dIQ42fRReX5d64RBRp0DAhZD/oe4zV1QGMHEtBEZMtjr4K+bc1Q==
+sc-base-apis@1.12.1-beta.4:
+  version "1.12.1-beta.4"
+  resolved "http://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.12.1-beta.4.tgz#7a65898f6bb4a30331bf797a7953b01376c0c497"
+  integrity sha512-ooJxvVrx3ftmAXOuV3WIssq3Xj3hZTiia8D5olZgRwfvsWn4OHy0hj+6qaMhzVvIs1Y8I2eVHV7jI+Tiv+rEEQ==
   dependencies:
     moment "^2.27.0"
     sc-api-client "^1.3.0"
@@ -7969,10 +7969,10 @@ sc-common@^1.6.0, sc-common@^1.7.0:
     mongoose-long "^0.3.0"
     numeral "^2.0.6"
 
-sc-game-base@2.0.1-beta.5:
-  version "2.0.1-beta.5"
-  resolved "http://npm.lumigame.com/sc-game-base/-/sc-game-base-2.0.1-beta.5.tgz#e5ab7bf5f30aa1a93603f3a1971c3e61f517defa"
-  integrity sha512-3hvKw09rDA4gwj1jwtYdXQWmXpfFCis4KLGmiJEJPC5RExFRNQwVI2ENYJfo+BOH7OSFnvqiMiun3oExz3b0BA==
+sc-game-base@2.0.1-beta.12:
+  version "2.0.1-beta.12"
+  resolved "http://npm.lumigame.com/sc-game-base/-/sc-game-base-2.0.1-beta.12.tgz#ceda3f1521f01098ea1062c9ed95f63f5743a1cd"
+  integrity sha512-oI2TRfccNFJq7fptMvaYyIdIgw8NzmxDONaieglW9rVrc4BXNg6/4JRtADPemLqN9ODZBzujCN8XzqxxG4TvCA==
   dependencies:
     "@socket.io/admin-ui" "^0.2.0"
     awilix "^4.3.1"
@@ -7987,7 +7987,7 @@ sc-game-base@2.0.1-beta.5:
     mongoose "^5.9.25"
     morgan "^1.10.0"
     openid-client "^4.2.0"
-    sc-base-apis "1.12.1-beta.2"
+    sc-base-apis "1.12.1-beta.4"
     sc-base-database "1.8.3-beta.2"
     sc-common "^1.7.0"
     socket.io "^4.1.2"

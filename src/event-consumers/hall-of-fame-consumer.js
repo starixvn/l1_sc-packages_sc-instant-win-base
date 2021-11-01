@@ -13,9 +13,8 @@ export default class HallOfFameConsumer {
     }
 
     async add(player, { roundId, bet, totalAmount, winningAmount, numberOfPaylines, freeSpin = false }) {
-        await this.famesRepository.create({
+        const fame = {
             uid: player.UID,
-            memberId: player.session?.memberId,
             name: player.profile.name,
             roundId,
             bet,
@@ -24,9 +23,15 @@ export default class HallOfFameConsumer {
             numberOfPaylines,
             freeSpin,
             time: new Date(),
-            partnerId: player.session?.partnerId,
-            currency: player.session?.currency,
-            rate: CurrencyRateHelper.calculateRate(player.session, this.gameData),
-        });
+        };
+
+        if (!!player.session) {
+            fame.memberId = player.session.memberId;
+            fame.partnerId = player.session.partnerId;
+            fame.currency = player.session.currency;
+            fame.rate = CurrencyRateHelper.calculateRate(player.session, this.gameData);
+        }
+
+        await this.famesRepository.create(fame);
     }
 }

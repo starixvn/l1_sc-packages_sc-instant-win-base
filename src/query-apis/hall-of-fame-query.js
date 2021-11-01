@@ -77,7 +77,7 @@ export default class HallOfFameQuery {
 
         const playerRate = CurrencyRateHelper.calculateRate(player.session, this.gameData);
         const winners = jackpotWinners.map((jackpotWinner) => {
-            const winningAmount = jackpotWinner.amount * jackpotWinner.winningRatio * playerRate;
+            const winningAmount = (jackpotWinner.amount * jackpotWinner.winningRatio) / playerRate;
 
             return {
                 time: jackpotWinner.hitTime,

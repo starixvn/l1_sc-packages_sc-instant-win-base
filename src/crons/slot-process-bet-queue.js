@@ -115,7 +115,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         const rate = this.calculateCurrencyRate(player.session);
 
         await this.upsertBet(player, roundId, bet, rate);
-        this.notifyPlacingBetResult(player, balance, bet);
+        this.notifyPlacingBetResult(player, balance, bet, rate);
 
         await this.settleGameRoundConsumer.settleRound(player, roundId);
     }

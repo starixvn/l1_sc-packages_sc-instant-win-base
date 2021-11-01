@@ -184,7 +184,10 @@ export default class JackpotConsumer {
         }
 
         const stakeLevels =
-            (await this.currencyGroupGamesRepository.findOne({ groupId: session.currencyGroupId }, "stakeLevels").lean().exec()) ?? [];
+            (await this.currencyGroupGamesRepository
+                .findOne({ groupId: mongoose.Types.ObjectId(session.currencyGroupId), gameId: this.definition.id }, "stakeLevels")
+                .lean()
+                .exec()) ?? [];
         const poolIndex = stakeLevels.map((s) => s.stake).indexOf(stake);
 
         const baseStakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels;

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { getBalance as getBalanceApi } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
@@ -38,7 +39,10 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     async buildPayload(realPlayer) {
         const { session } = realPlayer;
         const stakeLevels =
-            (await this.currencyGroupGamesRepository.findOne({ groupId: session.currencyGroupId }, "stakeLevels").lean().exec()) ?? [];
+            (await this.currencyGroupGamesRepository
+                .findOne({ groupId: mongoose.Types.ObjectId(session.currencyGroupId), gameId: this.definition.id }, "stakeLevels")
+                .lean()
+                .exec()) ?? [];
 
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = {

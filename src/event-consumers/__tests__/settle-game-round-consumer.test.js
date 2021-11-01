@@ -410,6 +410,7 @@ describe("settle-game-round-consumer", () => {
                     memberId: 2,
                     siteId: 3,
                     time: 4,
+                    partnerId: undefined,
                 },
                 settlementInfo: { redPlay: 10, freeBet: false },
             };
@@ -437,6 +438,7 @@ describe("settle-game-round-consumer", () => {
                     memberId: 2,
                     siteId: 3,
                     time: 4,
+                    partnerId: undefined,
                 },
                 settlementInfo: { redPlay: 0, freeBet: true },
             };

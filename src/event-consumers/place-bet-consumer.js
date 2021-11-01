@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import _ from "lodash";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
@@ -19,7 +20,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     async composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
         const { session } = player;
         const stakeLevels =
-            (await this.currencyGroupGamesRepository.findOne({ groupId: session.currencyGroupId }, "stakeLevels").lean().exec()) ?? [];
+            (await this.currencyGroupGamesRepository
+                .findOne({ groupId: mongoose.Types.ObjectId(session.currencyGroupId), gameId: this.definition.id }, "stakeLevels")
+                .lean()
+                .exec()) ?? [];
 
         return [
             {
