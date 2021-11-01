@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
 import _ from "lodash";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
+import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     composeBettingTimeValidationCriteria() {
@@ -18,12 +18,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     }
 
     async composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
-        const { session } = player;
-        const stakeLevels =
-            (await this.currencyGroupGamesRepository
-                .findOne({ groupId: mongoose.Types.ObjectId(session.currencyGroupId), gameId: this.definition.id }, "stakeLevels")
-                .lean()
-                .exec()) ?? [];
+        const stakeLevels = await MultipleCurrencyHelper.getStakeLevels(this.currencyGroupGamesRepository, this.definition, player);
 
         return [
             {

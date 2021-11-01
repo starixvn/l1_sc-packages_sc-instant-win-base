@@ -1,4 +1,4 @@
 import SlotNoticeHelper from "./slot-notice-helper";
-import CurrencyRateHelper from "./currency-rate-helper";
+import MultipleCurrencyHelper from "./multiple-currency-helper";
 
-export { SlotNoticeHelper, CurrencyRateHelper };
+export { SlotNoticeHelper, MultipleCurrencyHelper };

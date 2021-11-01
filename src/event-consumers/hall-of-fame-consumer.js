@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import GameData from "sc-game-base/src/core/game-data";
-import { CurrencyRateHelper } from "./../helpers";
+import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class HallOfFameConsumer {
     /**
@@ -29,7 +29,7 @@ export default class HallOfFameConsumer {
             fame.memberId = player.session.memberId;
             fame.partnerId = player.session.partnerId;
             fame.currency = player.session.currency;
-            fame.rate = CurrencyRateHelper.calculateRate(player.session, this.gameData);
+            fame.rate = MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
         }
 
         await this.famesRepository.create(fame);

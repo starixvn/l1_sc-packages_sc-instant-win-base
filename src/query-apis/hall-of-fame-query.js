@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import GameData from "sc-game-base/src/core/game-data";
-import { CurrencyRateHelper } from "./../helpers";
+import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class HallOfFameQuery {
     /**
@@ -38,7 +38,7 @@ export default class HallOfFameQuery {
             .exec();
 
         if (winners) {
-            const playerRate = CurrencyRateHelper.calculateRate(player.session, this.gameData);
+            const playerRate = MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
 
             winners.forEach((w) => {
                 if (w.rate) {
@@ -75,7 +75,7 @@ export default class HallOfFameQuery {
             .lean()
             .exec();
 
-        const playerRate = CurrencyRateHelper.calculateRate(player.session, this.gameData);
+        const playerRate = MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
         const winners = jackpotWinners.map((jackpotWinner) => {
             const winningAmount = (jackpotWinner.amount * jackpotWinner.winningRatio) / playerRate;
 

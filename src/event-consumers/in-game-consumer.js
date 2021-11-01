@@ -5,6 +5,7 @@ import { Core } from "sc-game-base";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 import FreeSpinsConsumer from "./free-spins-consumer";
+import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
     /**
@@ -37,12 +38,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     }
 
     async buildPayload(realPlayer) {
-        const { session } = realPlayer;
-        const stakeLevels =
-            (await this.currencyGroupGamesRepository
-                .findOne({ groupId: mongoose.Types.ObjectId(session.currencyGroupId), gameId: this.definition.id }, "stakeLevels")
-                .lean()
-                .exec()) ?? [];
+        const stakeLevels = await MultipleCurrencyHelper.getStakeLevels(this.currencyGroupGamesRepository, this.definition, realPlayer);
 
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = {

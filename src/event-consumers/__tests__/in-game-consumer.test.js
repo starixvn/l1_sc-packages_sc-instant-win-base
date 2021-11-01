@@ -43,7 +43,7 @@ describe("buildPayload", () => {
         const expectPools = [{ pool: 1, amount: 1000 }];
         jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
 
-        const expectStakes = [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }];
+        const expectStakes = { stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] };
         currencyGroupGamesRepository.findOne().lean().exec.mockReturnValueOnce(expectStakes);
 
         // act

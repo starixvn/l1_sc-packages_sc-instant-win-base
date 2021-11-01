@@ -134,7 +134,7 @@ describe("composeBetChoiceValidationCriteria", () => {
 
 describe("consume", () => {
     const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
-    const expectStakes = [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }];
+    const expectStakes = { stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] };
     currencyGroupGamesRepository.findOne().lean().exec.mockReturnValue(expectStakes);
 
     it("should push payload into betQueue", async () => {

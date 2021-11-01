@@ -15,10 +15,8 @@ const jackpotsRepository = stubMongooseModelStupidly(mongoose.Model);
 
 /** @type {mongoose.Model}*/
 const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
-currencyGroupGamesRepository
-    .findOne()
-    .lean()
-    .exec.mockReturnValue([{ stake: 0.1 }, { stake: 1 }]);
+const expectStakes = { stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] };
+currencyGroupGamesRepository.findOne().lean().exec.mockReturnValue(expectStakes);
 
 const jackpotPublisher = stub(JackpotPublisher);
 const logService = stub(logger);

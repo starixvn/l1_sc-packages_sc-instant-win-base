@@ -4,7 +4,7 @@ import { logger } from "sc-common";
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
-import { CurrencyRateHelper } from "./../helpers";
+import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class JackpotConsumer {
     /**
@@ -26,7 +26,7 @@ export default class JackpotConsumer {
 
     async contribute(player, { pool, totalAmount, roundId }) {
         const basePool = await this.getBasePool(player, pool);
-        const baseTotalAmount = totalAmount * CurrencyRateHelper.calculateRate(player.session, this.gameData);
+        const baseTotalAmount = totalAmount * MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
 
         const contributedByMember = !!player.session;
         const contributionRatio = contributedByMember
@@ -183,11 +183,8 @@ export default class JackpotConsumer {
             return stake;
         }
 
-        const stakeLevels =
-            (await this.currencyGroupGamesRepository
-                .findOne({ groupId: mongoose.Types.ObjectId(session.currencyGroupId), gameId: this.definition.id }, "stakeLevels")
-                .lean()
-                .exec()) ?? [];
+        const stakeLevels = await MultipleCurrencyHelper.getStakeLevels(this.currencyGroupGamesRepository, this.definition, player);
+
         const poolIndex = stakeLevels.map((s) => s.stake).indexOf(stake);
 
         const baseStakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels;
