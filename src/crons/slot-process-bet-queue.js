@@ -55,7 +55,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
     }
 
     async proceedBet(player, payload) {
-        this.logService.logError("Session: " + JSON.stringify(player) + " | " + JSON.stringify(this.gameData));
+        this.logService.logError("Session: " + JSON.stringify(player.session?.multiplier) + " | " + JSON.stringify(this.gameData.exchangeRates));
         if (this.gameData.ingame[player.profile.name]?.finish) {
             this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1, notice: { errorCode: helpers.noticeHelper.cannotPlaceBet } });
 
