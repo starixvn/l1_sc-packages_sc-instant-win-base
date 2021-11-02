@@ -632,7 +632,7 @@ describe("settle-game-round-consumer", () => {
             dependencies.definition = {};
             dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeUUS = true;
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currency: "UUS" } };
+            const player = { session: { currencyName: "UUS" } };
 
             // act
             const actualValue = consumer.isUserEnableJackpot(player);

@@ -138,7 +138,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             newBet.memberId = player.session.memberId;
             newBet.siteId = player.session.siteId;
             newBet.partnerId = player.session.partnerId;
-            newBet.currency = player.session.currency;
+            newBet.currency = player.session.currencyName;
         }
 
         await this.roundsRepository.create(newBet);

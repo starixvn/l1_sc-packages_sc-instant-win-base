@@ -28,7 +28,7 @@ export default class HallOfFameConsumer {
         if (!!player.session) {
             fame.memberId = player.session.memberId;
             fame.partnerId = player.session.partnerId;
-            fame.currency = player.session.currency;
+            fame.currency = player.session.currencyName;
             fame.rate = MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
         }
 
