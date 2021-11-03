@@ -57,7 +57,8 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             moreInfo: {
                 stakeLevels: this.gameData.stakeLevels,
                 session: realPlayer.session.currencyGroupId,
-                findS1: this.gameData.stakeLevels.find((s) => s.groupId == realPlayer.session.currencyGroupId),
+                findS1: this.gameData.stakeLevels.find((s) => s.groupId.toString() == realPlayer.session.currencyGroupId),
+                types: this.gameData.stakeLevels.map((s) => typeof s.groupId),
             },
         };
         const jackpotPools = await this.getPools();
