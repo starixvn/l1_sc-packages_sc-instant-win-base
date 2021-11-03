@@ -15,8 +15,6 @@ const jackpotsRepository = stubMongooseModelStupidly(mongoose.Model);
 
 /** @type {mongoose.Model}*/
 const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
-const expectStakes = { stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] };
-currencyGroupGamesRepository.findOne().lean().exec.mockReturnValue(expectStakes);
 
 const jackpotPublisher = stub(JackpotPublisher);
 const logService = stub(logger);
@@ -88,7 +86,7 @@ describe("contribute", () => {
         };
 
         // act
-        await consumer.contribute({ session: { multiplier: 1, currencyCode: 0 } }, bet);
+        await consumer.contribute({ session: { multiplier: 1, currencyCode: 0, currencyGroupId: "A" } }, bet);
 
         // assert
         expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
@@ -112,7 +110,7 @@ describe("hit", () => {
     it("should call initializeNewPool", async () => {
         // arrange
         const consumer = initConsumer();
-        const player = { profile: { name: "A" }, session: { memberId: 12 } };
+        const player = { profile: { name: "A" }, session: { memberId: 12, currencyGroupId: "A" } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
 
         spyOn(consumer, "initializeNewPool");
@@ -128,12 +126,8 @@ describe("hit", () => {
     it("should log error and return 0 if no winning jackpot", async () => {
         // arrange
         const consumer = initConsumer();
-        const player = { profile: { name: "A" }, session: { memberId: 12 } };
+        const player = { profile: { name: "A" }, session: { memberId: 12, currencyGroupId: "A" } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
-        // jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
-        //     amount: 12,
-        // });
-
         spyOn(consumer, "initializeNewPool");
 
         // act
@@ -351,6 +345,8 @@ function stubGameData() {
     gameData.exchangeRates = {
         code: [1],
     };
+
+    gameData.stakeLevels = [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
 
     return gameData;
 }

@@ -183,7 +183,7 @@ export default class JackpotConsumer {
             return stake;
         }
 
-        const stakeLevels = await MultipleCurrencyHelper.getStakeLevels(this.currencyGroupGamesRepository, this.definition, player);
+        const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, player);
 
         const poolIndex = stakeLevels.map((s) => s.stake).indexOf(stake);
 

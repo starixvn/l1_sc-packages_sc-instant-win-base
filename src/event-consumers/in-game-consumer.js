@@ -38,7 +38,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     }
 
     async buildPayload(realPlayer) {
-        const stakeLevels = await MultipleCurrencyHelper.getStakeLevels(this.currencyGroupGamesRepository, this.definition, realPlayer);
+        const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, realPlayer);
 
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = {

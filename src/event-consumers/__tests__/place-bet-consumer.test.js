@@ -39,7 +39,7 @@ describe("composeBetAmountValidationCriteria", () => {
         const amount = 0;
 
         // act
-        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria({ session: {} }, {}, amount, {});
+        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria({ session: { currencyGroupId: "A" } }, {}, amount, {});
 
         // assert
         expect(criterions.filter((x) => x.failure).length).toBe(2);
@@ -134,8 +134,6 @@ describe("composeBetChoiceValidationCriteria", () => {
 
 describe("consume", () => {
     const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
-    const expectStakes = { stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] };
-    currencyGroupGamesRepository.findOne().lean().exec.mockReturnValue(expectStakes);
 
     it("should push payload into betQueue", async () => {
         // arrange
@@ -192,6 +190,7 @@ function stubGameData() {
         },
     };
 
+    gameData.stakeLevels = [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
     return gameData;
 }
 
@@ -211,6 +210,7 @@ function stubPlayer() {
         },
         session: {
             currency: "US",
+            currencyGroupId: "A",
         },
     };
 }

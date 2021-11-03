@@ -6,6 +6,7 @@ import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
 const archiveStatusesRepository = stubMongooseModelStupidly(mongoose.Model);
 const exchangeRatesRepository = stubMongooseModelStupidly(mongoose.Model);
+const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
 
 jest.mock("cron", () => {
     const mScheduleJob = {
@@ -234,7 +235,7 @@ describe("slot-game-cron", () => {
     });
 
     describe("proceed", () => {
-        const definition = { durations: { wholeRound: 45 } };
+        const definition = { durations: { wholeRound: 45, placingBets: 30 } };
         const bonusConsumer = { processExpiredBonus: jest.fn() };
 
         it("should processExpiredBonus", async () => {
@@ -329,6 +330,44 @@ describe("slot-game-cron", () => {
 
             // assert
             expect(freeSpinsConsumer.reload).toBeCalled();
+        });
+
+        it("when remainingTime === durations.placingBets should cache stakeLevels", async () => {
+            // arrange
+            const gameData = { remainingTime: 31 };
+            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, currencyGroupGamesRepository });
+            cron.cacheStakeLevels = jest.fn();
+
+            // act
+            await cron.proceed();
+
+            // assert
+            expect(cron.cacheStakeLevels).toBeCalled();
+        });
+    });
+
+    describe("cacheStakeLevels", () => {
+        const testCases = [
+            { settings: null, expectedValue: [] },
+            {
+                settings: [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }],
+                expectedValue: [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }],
+            },
+        ];
+
+        it.each(testCases)("should cache correct data", async (testCase) => {
+            // arrange
+            const gameData = { stakeLevels: undefined };
+            const definition = { id: 2 };
+            currencyGroupGamesRepository.find().lean().exec.mockReturnValueOnce(testCase.settings);
+            const cron = new SlotGameCron({ definition, gameData, currencyGroupGamesRepository });
+            cron.checkGameStatus = jest.fn();
+
+            // act
+            await cron.cacheStakeLevels();
+
+            // assert
+            expect(gameData.stakeLevels).toStrictEqual(testCase.expectedValue);
         });
     });
 });

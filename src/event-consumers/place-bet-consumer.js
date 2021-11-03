@@ -18,7 +18,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     }
 
     async composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
-        const stakeLevels = await MultipleCurrencyHelper.getStakeLevels(this.currencyGroupGamesRepository, this.definition, player);
+        const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, player);
 
         return [
             {

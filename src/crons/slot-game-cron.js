@@ -44,6 +44,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         archiveStatusesRepository,
         notificationRepository,
         exchangeRatesRepository,
+        currencyGroupGamesRepository,
     }) {
         super({
             definition,
@@ -64,6 +65,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         this.bonusConsumer = bonusConsumer;
         this.idCountersConsumer = idCountersConsumer;
         this.jackpotConsumer = jackpotConsumer;
+        this.currencyGroupGamesRepository = currencyGroupGamesRepository;
     }
 
     async start() {
@@ -131,6 +133,10 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             this.bot && (await this.bot.run());
         }
 
+        if (this.isStartingTime(this.gameData.remainingTime, durations)) {
+            await this.cacheStakeLevels();
+        }
+
         if (this.gameData.remainingTime < 0) {
             this.gameData.remainingTime = durations.wholeRound;
 
@@ -190,5 +196,10 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
             return ingame;
         }, {});
+    }
+
+    async cacheStakeLevels() {
+        const settings = await this.currencyGroupGamesRepository.find({ gameId: this.definition.id }, "groupId stakeLevels").lean().exec();
+        this.gameData.stakeLevels = settings ?? [];
     }
 }

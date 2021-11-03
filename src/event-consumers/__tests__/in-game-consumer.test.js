@@ -43,11 +43,8 @@ describe("buildPayload", () => {
         const expectPools = [{ pool: 1, amount: 1000 }];
         jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
 
-        const expectStakes = { stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] };
-        currencyGroupGamesRepository.findOne().lean().exec.mockReturnValueOnce(expectStakes);
-
         // act
-        const payload = await consumer.buildPayload({ session: {} });
+        const payload = await consumer.buildPayload({ session: { currencyGroupId: "A" } });
 
         // assert
         expect(payload.jackpotPools).not.toBeNull();
@@ -68,9 +65,6 @@ describe("buildPayload", () => {
             bet: expectedFreeSpins.bet,
             paylines: expectedFreeSpins.paylines,
         });
-
-        const expectStakes = null;
-        currencyGroupGamesRepository.findOne().lean().exec.mockReturnValueOnce(expectStakes);
 
         // act
         const payload = await consumer.buildPayload({ session: {} });
@@ -112,6 +106,7 @@ function stubGameData() {
         },
     };
 
+    gameData.stakeLevels = [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
     return gameData;
 }
 
