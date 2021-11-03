@@ -78,4 +78,5 @@ export default new mongoose.Schema({
     partnerId: { type: String, require: true },
     currency: { type: String, require: true },
     rate: { type: Number, require: true },
+    exchangeRateId: { type: Number, require: true },
 });

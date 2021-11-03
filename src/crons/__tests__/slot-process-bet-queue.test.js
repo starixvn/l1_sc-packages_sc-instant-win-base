@@ -33,7 +33,8 @@ describe("slot-process-bet-queue", () => {
         it("when have player session should create correct info", async () => {
             // arrange
             const roundsRepository = { create: jest.fn() };
-            const cron = new SlotProcessBetQueue({ roundsRepository });
+            const gameData = { exchangeRates: {} };
+            const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
             const player = { session: { memberId: 1, siteId: 2 }, profile: { name: "user3" } };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
@@ -47,7 +48,8 @@ describe("slot-process-bet-queue", () => {
         it("when not have player session should create correct info", async () => {
             // arrange
             const roundsRepository = { create: jest.fn() };
-            const cron = new SlotProcessBetQueue({ roundsRepository });
+            const gameData = { exchangeRates: {} };
+            const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
             const player = { profile: { name: "user3" }, session: null };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
