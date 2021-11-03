@@ -5,6 +5,6 @@ export default {
         return !!session ? session.multiplier * gameData.exchangeRates.code[session.currencyCode] : 1;
     },
     getStakeLevels(gameData, player) {
-        return gameData.stakeLevels.find((s) => s.groupId === player.session.currencyGroupId)?.stakeLevels ?? [];
+        return gameData.stakeLevels.find((s) => s.groupId.toString() === player.session.currencyGroupId)?.stakeLevels ?? [];
     },
 };
