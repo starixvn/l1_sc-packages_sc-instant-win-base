@@ -241,7 +241,7 @@ describe("slot-game-cron", () => {
         it("should processExpiredBonus", async () => {
             // arrange
             const gameData = { remainingTime: 1 };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer });
+            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, currencyGroupGamesRepository });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -254,7 +254,7 @@ describe("slot-game-cron", () => {
         it("when remainingTime === durations.wholeRound and not have bot should checkGameStatus", async () => {
             // arrange
             const gameData = { remainingTime: 45 };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer });
+            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, currencyGroupGamesRepository });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -268,7 +268,7 @@ describe("slot-game-cron", () => {
             // arrange
             const gameData = { remainingTime: 45 };
             const bot = stub(Core.Crons.BaseBot);
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, bot });
+            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, bot, currencyGroupGamesRepository });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -281,7 +281,7 @@ describe("slot-game-cron", () => {
         it("when game not disabled and not have bot should reduce remainingTime", async () => {
             // arrange
             const gameData = { remainingTime: 45 };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer });
+            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, currencyGroupGamesRepository });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -294,7 +294,7 @@ describe("slot-game-cron", () => {
         it("when game disabled and not have bot should not reduce remainingTime", async () => {
             // arrange
             const gameData = { remainingTime: 45, disabled: true };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer });
+            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, currencyGroupGamesRepository });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -308,7 +308,7 @@ describe("slot-game-cron", () => {
             // arrange
             const gameData = { remainingTime: 45 };
             const bot = stub(Core.Crons.BaseBot);
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, bot });
+            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, bot, currencyGroupGamesRepository });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -322,7 +322,7 @@ describe("slot-game-cron", () => {
             // arrange
             const gameData = { remainingTime: -1 };
             const freeSpinsConsumer = { reload: jest.fn() };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, freeSpinsConsumer });
+            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, freeSpinsConsumer, currencyGroupGamesRepository });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -332,10 +332,11 @@ describe("slot-game-cron", () => {
             expect(freeSpinsConsumer.reload).toBeCalled();
         });
 
-        it("when remainingTime === durations.placingBets should cache stakeLevels", async () => {
+        it("when remainingTime === durations.wholeRound should cache stakeLevels", async () => {
             // arrange
-            const gameData = { remainingTime: 31 };
+            const gameData = { remainingTime: 45 };
             const cron = new SlotGameCron({ definition, gameData, bonusConsumer, currencyGroupGamesRepository });
+            cron.checkGameStatus = jest.fn();
             cron.cacheStakeLevels = jest.fn();
 
             // act
