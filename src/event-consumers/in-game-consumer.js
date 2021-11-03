@@ -66,6 +66,11 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             jackpotPools,
             freeSpins,
             user,
+            moreInfo: {
+                stakeLevels: this.gameData.stakeLevels,
+                session: realPlayer.session.currencyGroupId,
+                findS: this.gameData.gameData.stakeLevels.find((s) => s.groupId === realPlayer.session.currencyGroupId),
+            },
         };
     }
 
