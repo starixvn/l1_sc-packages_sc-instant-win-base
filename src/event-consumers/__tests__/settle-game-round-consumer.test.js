@@ -647,7 +647,7 @@ describe("settle-game-round-consumer", () => {
             dependencies.definition = {};
             dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeUUS = false;
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currency: "UUS" } };
+            const player = { session: { currencyName: "UUS" } };
 
             // act
             const actualValue = consumer.isUserEnableJackpot(player);
@@ -662,7 +662,7 @@ describe("settle-game-round-consumer", () => {
             dependencies.definition = {};
             dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeUUS = false;
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currency: "IN" } };
+            const player = { session: { currencyName: "IN" } };
 
             // act
             const actualValue = consumer.isUserEnableJackpot(player);
@@ -687,7 +687,7 @@ describe("settle-game-round-consumer", () => {
             const consumer = new SettleGameRoundConsumer(dependencies);
             spyOn(consumer.paylineCalculator, "calculate").and.returnValue({ paylines: [], jackpotPayline: testCase.jackpotPayline });
             spyOn(consumer, "isUserEnableJackpot").and.returnValue(testCase.userEnableJackpot);
-            const player = { session: { currency: "UUS" } };
+            const player = { session: { currencyName: "UUS" } };
             const roundId = 1;
             const bet = {};
 
@@ -714,7 +714,7 @@ describe("settle-game-round-consumer", () => {
                 spyOn(consumer.paylineCalculator, "calculate").and.returnValue({ paylines: [], jackpotPayline: 1 });
                 spyOn(consumer, "isUserEnableJackpot").and.returnValue(true);
                 spyOn(consumer, "processJackpot").and.returnValue(testCase.jackpot);
-                const player = { session: { currency: "UUS" } };
+                const player = { session: { currencyName: "UUS" } };
                 const roundId = 1;
                 const bet = {};
 

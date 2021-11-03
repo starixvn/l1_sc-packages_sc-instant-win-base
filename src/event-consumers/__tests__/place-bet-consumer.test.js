@@ -39,7 +39,12 @@ describe("composeBetAmountValidationCriteria", () => {
         const amount = 0;
 
         // act
-        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria({ session: { currencyGroupId: "A" } }, {}, amount, {});
+        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria(
+            { session: { currencyGroupId: "617a650628b7a500016388f5" } },
+            {},
+            amount,
+            {}
+        );
 
         // assert
         expect(criterions.filter((x) => x.failure).length).toBe(2);
@@ -190,7 +195,7 @@ function stubGameData() {
         },
     };
 
-    gameData.stakeLevels = [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
+    gameData.stakeLevels = [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
     return gameData;
 }
 
@@ -209,8 +214,8 @@ function stubPlayer() {
             maxBet: 500,
         },
         session: {
-            currency: "US",
-            currencyGroupId: "A",
+            currencyName: "US",
+            currencyGroupId: "617a650628b7a500016388f5",
         },
     };
 }

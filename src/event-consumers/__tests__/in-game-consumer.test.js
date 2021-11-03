@@ -44,7 +44,7 @@ describe("buildPayload", () => {
         jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
 
         // act
-        const payload = await consumer.buildPayload({ session: { currencyGroupId: "A" } });
+        const payload = await consumer.buildPayload({ session: { currencyGroupId: "617a650628b7a500016388f5" } });
 
         // assert
         expect(payload.jackpotPools).not.toBeNull();
@@ -106,7 +106,7 @@ function stubGameData() {
         },
     };
 
-    gameData.stakeLevels = [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
+    gameData.stakeLevels = [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
     return gameData;
 }
 

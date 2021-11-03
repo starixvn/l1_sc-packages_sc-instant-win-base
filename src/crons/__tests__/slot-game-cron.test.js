@@ -351,8 +351,8 @@ describe("slot-game-cron", () => {
         const testCases = [
             { settings: null, expectedValue: [] },
             {
-                settings: [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }],
-                expectedValue: [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }],
+                settings: [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }],
+                expectedValue: [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }],
             },
         ];
 

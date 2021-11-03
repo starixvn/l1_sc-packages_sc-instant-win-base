@@ -86,7 +86,7 @@ describe("contribute", () => {
         };
 
         // act
-        await consumer.contribute({ session: { multiplier: 1, currencyCode: 0, currencyGroupId: "A" } }, bet);
+        await consumer.contribute({ session: { multiplier: 1, currencyCode: 0, currencyGroupId: "617a650628b7a500016388f5" } }, bet);
 
         // assert
         expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
@@ -110,7 +110,7 @@ describe("hit", () => {
     it("should call initializeNewPool", async () => {
         // arrange
         const consumer = initConsumer();
-        const player = { profile: { name: "A" }, session: { memberId: 12, currencyGroupId: "A" } };
+        const player = { profile: { name: "A" }, session: { memberId: 12, currencyGroupId: "617a650628b7a500016388f5" } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
 
         spyOn(consumer, "initializeNewPool");
@@ -126,7 +126,7 @@ describe("hit", () => {
     it("should log error and return 0 if no winning jackpot", async () => {
         // arrange
         const consumer = initConsumer();
-        const player = { profile: { name: "A" }, session: { memberId: 12, currencyGroupId: "A" } };
+        const player = { profile: { name: "A" }, session: { memberId: 12, currencyGroupId: "617a650628b7a500016388f5" } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
         spyOn(consumer, "initializeNewPool");
 
@@ -138,7 +138,6 @@ describe("hit", () => {
         expect(jackpotsRepository.findOneAndUpdate).toBeCalled();
         expect(logService.logCritical).toBeCalled();
         expect(jackpot).toStrictEqual({ amount: 0 });
-        //expect(jackpotPublisher.publishLatestPool).toBeCalledWith({ pool, amount: 12 });
     });
 
     it("should publish winning jackpot amount", async () => {
@@ -346,7 +345,7 @@ function stubGameData() {
         code: [1],
     };
 
-    gameData.stakeLevels = [{ groupId: "A", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
+    gameData.stakeLevels = [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
 
     return gameData;
 }

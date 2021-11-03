@@ -56,10 +56,11 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             freeSpin: payload.freeSpin ?? false,
         });
 
-        const { amount, betChoice, freeBet } = payload;
+        const { amount, betChoice, freeBet, roundId } = payload;
         const name = player.profile.name;
 
-        if (!(await this.validateBetRequest(player, betChoice, amount, freeBet))) {
+        console.log(await this.validateBetRequest(player, betChoice, amount, freeBet, roundId));
+        if (!(await this.validateBetRequest(player, betChoice, amount, freeBet, roundId))) {
             return;
         }
 

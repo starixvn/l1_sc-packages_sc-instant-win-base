@@ -290,7 +290,7 @@ function stubPlayer() {
             maxBet: 500,
         },
         session: {
-            currency: "US",
+            currencyName: "US",
         },
     };
 }
