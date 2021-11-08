@@ -17,7 +17,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         ];
     }
 
-    async composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
+    composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
         const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, player);
 
         return [
@@ -59,8 +59,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         const { amount, betChoice, freeBet, roundId } = payload;
         const name = player.profile.name;
 
-        console.log(await this.validateBetRequest(player, betChoice, amount, freeBet, roundId));
-        if (!(await this.validateBetRequest(player, betChoice, amount, freeBet, roundId))) {
+        if (!this.validateBetRequest(player, betChoice, amount, freeBet, roundId)) {
             return;
         }
 
