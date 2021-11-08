@@ -3,6 +3,8 @@ export default {
         return !!session ? session.multiplier * gameData.exchangeRates.code[session.currencyCode] : 1;
     },
     getStakeLevels(gameData, player) {
-        return gameData.stakeLevels.find((s) => s.groupId.toString() === player.session.currencyGroupId)?.stakeLevels ?? [];
+        const settings = gameData.currencyGroupGames.find((x) => x.groupId.toString() === player.session.currencyGroupId);
+
+        return settings?.stakeLevels ?? [];
     },
 };

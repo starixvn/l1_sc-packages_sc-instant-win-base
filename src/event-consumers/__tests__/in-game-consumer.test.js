@@ -106,7 +106,7 @@ function stubGameData() {
         },
     };
 
-    gameData.stakeLevels = [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
+    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
     return gameData;
 }
 

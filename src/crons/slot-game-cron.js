@@ -59,13 +59,13 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             archiveStatusesRepository,
             notificationRepository,
             exchangeRatesRepository,
+            currencyGroupGamesRepository,
         });
 
         this.freeSpinsConsumer = freeSpinsConsumer;
         this.bonusConsumer = bonusConsumer;
         this.idCountersConsumer = idCountersConsumer;
         this.jackpotConsumer = jackpotConsumer;
-        this.currencyGroupGamesRepository = currencyGroupGamesRepository;
     }
 
     async start() {
@@ -89,6 +89,8 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         await this.loadUnsettledBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
+
+        await this.updateCurrencyGroupGames();
         await this.updateExchangeRates();
 
         if (this.gameData.gameConfigs.slotsConfig?.jackpot.enabled) {
@@ -126,7 +128,6 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         if (this.gameData.remainingTime === durations.wholeRound) {
             await this.checkGameStatus();
             this.bot && (await this.bot.reset());
-            await this.cacheStakeLevels();
         }
 
         if (!this.gameData.disabled) {
@@ -193,10 +194,5 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
             return ingame;
         }, {});
-    }
-
-    async cacheStakeLevels() {
-        const settings = await this.currencyGroupGamesRepository.find({ gameId: this.definition.id }, "groupId stakeLevels").lean().exec();
-        this.gameData.stakeLevels = settings ?? [];
     }
 }

@@ -66,7 +66,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
     async handleGettingBigWinningWinners(payload) {
         try {
-            if (!(await this.verify())) {
+            if (!this.verify()) {
                 return;
             }
 
@@ -83,7 +83,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
     async handleGettingJackpotWinners(payload) {
         try {
-            if (!(await this.verify())) {
+            if (!this.verify()) {
                 return;
             }
 
@@ -97,7 +97,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
     async handleBonus(payload) {
         try {
-            if (!(await this.verify())) {
+            if (!this.verify()) {
                 return;
             }
 

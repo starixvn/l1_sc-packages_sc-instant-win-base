@@ -68,6 +68,7 @@ describe("slot-game-cron", () => {
                 freeSpinsConsumer,
                 roundsRepository,
                 exchangeRatesRepository,
+                currencyGroupGamesRepository,
             });
             roundsRepository
                 .find()
@@ -102,6 +103,7 @@ describe("slot-game-cron", () => {
                 freeSpinsConsumer,
                 roundsRepository,
                 exchangeRatesRepository,
+                currencyGroupGamesRepository,
             });
             roundsRepository
                 .find()
@@ -136,6 +138,7 @@ describe("slot-game-cron", () => {
                 freeSpinsConsumer,
                 roundsRepository,
                 exchangeRatesRepository,
+                currencyGroupGamesRepository,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -176,6 +179,7 @@ describe("slot-game-cron", () => {
                 roundsRepository,
                 jackpotConsumer,
                 exchangeRatesRepository,
+                currencyGroupGamesRepository,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -223,7 +227,7 @@ describe("slot-game-cron", () => {
             const jackpotConsumer = { getLatestRoundId: jest.fn() };
             jackpotConsumer.getLatestRoundId.mockReturnValueOnce(10);
 
-            const cron = new SlotGameCron({ definition, archiveStatusesRepository, jackpotConsumer });
+            const cron = new SlotGameCron({ definition, archiveStatusesRepository, jackpotConsumer, currencyGroupGamesRepository });
             archiveStatusesRepository.findOne().lean().exec.mockReturnValueOnce(testCase.archiveStatus);
 
             // act
@@ -330,45 +334,6 @@ describe("slot-game-cron", () => {
 
             // assert
             expect(freeSpinsConsumer.reload).toBeCalled();
-        });
-
-        it("when remainingTime === durations.wholeRound should cache stakeLevels", async () => {
-            // arrange
-            const gameData = { remainingTime: 45 };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, currencyGroupGamesRepository });
-            cron.checkGameStatus = jest.fn();
-            cron.cacheStakeLevels = jest.fn();
-
-            // act
-            await cron.proceed();
-
-            // assert
-            expect(cron.cacheStakeLevels).toBeCalled();
-        });
-    });
-
-    describe("cacheStakeLevels", () => {
-        const testCases = [
-            { settings: null, expectedValue: [] },
-            {
-                settings: [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }],
-                expectedValue: [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }],
-            },
-        ];
-
-        it.each(testCases)("should cache correct data", async (testCase) => {
-            // arrange
-            const gameData = { stakeLevels: undefined };
-            const definition = { id: 2 };
-            currencyGroupGamesRepository.find().lean().exec.mockReturnValueOnce(testCase.settings);
-            const cron = new SlotGameCron({ definition, gameData, currencyGroupGamesRepository });
-            cron.checkGameStatus = jest.fn();
-
-            // act
-            await cron.cacheStakeLevels();
-
-            // assert
-            expect(gameData.stakeLevels).toStrictEqual(testCase.expectedValue);
         });
     });
 });
