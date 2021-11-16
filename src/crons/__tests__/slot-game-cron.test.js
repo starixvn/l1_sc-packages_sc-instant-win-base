@@ -7,6 +7,7 @@ const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
 const archiveStatusesRepository = stubMongooseModelStupidly(mongoose.Model);
 const exchangeRatesRepository = stubMongooseModelStupidly(mongoose.Model);
 const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+const partnerConfigRepository = stubMongooseModelStupidly(mongoose.Model);
 
 jest.mock("cron", () => {
     const mScheduleJob = {
@@ -69,6 +70,7 @@ describe("slot-game-cron", () => {
                 roundsRepository,
                 exchangeRatesRepository,
                 currencyGroupGamesRepository,
+                partnerConfigRepository,
             });
             roundsRepository
                 .find()
@@ -104,6 +106,7 @@ describe("slot-game-cron", () => {
                 roundsRepository,
                 exchangeRatesRepository,
                 currencyGroupGamesRepository,
+                partnerConfigRepository,
             });
             roundsRepository
                 .find()
@@ -139,6 +142,7 @@ describe("slot-game-cron", () => {
                 roundsRepository,
                 exchangeRatesRepository,
                 currencyGroupGamesRepository,
+                partnerConfigRepository,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -180,6 +184,7 @@ describe("slot-game-cron", () => {
                 jackpotConsumer,
                 exchangeRatesRepository,
                 currencyGroupGamesRepository,
+                partnerConfigRepository,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });

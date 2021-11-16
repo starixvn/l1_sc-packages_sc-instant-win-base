@@ -26,6 +26,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
      * @param {mongoose.Model} dependencies.archiveStatusesRepository
      * @param {mongoose.Model} dependencies.notificationRepository
      * @param {mongoose.Model} dependencies.exchangeRatesRepository
+     * @param {mongoose.Model} dependencies.partnerConfigRepository
      */
     constructor({
         definition,
@@ -45,6 +46,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         notificationRepository,
         exchangeRatesRepository,
         currencyGroupGamesRepository,
+        partnerConfigRepository,
     }) {
         super({
             definition,
@@ -60,6 +62,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             notificationRepository,
             exchangeRatesRepository,
             currencyGroupGamesRepository,
+            partnerConfigRepository,
         });
 
         this.freeSpinsConsumer = freeSpinsConsumer;
@@ -92,6 +95,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
         await this.updateCurrencyGroupGames();
         await this.updateExchangeRates();
+        await this.updatePartnerGameSiteExclusions();
 
         if (this.gameData.gameConfigs.slotsConfig?.jackpot.enabled) {
             await this.jackpotConsumer.initialize();
