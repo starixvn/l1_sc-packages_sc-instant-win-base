@@ -47,6 +47,8 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         exchangeRatesRepository,
         currencyGroupGamesRepository,
         partnerConfigRepository,
+        currencyGroupRepository,
+        currencyRepository,
     }) {
         super({
             definition,
@@ -63,6 +65,8 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             exchangeRatesRepository,
             currencyGroupGamesRepository,
             partnerConfigRepository,
+            currencyGroupRepository,
+            currencyRepository,
         });
 
         this.freeSpinsConsumer = freeSpinsConsumer;
@@ -93,9 +97,8 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
 
-        await this.updateCurrencyGroupGames();
+        await this.getSettingForNewRound();
         await this.updateExchangeRates();
-        await this.updatePartnerGameSiteExclusions();
 
         if (this.gameData.gameConfigs.slotsConfig?.jackpot.enabled) {
             await this.jackpotConsumer.initialize();
