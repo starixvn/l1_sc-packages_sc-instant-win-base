@@ -41,6 +41,21 @@ describe("contribute", () => {
         jest.clearAllMocks();
     });
 
+    it("when not find base pool should logCritical and return", async () => {
+        // arrange
+        const consumer = initConsumer();
+        spyOn(consumer, "getBasePool").and.returnValue(null);
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        const player = {};
+
+        // act
+        await consumer.contribute(player, bet);
+
+        // assert
+        expect(logService.logCritical).toBeCalled();
+        expect(jackpotPublisher.publishLatestPool).not.toBeCalled();
+    });
+
     it("should update approriate contribution for bot and publish pool info", async () => {
         // arrange
         const consumer = initConsumer();
@@ -49,6 +64,7 @@ describe("contribute", () => {
             amount: 12,
         });
 
+        spyOn(consumer, "getBasePool").and.returnValue(1);
         const contributeAmount = 5 * gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
         const poolAdjustment = {
             amount: contributeAmount,
@@ -107,6 +123,21 @@ describe("hit", () => {
         jest.clearAllMocks();
     });
 
+    it("when not find base pool should logCritical and return", async () => {
+        // arrange
+        const consumer = initConsumer();
+        spyOn(consumer, "getBasePool").and.returnValue(null);
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        const player = {};
+
+        // act
+        await consumer.hit(player, bet);
+
+        // assert
+        expect(logService.logCritical).toBeCalled();
+        expect(jackpotPublisher.publishLatestPool).not.toBeCalled();
+    });
+
     it("should call initializeNewPool", async () => {
         // arrange
         const consumer = initConsumer();
@@ -123,12 +154,13 @@ describe("hit", () => {
         expect(jackpotsRepository.findOneAndUpdate).toBeCalled();
     });
 
-    it("should log error and return 0 if no winning jackpot", async () => {
+    it("when no winning jackpot should log error and return 0", async () => {
         // arrange
         const consumer = initConsumer();
         const player = { profile: { name: "A" }, session: { memberId: 12, currencyGroupId: "617a650628b7a500016388f5" } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
         spyOn(consumer, "initializeNewPool");
+        spyOn(consumer, "getBasePool").and.returnValue(1);
 
         // act
         const jackpot = await consumer.hit(player, bet);
@@ -147,6 +179,7 @@ describe("hit", () => {
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
         const winningJackpot = { amount: 12000 };
         jackpotsRepository.findOneAndUpdate.mockReturnValueOnce(winningJackpot);
+        spyOn(consumer, "getBasePool").and.returnValue(1);
         const expectJackpotAmount = { amount: winningJackpot.amount * gameData.gameConfigs.slotsConfig.jackpot.winningRatio };
 
         spyOn(consumer, "initializeNewPool");
@@ -270,18 +303,17 @@ describe("getBasePool", () => {
         jest.clearAllMocks();
     });
 
-    it("when not have session should return original stake", async () => {
+    it("when not have session should return null", async () => {
         // arrange
         const consumer = initConsumer();
         const player = {};
         const stake = 1;
-        const expectedValue = 1;
 
         // act
-        const basePool = await consumer.getBasePool(player, stake);
+        const basePool = consumer.getBasePool(player, stake);
 
         // assert
-        expect(basePool).toBe(expectedValue);
+        expect(basePool).toBe(null);
     });
 
     it("when not have base stake levels should return null", async () => {
@@ -295,7 +327,7 @@ describe("getBasePool", () => {
         const expectedValue = null;
 
         // act
-        const basePool = await consumer.getBasePool(player, stake);
+        const basePool = consumer.getBasePool(player, stake);
 
         // assert
         expect(basePool).toBe(expectedValue);
@@ -312,7 +344,7 @@ describe("getBasePool", () => {
         const expectedValue = null;
 
         // act
-        const basePool = await consumer.getBasePool(player, stake);
+        const basePool = consumer.getBasePool(player, stake);
 
         // assert
         expect(basePool).toBe(expectedValue);

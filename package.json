@@ -2,7 +2,7 @@
     "name": "sc-slot-game-base",
     "version": "1.0.8-beta.25",
     "description": "The codebase of Saba slot games.",
-    "main": "src/index.js",
+    "main": "src/index.js", 
     "scripts": {
         "test": "jest",
         "test-coverage": "jest --collect-coverage",

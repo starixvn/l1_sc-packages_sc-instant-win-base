@@ -38,12 +38,10 @@ export default class HallOfFameQuery {
             .exec();
 
         if (winners) {
-            const playerRate = MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
-
             winners.forEach((w) => {
                 if (w.rate) {
-                    w.totalAmount = (w.totalAmount * w.rate) / playerRate;
-                    w.winningAmount = (w.winningAmount * w.rate) / playerRate;
+                    w.totalAmount = w.totalAmount * w.rate;
+                    w.winningAmount = w.winningAmount * w.rate;
                 }
             });
         }
@@ -75,9 +73,8 @@ export default class HallOfFameQuery {
             .lean()
             .exec();
 
-        const playerRate = MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
         const winners = jackpotWinners.map((jackpotWinner) => {
-            const winningAmount = (jackpotWinner.amount * jackpotWinner.winningRatio) / playerRate;
+            const winningAmount = jackpotWinner.amount * jackpotWinner.winningRatio;
 
             return {
                 time: jackpotWinner.hitTime,

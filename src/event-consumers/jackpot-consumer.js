@@ -25,7 +25,12 @@ export default class JackpotConsumer {
     }
 
     async contribute(player, { pool, totalAmount, roundId }) {
-        const basePool = await this.getBasePool(player, pool);
+        const basePool = this.getBasePool(player, pool);
+        if (basePool == null) {
+            this.logService.logCritical(`Couldn't find any base jackpot pool associated with: ${JSON.stringify(player)}`);
+            return;
+        }
+
         const baseTotalAmount = totalAmount * MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
 
         const contributedByMember = !!player.session;
@@ -66,7 +71,11 @@ export default class JackpotConsumer {
     }
 
     async hit(player, { pool, roundId }) {
-        const basePool = await this.getBasePool(player, pool);
+        const basePool = this.getBasePool(player, pool);
+        if (basePool == null) {
+            this.logService.logCritical(`Couldn't find any base jackpot pool associated with: ${JSON.stringify(player)}`);
+            return { amount: 0 };
+        }
 
         await this.initializeNewPool(basePool, roundId);
 
@@ -177,10 +186,10 @@ export default class JackpotConsumer {
         return pool.createdAt;
     }
 
-    async getBasePool(player, stake) {
+    getBasePool(player, stake) {
         const { session } = player;
         if (!session) {
-            return stake;
+            return null;
         }
 
         const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, player);
