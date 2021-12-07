@@ -49,7 +49,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         ];
     }
 
-    async consume(player, payload) {
+    consume(player, payload) {
         Object.assign(payload, {
             amount: payload.amount,
             freeBet: payload.freeBet ?? false,

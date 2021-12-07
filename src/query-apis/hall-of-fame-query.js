@@ -16,7 +16,7 @@ export default class HallOfFameQuery {
         this.gameData = gameData;
     }
 
-    async queryBigWinningWinners(player, page, pageSize = 10) {
+    async queryBigWinningWinners(page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
             return { bigWinningWinners: {} };
         }
@@ -49,7 +49,7 @@ export default class HallOfFameQuery {
         return { bigWinningWinners: { winners, page, pageSize, total } };
     }
 
-    async queryJackpotWinners(player, page, pageSize = 10) {
+    async queryJackpotWinners(page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
             return { jackpotWinners: {} };
         }

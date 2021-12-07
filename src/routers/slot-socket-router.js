@@ -70,10 +70,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
                 return;
             }
 
-            const bigWinningWinners = await this.hallOfFameQuery.queryBigWinningWinners(
-                this.gameData.realPlayers[this.socketClient.id],
-                payload.page ?? 0
-            );
+            const bigWinningWinners = await this.hallOfFameQuery.queryBigWinningWinners(payload.page ?? 0);
 
             this.socketClient.emit(this.definition.name, bigWinningWinners);
         } catch (error) {
@@ -87,7 +84,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
                 return;
             }
 
-            const jackpotWinners = await this.hallOfFameQuery.queryJackpotWinners(this.gameData.realPlayers[this.socketClient.id], payload.page ?? 0);
+            const jackpotWinners = await this.hallOfFameQuery.queryJackpotWinners(payload.page ?? 0);
 
             this.socketClient.emit(this.definition.name, jackpotWinners);
         } catch (error) {

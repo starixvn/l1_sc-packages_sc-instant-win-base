@@ -12,10 +12,9 @@ describe("queryBigWinningWinners", () => {
     it("should return empty when page < 1", async () => {
         // arrange
         const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository);
-        const player = { session: {} };
 
         // act
-        const actualResult = await fameQuery.queryBigWinningWinners(player, 0);
+        const actualResult = await fameQuery.queryBigWinningWinners(0);
 
         // assert
         expect(actualResult).toEqual({ bigWinningWinners: {} });
@@ -25,14 +24,13 @@ describe("queryBigWinningWinners", () => {
         // arrange
         const gameData = { exchangeRates: { code: [] } };
         const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository, gameData);
-        const player = { session: {} };
 
         famesRepository.find().lean().exec.mockReturnValueOnce(null);
         famesRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
         famesRepository.countDocuments().exec.mockReturnValueOnce(0);
 
         // act
-        const actualResult = await fameQuery.queryBigWinningWinners(player, 1);
+        const actualResult = await fameQuery.queryBigWinningWinners(1);
 
         // assert
         expect(actualResult.bigWinningWinners.total).toEqual(0);
@@ -43,7 +41,6 @@ describe("queryBigWinningWinners", () => {
         // arrange
         const gameData = { exchangeRates: { code: [] } };
         const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository, gameData);
-        const player = { session: {} };
 
         famesRepository
             .find()
@@ -57,7 +54,7 @@ describe("queryBigWinningWinners", () => {
         famesRepository.countDocuments().exec.mockReturnValueOnce(2);
 
         // act
-        const actualResult = await fameQuery.queryBigWinningWinners(player, 1);
+        const actualResult = await fameQuery.queryBigWinningWinners(1);
 
         // assert
         expect(actualResult.bigWinningWinners.total).toEqual(2);
@@ -69,10 +66,9 @@ describe("queryJackpotWinners", () => {
     it("should return empty when page < 1", async () => {
         // arrange
         const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository);
-        const player = { session: {} };
 
         // act
-        const actualResult = await fameQuery.queryJackpotWinners(player, 0);
+        const actualResult = await fameQuery.queryJackpotWinners(0);
 
         // assert
         expect(actualResult).toEqual({ jackpotWinners: {} });
@@ -82,7 +78,6 @@ describe("queryJackpotWinners", () => {
         // arrange
         const gameData = { exchangeRates: { code: [] } };
         const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository, gameData);
-        const player = { session: {} };
         jackpotsRepository
             .find()
             .lean()
@@ -92,7 +87,7 @@ describe("queryJackpotWinners", () => {
         jackpotsRepository.countDocuments().exec.mockReturnValueOnce(1);
 
         // act
-        const actualResult = await fameQuery.queryJackpotWinners(player, 1);
+        const actualResult = await fameQuery.queryJackpotWinners(1);
 
         // assert
         expect(actualResult.jackpotWinners.total).toEqual(1);

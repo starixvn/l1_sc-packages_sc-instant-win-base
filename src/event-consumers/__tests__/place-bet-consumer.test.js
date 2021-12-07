@@ -147,7 +147,7 @@ describe("consume", () => {
         const payload = stubPayload();
 
         // act
-        await consumer.consume(player, payload);
+        consumer.consume(player, payload);
 
         // assert
         expect(consumer.gameData.ingame[player.profile.name].betQueue).not.toBeEmpty();
@@ -161,7 +161,7 @@ describe("consume", () => {
         const payload = stubPayload(1.5);
 
         // act
-        await consumer.consume(player, payload);
+        consumer.consume(player, payload);
 
         // assert
         expect(consumer.gameData.ingame[player.profile.name]).toBeUndefined();
@@ -174,8 +174,8 @@ describe("consume", () => {
         const payload = stubPayload(1);
 
         // act
-        await consumer.consume(player, payload);
-        await consumer.consume(player, payload);
+        consumer.consume(player, payload);
+        consumer.consume(player, payload);
 
         // assert
         expect(consumer.gameData.ingame[player.profile.name].betQueue.length).toBe(2);
