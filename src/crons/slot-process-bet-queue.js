@@ -112,13 +112,15 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             await this.freeSpinsConsumer.useFreeSpin(player);
         }
 
-        await this.upsertBet(player, roundId, bet);
-        this.notifyPlacingBetResult(player, balance, bet);
+        const rate = this.calculateCurrencyRate(player.session);
+
+        await this.upsertBet(player, roundId, bet, rate);
+        this.notifyPlacingBetResult(player, balance, bet, rate);
 
         await this.settleGameRoundConsumer.settleRound(player, roundId);
     }
 
-    async upsertBet(player, roundId, bet) {
+    async upsertBet(player, roundId, bet, rate) {
         const newBet = {
             id: roundId,
             uid: player.UID,
@@ -129,11 +131,15 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             freeSpin: bet.freeSpin,
             bet: bet.amount,
             totalAmount: bet.totalAmount,
+            rate: rate,
+            exchangeRateId: this.gameData.exchangeRates.exId,
         };
 
         if (player.session) {
             newBet.memberId = player.session.memberId;
             newBet.siteId = player.session.siteId;
+            newBet.partnerId = player.session.partnerId;
+            newBet.currency = player.session.currencyName;
         }
 
         await this.roundsRepository.create(newBet);

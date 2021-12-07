@@ -11,4 +11,7 @@ export default new mongoose.Schema({
     numberOfPaylines: { type: Number, required: true },
     freeSpin: { type: Boolean, default: false },
     time: { type: Date },
+    partnerId: { type: String, required: false },
+    currency: { type: String, required: false },
+    rate: { type: Number, required: false },
 });

@@ -1,9 +1,11 @@
+import mongoose from "mongoose";
 import { getBalance as getBalanceApi } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 import FreeSpinsConsumer from "./free-spins-consumer";
+import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
     /**
@@ -25,7 +27,9 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     }
 
     async buildPayload(realPlayer) {
-        const { stakeLevels, icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
+        const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, realPlayer);
+
+        const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = {
             stakeLevels: stakeLevels.map((level) => level.stake),
             odds,

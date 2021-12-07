@@ -26,7 +26,7 @@ describe("queryHistory", () => {
             .lean()
             .exec.mockReturnValueOnce([
                 { id: 1, result: [], settlementResult: { bonus: {} }, bonusChests: [] },
-                { id: 2, result: [], settlementResult: { bonus: {} }, bonusChests: [] },
+                { id: 2, result: [], settlementResult: { bonus: {} }, bonusChests: [{ amount: 0 }] },
             ]);
 
         roundsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });

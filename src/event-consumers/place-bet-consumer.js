@@ -3,6 +3,7 @@ import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
+import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     composeBettingTimeValidationCriteria() {
@@ -17,7 +18,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     }
 
     composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
-        const stakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
+        const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, player);
 
         return [
             {
@@ -55,19 +56,20 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             freeSpin: payload.freeSpin ?? false,
         });
 
-        const { amount, betChoice, freeBet } = payload;
+        const { amount, betChoice, freeBet, roundId } = payload;
         const name = player.profile.name;
 
-        if (!this.validateBetRequest(player, betChoice, amount, freeBet)) {
+        if (!this.validateBetRequest(player, betChoice, amount, freeBet, roundId)) {
             return;
         }
 
         if (!this.gameData.ingame[name]) {
             const newPlayer = {
                 name: player.profile.name,
-                currency: player.session.currency,
+                currency: player.session.currencyName,
                 betTracks: {},
                 betQueue: [],
+                partnerId: player.session.partnerId,
             };
 
             this.gameData.ingame[name] = newPlayer;

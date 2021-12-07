@@ -5,6 +5,11 @@ import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
 
 const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
 const archiveStatusesRepository = stubMongooseModelStupidly(mongoose.Model);
+const exchangeRatesRepository = stubMongooseModelStupidly(mongoose.Model);
+const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+const partnerConfigRepository = stubMongooseModelStupidly(mongoose.Model);
+const currencyGroupRepository = stubMongooseModelStupidly(mongoose.Model);
+const currencyRepository = stubMongooseModelStupidly(mongoose.Model);
 
 jest.mock("cron", () => {
     const mScheduleJob = {
@@ -65,6 +70,11 @@ describe("slot-game-cron", () => {
                 bonusConsumer,
                 freeSpinsConsumer,
                 roundsRepository,
+                exchangeRatesRepository,
+                currencyGroupGamesRepository,
+                partnerConfigRepository,
+                currencyGroupRepository,
+                currencyRepository,
             });
             roundsRepository
                 .find()
@@ -98,6 +108,11 @@ describe("slot-game-cron", () => {
                 bonusConsumer,
                 freeSpinsConsumer,
                 roundsRepository,
+                exchangeRatesRepository,
+                currencyGroupGamesRepository,
+                partnerConfigRepository,
+                currencyGroupRepository,
+                currencyRepository,
             });
             roundsRepository
                 .find()
@@ -131,6 +146,11 @@ describe("slot-game-cron", () => {
                 bonusConsumer,
                 freeSpinsConsumer,
                 roundsRepository,
+                exchangeRatesRepository,
+                currencyGroupGamesRepository,
+                partnerConfigRepository,
+                currencyGroupRepository,
+                currencyRepository,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -170,6 +190,11 @@ describe("slot-game-cron", () => {
                 freeSpinsConsumer,
                 roundsRepository,
                 jackpotConsumer,
+                exchangeRatesRepository,
+                currencyGroupGamesRepository,
+                partnerConfigRepository,
+                currencyGroupRepository,
+                currencyRepository,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -217,7 +242,14 @@ describe("slot-game-cron", () => {
             const jackpotConsumer = { getLatestRoundId: jest.fn() };
             jackpotConsumer.getLatestRoundId.mockReturnValueOnce(10);
 
-            const cron = new SlotGameCron({ definition, archiveStatusesRepository, jackpotConsumer });
+            const cron = new SlotGameCron({
+                definition,
+                archiveStatusesRepository,
+                jackpotConsumer,
+                currencyGroupGamesRepository,
+                currencyGroupRepository,
+                currencyRepository,
+            });
             archiveStatusesRepository.findOne().lean().exec.mockReturnValueOnce(testCase.archiveStatus);
 
             // act
@@ -229,13 +261,20 @@ describe("slot-game-cron", () => {
     });
 
     describe("proceed", () => {
-        const definition = { durations: { wholeRound: 45 } };
+        const definition = { durations: { wholeRound: 45, placingBets: 30 } };
         const bonusConsumer = { processExpiredBonus: jest.fn() };
 
         it("should processExpiredBonus", async () => {
             // arrange
             const gameData = { remainingTime: 1 };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer });
+            const cron = new SlotGameCron({
+                definition,
+                gameData,
+                bonusConsumer,
+                currencyGroupGamesRepository,
+                currencyGroupRepository,
+                currencyRepository,
+            });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -248,7 +287,14 @@ describe("slot-game-cron", () => {
         it("when remainingTime === durations.wholeRound and not have bot should checkGameStatus", async () => {
             // arrange
             const gameData = { remainingTime: 45 };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer });
+            const cron = new SlotGameCron({
+                definition,
+                gameData,
+                bonusConsumer,
+                currencyGroupGamesRepository,
+                currencyGroupRepository,
+                currencyRepository,
+            });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -262,7 +308,15 @@ describe("slot-game-cron", () => {
             // arrange
             const gameData = { remainingTime: 45 };
             const bot = stub(Core.Crons.BaseBot);
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, bot });
+            const cron = new SlotGameCron({
+                definition,
+                gameData,
+                bonusConsumer,
+                bot,
+                currencyGroupGamesRepository,
+                currencyGroupRepository,
+                currencyRepository,
+            });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -275,7 +329,14 @@ describe("slot-game-cron", () => {
         it("when game not disabled and not have bot should reduce remainingTime", async () => {
             // arrange
             const gameData = { remainingTime: 45 };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer });
+            const cron = new SlotGameCron({
+                definition,
+                gameData,
+                bonusConsumer,
+                currencyGroupGamesRepository,
+                currencyGroupRepository,
+                currencyRepository,
+            });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -288,7 +349,14 @@ describe("slot-game-cron", () => {
         it("when game disabled and not have bot should not reduce remainingTime", async () => {
             // arrange
             const gameData = { remainingTime: 45, disabled: true };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer });
+            const cron = new SlotGameCron({
+                definition,
+                gameData,
+                bonusConsumer,
+                currencyGroupGamesRepository,
+                currencyGroupRepository,
+                currencyRepository,
+            });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -302,7 +370,15 @@ describe("slot-game-cron", () => {
             // arrange
             const gameData = { remainingTime: 45 };
             const bot = stub(Core.Crons.BaseBot);
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, bot });
+            const cron = new SlotGameCron({
+                definition,
+                gameData,
+                bonusConsumer,
+                bot,
+                currencyGroupGamesRepository,
+                currencyGroupRepository,
+                currencyRepository,
+            });
             cron.checkGameStatus = jest.fn();
 
             // act
@@ -316,7 +392,15 @@ describe("slot-game-cron", () => {
             // arrange
             const gameData = { remainingTime: -1 };
             const freeSpinsConsumer = { reload: jest.fn() };
-            const cron = new SlotGameCron({ definition, gameData, bonusConsumer, freeSpinsConsumer });
+            const cron = new SlotGameCron({
+                definition,
+                gameData,
+                bonusConsumer,
+                freeSpinsConsumer,
+                currencyGroupGamesRepository,
+                currencyGroupRepository,
+                currencyRepository,
+            });
             cron.checkGameStatus = jest.fn();
 
             // act

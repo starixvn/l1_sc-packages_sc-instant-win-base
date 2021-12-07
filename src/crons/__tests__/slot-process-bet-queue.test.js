@@ -33,7 +33,8 @@ describe("slot-process-bet-queue", () => {
         it("when have player session should create correct info", async () => {
             // arrange
             const roundsRepository = { create: jest.fn() };
-            const cron = new SlotProcessBetQueue({ roundsRepository });
+            const gameData = { exchangeRates: {} };
+            const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
             const player = { session: { memberId: 1, siteId: 2 }, profile: { name: "user3" } };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
@@ -47,8 +48,9 @@ describe("slot-process-bet-queue", () => {
         it("when not have player session should create correct info", async () => {
             // arrange
             const roundsRepository = { create: jest.fn() };
-            const cron = new SlotProcessBetQueue({ roundsRepository });
-            const player = { profile: { name: "user3" } };
+            const gameData = { exchangeRates: {} };
+            const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
+            const player = { profile: { name: "user3" }, session: null };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
             // act
@@ -63,11 +65,12 @@ describe("slot-process-bet-queue", () => {
         it("should call settleGameRoundConsumer.settleRound", async () => {
             // arrange
             const settleGameRoundConsumer = { settleRound: jest.fn() };
-            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer });
+            const gameData = { exchangeRates: { code: [] } };
+            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, gameData });
             cron.upsertBet = jest.fn();
             cron.notifyPlacingBetResult = jest.fn();
 
-            const player = {};
+            const player = { session: {} };
             const balance = { username: "username" };
             const bet = { totalAmount: 10, freeSpin: false };
 
@@ -82,11 +85,12 @@ describe("slot-process-bet-queue", () => {
             // arrange
             const settleGameRoundConsumer = { settleRound: jest.fn() };
             const freeSpinsConsumer = { useFreeSpin: jest.fn() };
-            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, freeSpinsConsumer });
+            const gameData = { exchangeRates: { code: [] } };
+            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, freeSpinsConsumer, gameData });
             cron.upsertBet = jest.fn();
             cron.notifyPlacingBetResult = jest.fn();
 
-            const player = {};
+            const player = { session: {} };
             const balance = { username: "username" };
             const bet = { totalAmount: 10, freeSpin: true };
 

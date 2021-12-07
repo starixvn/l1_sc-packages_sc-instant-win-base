@@ -1,17 +1,20 @@
 import mongoose from "mongoose";
+import GameData from "sc-game-base/src/core/game-data";
+import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class HallOfFameConsumer {
     /**
      * @param {mongoose.Model} famesRepository
+     * @param {GameData} dependencies.gameData
      */
-    constructor(famesRepository) {
+    constructor(famesRepository, gameData) {
         this.famesRepository = famesRepository;
+        this.gameData = gameData;
     }
 
     async add(player, { roundId, bet, totalAmount, winningAmount, numberOfPaylines, freeSpin = false }) {
-        await this.famesRepository.create({
+        const fame = {
             uid: player.UID,
-            memberId: player.session?.memberId,
             name: player.profile.name,
             roundId,
             bet,
@@ -20,6 +23,15 @@ export default class HallOfFameConsumer {
             numberOfPaylines,
             freeSpin,
             time: new Date(),
-        });
+        };
+
+        if (!!player.session) {
+            fame.memberId = player.session.memberId;
+            fame.partnerId = player.session.partnerId;
+            fame.currency = player.session.currencyName;
+            fame.rate = MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
+        }
+
+        await this.famesRepository.create(fame);
     }
 }

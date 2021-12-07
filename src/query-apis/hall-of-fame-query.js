@@ -26,11 +26,21 @@ export default class HallOfFameQuery {
             totalAmount: true,
             winningAmount: true,
             freeSpin: true,
+            rate: true,
         };
         const winners = await this.famesRepository
             .find({}, projection, { sort: { time: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
             .lean()
             .exec();
+
+        if (winners) {
+            winners.forEach((w) => {
+                if (w.rate) {
+                    w.totalAmount = w.totalAmount * w.rate;
+                    w.winningAmount = w.winningAmount * w.rate;
+                }
+            });
+        }
 
         return { bigWinningWinners: { winners, page, pageSize, total } };
     }
@@ -58,6 +68,7 @@ export default class HallOfFameQuery {
             .find(filter, projection, { sort: { hitTime: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
             .lean()
             .exec();
+
         const winners = jackpotWinners.map((jackpotWinner) => {
             const winningAmount = jackpotWinner.amount * jackpotWinner.winningRatio;
 

@@ -74,4 +74,9 @@ export default new mongoose.Schema({
     paid: { type: Boolean, default: false },
     time: { type: Date },
     endTime: { type: Date },
+
+    partnerId: { type: String, require: true },
+    currency: { type: String, require: true },
+    rate: { type: Number, require: true },
+    exchangeRateId: { type: Number, require: true },
 });

@@ -20,15 +20,34 @@ describe("queryBigWinningWinners", () => {
         expect(actualResult).toEqual({ bigWinningWinners: {} });
     });
 
+    it("when not have big winners should return empty", async () => {
+        // arrange
+        const gameData = { exchangeRates: { code: [] } };
+        const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository, gameData);
+
+        famesRepository.find().lean().exec.mockReturnValueOnce(null);
+        famesRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
+        famesRepository.countDocuments().exec.mockReturnValueOnce(0);
+
+        // act
+        const actualResult = await fameQuery.queryBigWinningWinners(1);
+
+        // assert
+        expect(actualResult.bigWinningWinners.total).toEqual(0);
+        expect(actualResult.bigWinningWinners.winners).toBe(null);
+    });
+
     it("should return data when page >= 1", async () => {
         // arrange
-        const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository);
+        const gameData = { exchangeRates: { code: [] } };
+        const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository, gameData);
+
         famesRepository
             .find()
             .lean()
             .exec.mockReturnValueOnce([
                 { name: "a", totalAmount: 2, winningAmount: 7, freeSpin: false },
-                { name: "b", totalAmount: 1, winningAmount: 7, freeSpin: true },
+                { name: "b", totalAmount: 1, winningAmount: 7, freeSpin: true, rate: 1 },
             ]);
 
         famesRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
@@ -57,7 +76,8 @@ describe("queryJackpotWinners", () => {
 
     it("should return data when page >= 1", async () => {
         // arrange
-        const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository);
+        const gameData = { exchangeRates: { code: [] } };
+        const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository, gameData);
         jackpotsRepository
             .find()
             .lean()
