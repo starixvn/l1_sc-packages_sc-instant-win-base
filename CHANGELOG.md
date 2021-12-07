@@ -1,3 +1,45 @@
+# [1.1.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.7...v1.1.0) (2021-12-07)
+
+
+### Bug Fixes
+
+* .session.currency to .session.currencyName ([8ab5f7c](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8ab5f7c0a457abd78a7283e2c653b687480316b2))
+* add exchangeRateId to round ([b92da76](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/b92da76238d64c95e29d32d8ed4f262168e6ffaa))
+* add partner id to rounds ([3b742e8](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/3b742e881196d0ca51ca95e05aa98b258e9a7de3))
+* cache stakelevels ([77bb4eb](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/77bb4eb012fa5ae1c5d0d680557f562869683b85))
+* cache stakelevels ([aeec70a](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/aeec70a40d4abdacec25a6f7deabb5e86a8798d8))
+* cache stakeLevels ([7993513](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/799351382f9040388eb8dbde0c6e90c42d31c4cc))
+* remove unused code ([6b33d20](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/6b33d2045006cac76ee052cf23a4eb83caee995f))
+* remove unused code ([1afa8b0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/1afa8b083b8c485d379c304a5e2f38de7f12de6a))
+* revert test session ([90f8c3d](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/90f8c3dc68e009f63c05d3e3e6defa26d6623f70))
+* sonarqube ([bc27cef](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/bc27cefb3285b790ac932cbf29040fbc27db40e6))
+* test session ([bc5ca72](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/bc5ca72f65d79aa955541e45f929ae7181c23e82))
+* test session ([c1c9d38](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/c1c9d38e7b3204a29623bf984149c859a30f5ef4))
+* test session ([0fb37bd](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/0fb37bd57613b1ab9e6c203bda1c0faf60a93953))
+* update hall of fame query ([be130db](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/be130db6af210c7d68d3c5ed7c045d4fb4f603b4))
+* upgrade game-base ([336f225](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/336f225049bcf8a16e914c76bdc8e07b12e247a5))
+* upgrade game-base ([8f4eb77](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8f4eb776a23da1e265338a13ee276a2115462473))
+* upgrade game-base ([9eb70bc](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/9eb70bcbdd792b7a53b86c329a1e669bf9c122e9))
+* upgrade game-base - cache currencyGroupGames ([30dbdbb](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/30dbdbbbc6881fa274109b266e2b580f5fedb76f))
+* upgrade game-base.22 ([afda772](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/afda772f5c05e20a66abfc500bb1413f9b8b4c8c))
+* upgrade game-base.24 ([8d64125](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8d641251df2437df63d891bda214e2cc2ac0dd14))
+* upgrade game-base.25 ([4a3d7f3](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/4a3d7f3cd3137b6d3a088fb231c210e828e9525f))
+* upgrade sc-game-base@2.0.1-beta.15 ([ea0db08](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/ea0db08cbc640961dc91438167fcbee913e1c046))
+* upgrade sc-game-base@2.0.1-beta.15 ([d1ede39](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/d1ede39d3d1c7eaa1d8f775930fe4f82750a1b5c))
+
+
+### Features
+
+* multiple currency ([995e045](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/995e045a21a9327b0ade6e0cd708806fe02545df))
+* multiple currency ([8338d7c](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8338d7cda5938702ed9ec4e704794da6947b08e3))
+* multiple currency - upgrade game-base, ingame consumer, hall of fames ([753d60e](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/753d60eb7b1a9a6e28c810c46107a38c823b1c0a))
+* test type of groupId ([b48916b](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/b48916b23a624cf049452f3938aa0f8543a5e1e5))
+* test type of groupId ([f9cbef1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/f9cbef1e6db595bb1f8048f456bb03ebc5f82062))
+* upgrade game base 2.0.1 ([d2f9a33](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/d2f9a33577b4e0b62f58d201fdc573fccef4bd7a))
+* upgrade game base 2.0.1-beta.28 ([8f7275f](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8f7275fa2628986ee832dbbe8f2f9ef84d36747e))
+* upgrade game base 2.0.1-beta.30 ([1f4e73c](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/1f4e73cdd6a40e82dd49bab86b65dbcec2284b4a))
+* upgrade game-base 2.0.1-beta.27 ([52ebdc7](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/52ebdc772d46d188f78382ff612b565d364b06f1))
+
 ## [1.0.7](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.6...v1.0.7) (2021-09-16)
 
 
