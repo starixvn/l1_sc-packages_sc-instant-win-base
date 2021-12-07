@@ -1,19 +1,15 @@
 import mongoose from "mongoose";
-import GameData from "sc-game-base/src/core/game-data";
-import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class HallOfFameQuery {
     /**
      * @param {Number} gameId
      * @param {mongoose.Model} famesRepository
      * @param {mongoose.Model} jackpotsRepository
-     * @param {GameData} dependencies.gameData
      */
-    constructor(gameId, famesRepository, jackpotsRepository, gameData) {
+    constructor(gameId, famesRepository, jackpotsRepository) {
         this.gameId = gameId;
         this.famesRepository = famesRepository;
         this.jackpotsRepository = jackpotsRepository;
-        this.gameData = gameData;
     }
 
     async queryBigWinningWinners(page, pageSize = 10) {

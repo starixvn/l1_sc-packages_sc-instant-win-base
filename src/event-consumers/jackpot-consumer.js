@@ -27,7 +27,13 @@ export default class JackpotConsumer {
     async contribute(player, { pool, totalAmount, roundId }) {
         const basePool = this.getBasePool(player, pool);
         if (basePool == null) {
-            this.logService.logCritical(`Couldn't find any base jackpot pool associated with: ${JSON.stringify(player)}`);
+            this.logService.logCritical(
+                `Couldn't find any base jackpot pool associated with: ${JSON.stringify({
+                    hasSession: !!player.session,
+                    currencyGroupId: player.session?.currencyGroupId,
+                    stake: pool,
+                })}`
+            );
             return;
         }
 
@@ -73,7 +79,13 @@ export default class JackpotConsumer {
     async hit(player, { pool, roundId }) {
         const basePool = this.getBasePool(player, pool);
         if (basePool == null) {
-            this.logService.logCritical(`Couldn't find any base jackpot pool associated with: ${JSON.stringify(player)}`);
+            this.logService.logCritical(
+                `Couldn't find any base jackpot pool associated with: ${JSON.stringify({
+                    hasSession: !!player.session,
+                    currencyGroupId: player.session?.currencyGroupId,
+                    stake: pool,
+                })}`
+            );
             return { amount: 0 };
         }
 
