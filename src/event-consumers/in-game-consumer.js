@@ -44,7 +44,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             bet: soonestExpiredFreeSpinSet?.bet,
             paylines: soonestExpiredFreeSpinSet?.paylines,
         };
-        const jackpotPools = await this.getPools();
+        const jackpotPools = this.gameData.gameConfigs.slotsConfig.jackpot.enabled ? await this.getPools() : [];
 
         await this.getBalance(realPlayer, true);
 

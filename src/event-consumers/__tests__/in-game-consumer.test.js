@@ -37,6 +37,20 @@ describe("getPools", () => {
 });
 
 describe("buildPayload", () => {
+    it("when jackpot disabled should not call get jackpot pools", async () => {
+        // arrange
+        const consumer = createInGameConsumer();
+        consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = false;
+        spyOn(consumer, "getPools");
+
+        // act
+        await consumer.buildPayload({ session: { currencyGroupId: "617a650628b7a500016388f5" } });
+
+        // assert
+        expect(consumer.getPools).not.toBeCalled();
+        consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+    });
+
     it("should contains jackpot pools", async () => {
         // arrange
         const consumer = createInGameConsumer();
@@ -102,6 +116,7 @@ function stubGameData() {
             icons: [],
             jackpot: {
                 winningRatio: 0.98,
+                enabled: true,
             },
         },
     };
