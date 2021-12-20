@@ -31,6 +31,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
 
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = {
+            baseStakeLevels: this.gameData.gameConfigs.slotsConfig.stakeLevels.map((level) => level.stake),
             stakeLevels: stakeLevels.map((level) => level.stake),
             odds,
             jackpot: {

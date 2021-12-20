@@ -73,7 +73,7 @@ export default class JackpotConsumer {
             }
         );
 
-        this.jackpotPublisher.publishLatestPool({ pool, amount: latestJackpotPool.amount });
+        this.jackpotPublisher.publishLatestPool({ pool: basePool, amount: latestJackpotPool.amount });
     }
 
     async hit(player, { pool, roundId }) {
