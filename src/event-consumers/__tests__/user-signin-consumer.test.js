@@ -1,6 +1,9 @@
 import { UserSignInConsumer } from "..";
 
 describe("handleSignInSuccess", () => {
+    // arrange
+    const userSignInPublisher = { publishToGameMessage: jest.fn(), publishNotPermittedToPlayMessage: jest.fn() };
+
     it("when jackpot not enabled should signedIn", () => {
         // arrange
         const gameData = {
@@ -11,7 +14,7 @@ describe("handleSignInSuccess", () => {
             },
             realPlayers: {},
         };
-        const consumer = new UserSignInConsumer(gameData);
+        const consumer = new UserSignInConsumer({}, gameData, userSignInPublisher);
         const socketClient = { emit: jest.fn() };
         const userInfo = {};
         const userSession = {};
@@ -33,7 +36,7 @@ describe("handleSignInSuccess", () => {
             },
             realPlayers: {},
         };
-        const consumer = new UserSignInConsumer(gameData);
+        const consumer = new UserSignInConsumer({}, gameData, userSignInPublisher);
         const socketClient = { emit: jest.fn() };
         const userInfo = {};
         const userSession = { isTestCurrency: true };
@@ -65,7 +68,7 @@ describe("handleSignInSuccess", () => {
             },
             realPlayers: {},
         };
-        const consumer = new UserSignInConsumer(gameData);
+        const consumer = new UserSignInConsumer({}, gameData, userSignInPublisher);
         const socketClient = { emit: jest.fn() };
         const userInfo = {};
         const userSession = { isTestCurrency: testCase.isTestCurrency, currencyName: "INH" };
@@ -92,9 +95,8 @@ describe("handleSignInSuccess", () => {
             },
             realPlayers: {},
         };
-        const userSignInPublisher = { publishNotPermittedToPlayMessage: jest.fn() };
         const definition = {};
-        const consumer = new UserSignInConsumer(gameData, userSignInPublisher, null, null, null, definition);
+        const consumer = new UserSignInConsumer(definition, gameData, userSignInPublisher, null, null, null);
         const socketClient = { emit: jest.fn() };
         const userInfo = {};
         const userSession = { isTestCurrency: testCase.isTestCurrency, currencyName: "UUS" };

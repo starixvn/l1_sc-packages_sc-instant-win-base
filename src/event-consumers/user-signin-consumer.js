@@ -1,11 +1,6 @@
-import { Core } from "sc-game-base";
+import { Table } from "sc-game-base";
 
-export default class UserSignInConsumer extends Core.BaseEventConsumers.UserSignInConsumer {
-    constructor(gameData, userSignInPublisher, userInfosRepository, userSessionsRepository, playGamePermissionValidator, definition) {
-        super(gameData, userSignInPublisher, userInfosRepository, userSessionsRepository, playGamePermissionValidator);
-        this.definition = definition;
-    }
-
+export default class UserSignInConsumer extends Table.EventConsumers.TableUserSignInConsumer {
     handleSignInSuccess(socketClient, userInfo, userSession) {
         const allowedCurrencies = this.gameData.gameConfigs.slotsConfig.jackpot.allowedCurrencies ?? "";
         const isAllowed =
