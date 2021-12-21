@@ -29,9 +29,13 @@ export default class HallOfFameConsumer {
             fame.memberId = player.session.memberId;
             fame.partnerId = player.session.partnerId;
             fame.currency = player.session.currencyName;
-            fame.rate = MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
+            fame.rate = this.calculateRate(player.session, this.gameData);
         }
 
         await this.famesRepository.create(fame);
+    }
+
+    calculateRate(session, gameData) {
+        return !!session ? session.multiplier * gameData.exchangeRates.code[session.currencyCode] : 1;
     }
 }

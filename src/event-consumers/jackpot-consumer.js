@@ -37,7 +37,7 @@ export default class JackpotConsumer {
             return;
         }
 
-        const baseTotalAmount = totalAmount * MultipleCurrencyHelper.calculateRate(player.session, this.gameData);
+        const baseTotalAmount = totalAmount;
 
         const contributedByMember = !!player.session;
         const contributionRatio = contributedByMember
