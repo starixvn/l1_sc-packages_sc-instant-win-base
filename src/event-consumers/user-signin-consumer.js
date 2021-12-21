@@ -11,7 +11,7 @@ export default class UserSignInConsumer extends Core.BaseEventConsumers.UserSign
         const isAllowed =
             !this.gameData.gameConfigs.slotsConfig.jackpot.enabled ||
             (userSession.isTestCurrency && this.gameData.gameConfigs.slotsConfig.jackpot.isAllowedTestCurrencies) ||
-            `;${allowedCurrencies.toUpperCase()};`.indexOf(`;${userSession.currency.toUpperCase()};`) !== -1;
+            `;${allowedCurrencies.toUpperCase()};`.indexOf(`;${userSession.currencyName.toUpperCase()};`) !== -1;
 
         if (!isAllowed) {
             this.userSignInPublisher.publishNotPermittedToPlayMessage(socketClient, this.definition.id);

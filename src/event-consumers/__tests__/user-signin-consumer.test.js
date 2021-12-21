@@ -68,7 +68,7 @@ describe("handleSignInSuccess", () => {
         const consumer = new UserSignInConsumer(gameData);
         const socketClient = { emit: jest.fn() };
         const userInfo = {};
-        const userSession = { isTestCurrency: testCase.isTestCurrency, currency: "INH" };
+        const userSession = { isTestCurrency: testCase.isTestCurrency, currencyName: "INH" };
 
         // act
         consumer.handleSignInSuccess(socketClient, userInfo, userSession);
@@ -97,7 +97,7 @@ describe("handleSignInSuccess", () => {
         const consumer = new UserSignInConsumer(gameData, userSignInPublisher, null, null, null, definition);
         const socketClient = { emit: jest.fn() };
         const userInfo = {};
-        const userSession = { isTestCurrency: testCase.isTestCurrency, currency: "UUS" };
+        const userSession = { isTestCurrency: testCase.isTestCurrency, currencyName: "UUS" };
 
         // act
         consumer.handleSignInSuccess(socketClient, userInfo, userSession);
