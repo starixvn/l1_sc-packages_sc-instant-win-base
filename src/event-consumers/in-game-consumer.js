@@ -51,7 +51,6 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
 
         const user = await this.getUserInfo(realPlayer.UID);
 
-        console.log(this.gameData);
         const { exchangeRates } = this.gameData;
         const { session } = realPlayer;
         const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
