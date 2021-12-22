@@ -23,6 +23,7 @@ export default class HallOfFameConsumer {
             numberOfPaylines,
             freeSpin,
             time: new Date(),
+            exchangeRateId: this.gameData.exchangeRates.exId,
         };
 
         if (!!player.session) {

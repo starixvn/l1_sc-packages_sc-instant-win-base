@@ -5,14 +5,16 @@ export default class HallOfFameQuery {
      * @param {Number} gameId
      * @param {mongoose.Model} famesRepository
      * @param {mongoose.Model} jackpotsRepository
+     * @param {mongoose.Model} exchangeRatesRepository
      */
-    constructor(gameId, famesRepository, jackpotsRepository) {
+    constructor(gameId, famesRepository, jackpotsRepository, exchangeRatesRepository) {
         this.gameId = gameId;
         this.famesRepository = famesRepository;
         this.jackpotsRepository = jackpotsRepository;
+        this.exchangeRatesRepository = exchangeRatesRepository;
     }
 
-    async queryBigWinningWinners(page, pageSize = 10) {
+    async queryBigWinningWinners(player, page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
             return { bigWinningWinners: {} };
         }
@@ -27,12 +29,22 @@ export default class HallOfFameQuery {
             winningAmount: true,
             freeSpin: true,
             rate: true,
+            exchangeRateId: true,
         };
 
-        const winners = await this.famesRepository
-            .find({}, projection, { sort: { time: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
-            .lean()
-            .exec();
+        const rawWinners =
+            (await this.famesRepository
+                .find({}, projection, { sort: { time: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
+                .lean()
+                .exec()) ?? [];
+
+        const playerSession = player.session;
+        const winners = [];
+        for (let i = 0; i < rawWinners.length; i++) {
+            const rw = rawWinners[i];
+            const viewerRate = !!rw.exchangeRateId ? await this.getViewerRate(playerSession, rw) : playerSession.multiplier;
+            winners[i] = { ...rw, viewerRate };
+        }
 
         return { bigWinningWinners: { winners, page, pageSize, total } };
     }
@@ -73,5 +85,11 @@ export default class HallOfFameQuery {
         });
 
         return { jackpotWinners: { winners, page, pageSize, total } };
+    }
+
+    async getViewerRate(playerSession, winner) {
+        const exchangeRates = await this.exchangeRatesRepository.findOne({ exId: winner.exchangeRateId }).lean().exec();
+
+        return playerSession.multiplier * exchangeRates.code[playerSession.currency];
     }
 }
