@@ -26,12 +26,12 @@ describe("handleSignInSuccess", () => {
         expect(socketClient.emit).toBeCalledWith("signedIn");
     });
 
-    it("when isTestCurrency and isAllowedTestCurrencies should signedIn", () => {
+    it("when isTestCurrency should signedIn", () => {
         // arrange
         const gameData = {
             gameConfigs: {
                 slotsConfig: {
-                    jackpot: { allowedCurrencies: null, enabled: true, isAllowedTestCurrencies: true },
+                    jackpot: { allowedCurrency: null, enabled: true },
                 },
             },
             realPlayers: {},
@@ -48,21 +48,14 @@ describe("handleSignInSuccess", () => {
         expect(socketClient.emit).toBeCalledWith("signedIn");
     });
 
-    const testCases = [
-        { isAllowedTestCurrencies: true, isTestCurrency: false },
-        { isAllowedTestCurrencies: false, isTestCurrency: true },
-        { isAllowedTestCurrencies: false, isTestCurrency: false },
-    ];
-    it.each(testCases)("when  user currency in allowedCurrencies should signedIn", (testCase) => {
+    it("when user currency is allowedCurrency should signedIn", () => {
         // arrange
         const gameData = {
             gameConfigs: {
                 slotsConfig: {
                     jackpot: {
-                        allowedCurrencies: null,
                         enabled: true,
-                        isAllowedTestCurrencies: testCase.isAllowedTestCurrencies,
-                        allowedCurrencies: "inh",
+                        allowedCurrency: "inh",
                     },
                 },
             },
@@ -71,7 +64,7 @@ describe("handleSignInSuccess", () => {
         const consumer = new UserSignInConsumer({}, gameData, userSignInPublisher);
         const socketClient = { emit: jest.fn() };
         const userInfo = {};
-        const userSession = { isTestCurrency: testCase.isTestCurrency, currencyName: "INH" };
+        const userSession = { isTestCurrency: false, currencyName: "INH" };
 
         // act
         consumer.handleSignInSuccess(socketClient, userInfo, userSession);
@@ -80,16 +73,14 @@ describe("handleSignInSuccess", () => {
         expect(socketClient.emit).toBeCalledWith("signedIn");
     });
 
-    it.each(testCases)("when  user currency not in allowedCurrencies should not signedIn", (testCase) => {
+    it("when user currency is not allowedCurrency should not signedIn", () => {
         // arrange
         const gameData = {
             gameConfigs: {
                 slotsConfig: {
                     jackpot: {
-                        allowedCurrencies: null,
                         enabled: true,
-                        isAllowedTestCurrencies: testCase.isAllowedTestCurrencies,
-                        allowedCurrencies: "inh",
+                        allowedCurrency: "inh",
                     },
                 },
             },
@@ -99,7 +90,7 @@ describe("handleSignInSuccess", () => {
         const consumer = new UserSignInConsumer(definition, gameData, userSignInPublisher, null, null, null);
         const socketClient = { emit: jest.fn() };
         const userInfo = {};
-        const userSession = { isTestCurrency: testCase.isTestCurrency, currencyName: "UUS" };
+        const userSession = { isTestCurrency: false, currencyName: "UUS" };
 
         // act
         consumer.handleSignInSuccess(socketClient, userInfo, userSession);

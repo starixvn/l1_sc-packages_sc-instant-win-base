@@ -2,11 +2,11 @@ import { Table } from "sc-game-base";
 
 export default class UserSignInConsumer extends Table.EventConsumers.TableUserSignInConsumer {
     handleSignInSuccess(socketClient, userInfo, userSession) {
-        const allowedCurrencies = this.gameData.gameConfigs.slotsConfig.jackpot.allowedCurrencies ?? "";
+        const allowedCurrency = this.gameData.gameConfigs.slotsConfig.jackpot.allowedCurrency ?? "";
         const isAllowed =
             !this.gameData.gameConfigs.slotsConfig.jackpot.enabled ||
-            (userSession.isTestCurrency && this.gameData.gameConfigs.slotsConfig.jackpot.isAllowedTestCurrencies) ||
-            `;${allowedCurrencies.toUpperCase()};`.indexOf(`;${userSession.currencyName.toUpperCase()};`) !== -1;
+            userSession.isTestCurrency ||
+            allowedCurrency.toUpperCase() === userSession.currencyName.toUpperCase();
 
         if (!isAllowed) {
             this.userSignInPublisher.publishNotPermittedToPlayMessage(socketClient, this.definition.id);
