@@ -25,7 +25,8 @@ export default class JackpotConsumer {
     }
 
     async contribute(player, { pool, totalAmount, roundId }) {
-        const basePool = this.getBasePool(player, pool);
+        const contributedByMember = !!player.session;
+        const basePool = contributedByMember ? this.getBasePool(player, pool) : pool;
         if (basePool == null) {
             this.logService.logCritical(
                 `Couldn't find any base jackpot pool associated with: ${JSON.stringify({
@@ -39,7 +40,6 @@ export default class JackpotConsumer {
 
         const baseTotalAmount = totalAmount;
 
-        const contributedByMember = !!player.session;
         const contributionRatio = contributedByMember
             ? this.gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio
             : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
@@ -77,7 +77,8 @@ export default class JackpotConsumer {
     }
 
     async hit(player, { pool, roundId }) {
-        const basePool = this.getBasePool(player, pool);
+        const hitByMember = !!player.session;
+        const basePool = hitByMember ? this.getBasePool(player, pool) : pool;
         if (basePool == null) {
             this.logService.logCritical(
                 `Couldn't find any base jackpot pool associated with: ${JSON.stringify({
