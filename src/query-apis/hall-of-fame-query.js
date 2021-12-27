@@ -32,19 +32,11 @@ export default class HallOfFameQuery {
             exchangeRateId: true,
         };
 
-        const rawWinners =
+        const winners =
             (await this.famesRepository
                 .find({}, projection, { sort: { time: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
                 .lean()
                 .exec()) ?? [];
-
-        const playerSession = player.session;
-        const winners = [];
-        for (let i = 0; i < rawWinners.length; i++) {
-            const rw = rawWinners[i];
-            const viewerRate = !!rw.exchangeRateId ? await this.getViewerRate(playerSession, rw) : playerSession.multiplier;
-            winners[i] = { ...rw, viewerRate };
-        }
 
         return { bigWinningWinners: { winners, page, pageSize, total } };
     }
@@ -85,11 +77,5 @@ export default class HallOfFameQuery {
         });
 
         return { jackpotWinners: { winners, page, pageSize, total } };
-    }
-
-    async getViewerRate(playerSession, winner) {
-        const exchangeRates = await this.exchangeRatesRepository.findOne({ exId: winner.exchangeRateId }).lean().exec();
-
-        return playerSession.multiplier * exchangeRates.code[playerSession.currency];
     }
 }
