@@ -46,7 +46,7 @@ describe("contribute", () => {
         const consumer = initConsumer();
         spyOn(consumer, "getBasePool").and.returnValue(null);
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
-        const player = {};
+        const player = { session: {} };
 
         // act
         await consumer.contribute(player, bet);
@@ -128,7 +128,7 @@ describe("hit", () => {
         const consumer = initConsumer();
         spyOn(consumer, "getBasePool").and.returnValue(null);
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
-        const player = {};
+        const player = { session: {} };
 
         // act
         await consumer.hit(player, bet);
@@ -138,10 +138,12 @@ describe("hit", () => {
         expect(jackpotPublisher.publishLatestPool).not.toBeCalled();
     });
 
-    it("should call initializeNewPool", async () => {
+    const testCases = [{ session: { memberId: 12, currencyGroupId: "617a650628b7a500016388f5" } }, { session: null }];
+
+    it.each(testCases)("should call initializeNewPool", async (testCase) => {
         // arrange
         const consumer = initConsumer();
-        const player = { profile: { name: "A" }, session: { memberId: 12, currencyGroupId: "617a650628b7a500016388f5" } };
+        const player = { profile: { name: "A" }, session: testCase.session };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
 
         spyOn(consumer, "initializeNewPool");

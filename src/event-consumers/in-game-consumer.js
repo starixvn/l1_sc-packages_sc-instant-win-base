@@ -31,6 +31,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
 
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = {
+            baseStakeLevels: this.gameData.gameConfigs.slotsConfig.stakeLevels.map((level) => level.stake),
             stakeLevels: stakeLevels.map((level) => level.stake),
             odds,
             jackpot: {
@@ -44,17 +45,25 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             bet: soonestExpiredFreeSpinSet?.bet,
             paylines: soonestExpiredFreeSpinSet?.paylines,
         };
-        const jackpotPools = await this.getPools();
+        const jackpotPools = this.gameData.gameConfigs.slotsConfig.jackpot.enabled ? await this.getPools() : [];
 
         await this.getBalance(realPlayer, true);
 
         const user = await this.getUserInfo(realPlayer.UID);
 
+        const { exchangeRates } = this.gameData;
+        const { session } = realPlayer;
+        const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
+
         return {
             gameConfigs,
             jackpotPools,
             freeSpins,
-            user,
+            user: {
+                ...user,
+                rate,
+                multiplier: session.multiplier,
+            },
         };
     }
 

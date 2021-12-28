@@ -3,18 +3,18 @@ import mongoose from "mongoose";
 
 import { HallOfFameQuery } from "..";
 
-/** @type {mongoose.Model}*/
 const famesRepository = stubMongooseModelStupidly(mongoose.Model);
-/** @type {mongoose.Model}*/
 const jackpotsRepository = stubMongooseModelStupidly(mongoose.Model);
+const exchangeRatesRepository = stubMongooseModelStupidly(mongoose.Model);
 
 describe("queryBigWinningWinners", () => {
     it("should return empty when page < 1", async () => {
         // arrange
         const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository);
+        const player = {};
 
         // act
-        const actualResult = await fameQuery.queryBigWinningWinners(0);
+        const actualResult = await fameQuery.queryBigWinningWinners(player, 0);
 
         // assert
         expect(actualResult).toEqual({ bigWinningWinners: {} });
@@ -28,33 +28,36 @@ describe("queryBigWinningWinners", () => {
         famesRepository.find().lean().exec.mockReturnValueOnce(null);
         famesRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
         famesRepository.countDocuments().exec.mockReturnValueOnce(0);
+        const player = {};
 
         // act
-        const actualResult = await fameQuery.queryBigWinningWinners(1);
+        const actualResult = await fameQuery.queryBigWinningWinners(player, 1);
 
         // assert
         expect(actualResult.bigWinningWinners.total).toEqual(0);
-        expect(actualResult.bigWinningWinners.winners).toBe(null);
+        expect(actualResult.bigWinningWinners.winners).toStrictEqual([]);
     });
 
     it("should return data when page >= 1", async () => {
         // arrange
-        const gameData = { exchangeRates: { code: [] } };
-        const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository, gameData);
+        const fameQuery = new HallOfFameQuery(1, famesRepository, jackpotsRepository, exchangeRatesRepository);
 
         famesRepository
             .find()
             .lean()
             .exec.mockReturnValueOnce([
-                { name: "a", totalAmount: 2, winningAmount: 7, freeSpin: false },
+                { name: "a", totalAmount: 2, winningAmount: 7, freeSpin: false, exchangeRateId: 1 },
                 { name: "b", totalAmount: 1, winningAmount: 7, freeSpin: true, rate: 1 },
             ]);
 
         famesRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
         famesRepository.countDocuments().exec.mockReturnValueOnce(2);
+        const player = { session: {} };
+
+        exchangeRatesRepository.findOne().lean().exec.mockReturnValue({ code: [] });
 
         // act
-        const actualResult = await fameQuery.queryBigWinningWinners(1);
+        const actualResult = await fameQuery.queryBigWinningWinners(player, 1);
 
         // assert
         expect(actualResult.bigWinningWinners.total).toEqual(2);

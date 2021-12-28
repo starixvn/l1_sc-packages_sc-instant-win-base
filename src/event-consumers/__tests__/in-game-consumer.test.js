@@ -37,14 +37,29 @@ describe("getPools", () => {
 });
 
 describe("buildPayload", () => {
+    it("when jackpot disabled should not call get jackpot pools", async () => {
+        // arrange
+        const consumer = createInGameConsumer();
+        consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = false;
+        spyOn(consumer, "getPools");
+
+        // act
+        await consumer.buildPayload({ session: { currencyGroupId: "617a650628b7a500016388f5" } });
+
+        // assert
+        expect(consumer.getPools).not.toBeCalled();
+        consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+    });
+
     it("should contains jackpot pools", async () => {
         // arrange
         const consumer = createInGameConsumer();
         const expectPools = [{ pool: 1, amount: 1000 }];
         jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
+        const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
 
         // act
-        const payload = await consumer.buildPayload({ session: { currencyGroupId: "617a650628b7a500016388f5" } });
+        const payload = await consumer.buildPayload(player);
 
         // assert
         expect(payload.jackpotPools).not.toBeNull();
@@ -102,11 +117,13 @@ function stubGameData() {
             icons: [],
             jackpot: {
                 winningRatio: 0.98,
+                enabled: true,
             },
         },
     };
 
     gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
+    gameData.exchangeRates = { code: [] };
     return gameData;
 }
 

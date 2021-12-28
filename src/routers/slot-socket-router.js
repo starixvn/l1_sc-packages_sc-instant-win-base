@@ -70,7 +70,8 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
                 return;
             }
 
-            const bigWinningWinners = await this.hallOfFameQuery.queryBigWinningWinners(payload.page ?? 0);
+            const viewer = this.gameData.realPlayers[this.socketClient.id];
+            const bigWinningWinners = await this.hallOfFameQuery.queryBigWinningWinners(viewer, payload.page ?? 0);
 
             this.socketClient.emit(this.definition.name, bigWinningWinners);
         } catch (error) {

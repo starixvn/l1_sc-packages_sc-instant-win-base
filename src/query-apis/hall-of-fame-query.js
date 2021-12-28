@@ -5,14 +5,16 @@ export default class HallOfFameQuery {
      * @param {Number} gameId
      * @param {mongoose.Model} famesRepository
      * @param {mongoose.Model} jackpotsRepository
+     * @param {mongoose.Model} exchangeRatesRepository
      */
-    constructor(gameId, famesRepository, jackpotsRepository) {
+    constructor(gameId, famesRepository, jackpotsRepository, exchangeRatesRepository) {
         this.gameId = gameId;
         this.famesRepository = famesRepository;
         this.jackpotsRepository = jackpotsRepository;
+        this.exchangeRatesRepository = exchangeRatesRepository;
     }
 
-    async queryBigWinningWinners(page, pageSize = 10) {
+    async queryBigWinningWinners(player, page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
             return { bigWinningWinners: {} };
         }
@@ -27,20 +29,14 @@ export default class HallOfFameQuery {
             winningAmount: true,
             freeSpin: true,
             rate: true,
+            exchangeRateId: true,
         };
-        const winners = await this.famesRepository
-            .find({}, projection, { sort: { time: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
-            .lean()
-            .exec();
 
-        if (winners) {
-            winners.forEach((w) => {
-                if (w.rate) {
-                    w.totalAmount = w.totalAmount * w.rate;
-                    w.winningAmount = w.winningAmount * w.rate;
-                }
-            });
-        }
+        const winners =
+            (await this.famesRepository
+                .find({}, projection, { sort: { time: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
+                .lean()
+                .exec()) ?? [];
 
         return { bigWinningWinners: { winners, page, pageSize, total } };
     }
