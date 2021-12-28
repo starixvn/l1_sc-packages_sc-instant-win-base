@@ -1,3 +1,29 @@
+# [1.2.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.1.0...v1.2.0) (2021-12-28)
+
+
+### Bug Fixes
+
+* base pool for bot ([f1f44fa](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/f1f44fac3f7b0647baed1ee5ad6c43b8bb52eb11))
+* big winner - not support scs ([08284b9](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/08284b94987543bfb61ac22fdf98ee7361ddf19b))
+* ingame consumer - return rate|multiplier ([ac8bfbf](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/ac8bfbfbf437648f8215e1b7883852f076176d60))
+* ingame consumer - return rate|multiplier ([a933188](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/a933188e432300b6e40b5b993fa2fc5bf19772ca))
+* jackpot scs configs ([5c66b8b](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/5c66b8b4a61551b948c2fac6a80c191077fdc1c2))
+* jackpot scs configs ([32352dd](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/32352dd845d8ef5d0896a3b2840fcd1cfa0b0a60))
+* jackpot scs configs ([3198ef5](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/3198ef508a95f038f04f6e032a54bec3a9e6c27e))
+* jackpot scs configs ([bb3ce04](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/bb3ce0457bb5e772c039b8e6e2c85c405990b783))
+* jackpot scs configs - allow 1 currency or test currencies for 1 game ([ba9115b](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/ba9115b59e03a22a3e70d7753594ccf1978d88f9))
+* load big winners by old viewer rate ([f4fdf7d](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/f4fdf7df3287b40f56aed6a7590c6e8d65836dbd))
+* not get jackpot pool when jackpot is disabled ([8d144fe](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8d144fe8cb177bba8b0b5116734bbf2861b5c3a5))
+* publish base jackpot info ([894b746](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/894b74660c3e075493bc371bf5431693cd66d34b))
+* revert big winner rate ([c803578](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/c8035780679185d3adf19c72ba5bf601bca3868b))
+* sc-game-base.2.2.1 ([17bd9f6](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/17bd9f6418e81e3e58063d067f0b52f690f71040))
+* upgrade game-base 2.1.1-beta.13 ([d15a75c](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/d15a75c6e1659909877ad3d211d4b76644553dd7))
+
+
+### Features
+
+* upgrade sc-game-base 2.1.1-beta.7 ([88bc82c](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/88bc82c8248f4589c7fb204d8d70dcfff452bd4f))
+
 # [1.1.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.0.7...v1.1.0) (2021-12-07)
 
 
