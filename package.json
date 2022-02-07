@@ -6,6 +6,7 @@
     "scripts": {
         "test": "jest",
         "test-coverage": "jest --collect-coverage",
+        "test-board": "node --es-module-specifier-resolution=node  tests/run.js",
         "reg": "npm set registry http://npm.lumigame.com",
         "pub": "npm publish --registry http://npm.lumigame.com",
         "betaver": "npm version prerelease --preid beta",
