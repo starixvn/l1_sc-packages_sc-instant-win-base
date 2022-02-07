@@ -82,7 +82,8 @@ function runOneMillions(mode) {
     for (let counter = 0; counter < 100000; counter++) {
         const amount = chance.pickone(stakes);
         const board = generator.generate(mode);
-        const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
+        const randomPaylines = [chance.pickone(paylines)];
+        //const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
         const result = calculator.calculate(board, randomPaylines, odds);
         summary.totalAmount += amount * randomPaylines.length;
         summary.totalPaylines += randomPaylines.length;
@@ -108,7 +109,7 @@ function runOneMillions(mode) {
 
         if (result.bonus.odds > 0) {
             for (let index = 0; index < result.bonus.odds; index++) {
-                const bonus = chance.integer({ min: 8, max: 28 }) * amount;
+                const bonus = chance.integer({ min: 5, max: 20 }) * amount;
                 summary.bonusAmount += bonus;
                 summary.winAmount += bonus;
             }
