@@ -9,7 +9,7 @@ const famesRepository = stubMongooseModelStupidly(mongoose.Model);
 describe("add", () => {
     const testCases = [
         {
-            session: { memberId: 12 },
+            session: { memberId: 12, playerId: 12 },
             fame: {
                 roundId: 1,
                 bet: 5,

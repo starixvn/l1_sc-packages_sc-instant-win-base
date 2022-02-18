@@ -15,4 +15,6 @@ export default new mongoose.Schema({
     currency: { type: String, required: false },
     rate: { type: Number, required: false },
     exchangeRateId: { type: Number, required: false },
+    operatorId: { type: String, required: false },
+    playerId: { type: Number },
 });

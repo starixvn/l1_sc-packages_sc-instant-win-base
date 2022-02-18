@@ -399,7 +399,7 @@ describe("settle-game-round-consumer", () => {
             const dependencies = initDependencies();
             dependencies.definition = { id: 5 };
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const bet = { memberId: 2, siteId: 3, freeBet: false };
+            const bet = { memberId: 2, playerId: 12, siteId: 3, freeBet: false };
             const roundId = 1;
             const time = 4;
             const betResult = { totalBetAmount: 10 };
@@ -411,6 +411,8 @@ describe("settle-game-round-consumer", () => {
                     siteId: 3,
                     time: 4,
                     partnerId: undefined,
+                    operatorId: undefined,
+                    playerId: 12,
                 },
                 settlementInfo: { redPlay: 10, freeBet: false },
             };
@@ -427,7 +429,7 @@ describe("settle-game-round-consumer", () => {
             const dependencies = initDependencies();
             dependencies.definition = { id: 5 };
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const bet = { memberId: 2, siteId: 3, freeBet: true, freeSpin: true };
+            const bet = { memberId: 2, playerId: 12, siteId: 3, freeBet: true, freeSpin: true };
             const roundId = 1;
             const time = 4;
             const betResult = { totalBetAmount: 10 };
@@ -439,6 +441,8 @@ describe("settle-game-round-consumer", () => {
                     siteId: 3,
                     time: 4,
                     partnerId: undefined,
+                    operatorId: undefined,
+                    playerId: 12,
                 },
                 settlementInfo: { redPlay: 0, freeBet: true },
             };
