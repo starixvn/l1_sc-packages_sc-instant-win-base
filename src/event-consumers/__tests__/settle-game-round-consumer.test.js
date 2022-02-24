@@ -412,7 +412,7 @@ describe("settle-game-round-consumer", () => {
                     time: 4,
                     partnerId: undefined,
                     operatorId: undefined,
-                    playerId: 12,
+                    playerId: 2,
                 },
                 settlementInfo: { redPlay: 10, freeBet: false },
             };
@@ -442,7 +442,7 @@ describe("settle-game-round-consumer", () => {
                     time: 4,
                     partnerId: undefined,
                     operatorId: undefined,
-                    playerId: 12,
+                    playerId: 2,
                 },
                 settlementInfo: { redPlay: 0, freeBet: true },
             };

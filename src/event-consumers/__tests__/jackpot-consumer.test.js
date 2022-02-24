@@ -70,6 +70,7 @@ describe("contribute", () => {
             amount: contributeAmount,
             byBots: contributeAmount,
             byMembers: 0,
+            byPlayers: 0,
         };
         const player = {};
 
@@ -99,6 +100,7 @@ describe("contribute", () => {
             amount: contributeAmount,
             byBots: 0,
             byMembers: contributeAmount,
+            byPlayers: contributeAmount,
         };
 
         // act
