@@ -19,7 +19,6 @@ const jackpotSchema = new mongoose.Schema({
 
     createdTime: { type: Date, required: true },
     hitTime: { type: Date },
-    byPlayers: { type: Number, default: 0 },
 });
 
 export default mongoose.model("Jackpot", jackpotSchema);

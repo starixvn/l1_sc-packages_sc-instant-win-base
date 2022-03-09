@@ -108,9 +108,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     isUserEnableJackpot(player) {
         const { jackpot } = this.gameData.gameConfigs.slotsConfig;
-        const playerCurrency = this.gameData.currencies.find((currency) => currency.name === player.session.currencyName);
+        const isTestCurrency = this.gameData.currencies.some((currency) => currency.name === player.session.currencyName && currency.isTest);
 
-        return !playerCurrency?.isTest || !jackpot.excludeTestCurrency;
+        return !isTestCurrency || !jackpot.excludeTestCurrency;
     }
 
     async generateRoundResult(player, roundId, bet) {

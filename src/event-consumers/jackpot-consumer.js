@@ -58,7 +58,6 @@ export default class JackpotConsumer {
             amount: contributionAmount,
             byBots: contributedByMember ? 0 : contributionAmount,
             byMembers: contributedByMember ? contributionAmount : 0,
-            byPlayers: contributedByMember ? contributionAmount : 0,
         };
         const latestJackpotProjection = { _id: false, amount: true };
         const latestJackpotPool = await this.jackpotsRepository.findOneAndUpdate(
