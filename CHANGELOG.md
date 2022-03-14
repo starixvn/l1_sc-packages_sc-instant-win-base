@@ -1,3 +1,16 @@
+## [1.2.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.2.0...v1.2.1) (2022-03-14)
+
+
+### Bug Fixes
+
+* check user enable jackpot with test currency ([0fc9244](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/0fc9244ee7594c1344f4f613af6320ebb7bb492e))
+* review code ([0ee82e1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/0ee82e1f54860ca15ed156df88691a18556821c3))
+* update db schema ([9f898de](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/9f898defe13f2e3b8de758df141be85a57523668))
+* upgrade db schema ([fbd2eef](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/fbd2eefc2f4887b0d9f060947473b3824a7a72e6))
+* upgrade sc-game-base@2.4.3-beta.6 ([99fe59e](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/99fe59e2e622d3f15ac865aceefcdb03cc2f3417))
+* upgrade sc-game-base@2.4.3-beta.7 ([a58b01a](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/a58b01a0d86c72a6e04f92ace1ba4ff1b6a161ae))
+* upgrade sc-game-base@2.6.0 ([21a7a6b](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/21a7a6b0e98a1561861f859820b8ee807d736909))
+
 # [1.2.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.1.0...v1.2.0) (2021-12-28)
 
 
