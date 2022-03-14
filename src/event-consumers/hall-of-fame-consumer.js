@@ -31,6 +31,9 @@ export default class HallOfFameConsumer {
             fame.partnerId = player.session.partnerId;
             fame.currency = player.session.currencyName;
             fame.rate = this.calculateRate(player.session, this.gameData);
+
+            fame.operatorId = player.session.partnerId;
+            fame.playerId = player.session.memberId;
         }
 
         await this.famesRepository.create(fame);

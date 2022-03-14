@@ -138,7 +138,7 @@ describe("hit", () => {
         expect(jackpotPublisher.publishLatestPool).not.toBeCalled();
     });
 
-    const testCases = [{ session: { memberId: 12, currencyGroupId: "617a650628b7a500016388f5" } }, { session: null }];
+    const testCases = [{ session: { memberId: 12, playerId: 12, currencyGroupId: "617a650628b7a500016388f5" } }, { session: null }];
 
     it.each(testCases)("should call initializeNewPool", async (testCase) => {
         // arrange
@@ -159,7 +159,7 @@ describe("hit", () => {
     it("when no winning jackpot should log error and return 0", async () => {
         // arrange
         const consumer = initConsumer();
-        const player = { profile: { name: "A" }, session: { memberId: 12, currencyGroupId: "617a650628b7a500016388f5" } };
+        const player = { profile: { name: "A" }, session: { memberId: 12, playerId: 12, currencyGroupId: "617a650628b7a500016388f5" } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
         spyOn(consumer, "initializeNewPool");
         spyOn(consumer, "getBasePool").and.returnValue(1);
@@ -177,7 +177,7 @@ describe("hit", () => {
     it("should publish winning jackpot amount", async () => {
         // arrange
         const consumer = initConsumer();
-        const player = { UID: "uid", profile: { name: "A" }, session: { memberId: 12 } };
+        const player = { UID: "uid", profile: { name: "A" }, session: { playerId: 12, memberId: 12 } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
         const winningJackpot = { amount: 12000 };
         jackpotsRepository.findOneAndUpdate.mockReturnValueOnce(winningJackpot);
@@ -205,7 +205,7 @@ describe("initialize", () => {
     it("should call initializeNewPool", async () => {
         // arrange
         const consumer = initConsumer();
-        const player = { profile: { name: "A" }, session: { memberId: 12 } };
+        const player = { profile: { name: "A" }, session: { playerId: 12, memberId: 12 } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
         jackpotsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
         jackpotsRepository.countDocuments().exec.mockReturnValue(0);
@@ -243,7 +243,7 @@ describe("initialize", () => {
         gd.gameConfigs.slotsConfig = null;
         const consumer = new JackpotConsumer(gameDefinition, gd, jackpotPublisher, logService, jackpotsRepository, currencyGroupGamesRepository);
 
-        const player = { profile: { name: "A" }, session: { memberId: 12 } };
+        const player = { profile: { name: "A" }, session: { playerId: 12, memberId: 12 } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
         jackpotsRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
         jackpotsRepository.countDocuments().exec.mockReturnValue(0);

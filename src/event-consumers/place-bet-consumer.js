@@ -70,6 +70,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
                 betTracks: {},
                 betQueue: [],
                 partnerId: player.session.partnerId,
+                operatorId: player.session.partnerId,
             };
 
             this.gameData.ingame[name] = newPlayer;

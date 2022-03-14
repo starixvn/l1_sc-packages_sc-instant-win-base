@@ -6588,6 +6588,11 @@ normalize-url@^6.0.0, normalize-url@^6.0.1:
   resolved "http://npm.lumigame.com/normalize-url/-/normalize-url-6.1.0.tgz#40d0885b535deffe3f3147bec877d05fe4c5668a"
   integrity sha512-DlL+XwOy3NxAQ8xuC0okPgK46iuVNAK01YN7RueYBqqFeGsBjV9XmCAzAdgt+667bCl5kPh9EqKKDwnaPG1I7A==
 
+notepack.io@~2.2.0:
+  version "2.2.0"
+  resolved "https://npm.lumigame.com/notepack.io/-/notepack.io-2.2.0.tgz#d7ea71d1cb90094f88c6f3c8d84277c2d0cd101c"
+  integrity sha512-9b5w3t5VSH6ZPosoYnyDONnUTF8o0UkBw7JLA6eBlYJWyGT1Q3vQa8Hmuj1/X6RYvHjjygBDgw6fJhe0JEojfw==
+
 npm-audit-report@^2.1.5:
   version "2.1.5"
   resolved "http://npm.lumigame.com/npm-audit-report/-/npm-audit-report-2.1.5.tgz#a5b8850abe2e8452fce976c8960dd432981737b5"
@@ -7868,25 +7873,25 @@ sc-api-client@^1.3.0:
     axios "^0.19.2"
     openid-client "^3.15.9"
 
-sc-base-apis@1.14.1:
-  version "1.14.1"
-  resolved "https://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.14.1.tgz#bceec564fb8a3e8d50759a5321a6e70b6207a823"
-  integrity sha512-H1Dk3QXlAotXVADmZyV4xUCS/K/kTVUTekezxy0Sh0XHq2LQsVjJEZW0xnnmagCuFCQh7n1GqvkxbRSW77voZw==
+sc-base-apis@1.15.2:
+  version "1.15.2"
+  resolved "https://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.15.2.tgz#4d60ed1d9ba75859c208c3fa5e1ab509acebb64c"
+  integrity sha512-+lwTbfVRuQNJcJVbSUoDX+DBGDJcUWFcw3j9pFE+IbbuS6Xdp3um98JuR7uHNM8pvR7Uoc9P/XXW5ow8YxAUjw==
   dependencies:
     moment "^2.27.0"
     sc-api-client "^1.3.0"
-    sc-base-database "1.9.1"
-    sc-common "^1.7.0"
+    sc-base-database "1.9.2"
+    sc-common "^1.8.0"
 
-sc-base-database@1.9.1:
-  version "1.9.1"
-  resolved "https://npm.lumigame.com/sc-base-database/-/sc-base-database-1.9.1.tgz#b60b8558abbaa688c1d6583e36b7ede2b33e9f57"
-  integrity sha512-3qEwy0aXEv7WGXUqB/WYHf2+QW+88Yq2oSPtFHZaa1z+yITqLCTVWtCfBjW/jaIhRzSc4uwVD9+dCrQQyfbJhg==
+sc-base-database@1.9.2:
+  version "1.9.2"
+  resolved "https://npm.lumigame.com/sc-base-database/-/sc-base-database-1.9.2.tgz#4ee800820ff88a91c6a23c7f8e368082df8b20c2"
+  integrity sha512-o2N42wqNCI5kqymavaqi1Gf7Gm7VAISFMI8oxcyWww3eyo2KKh19dI9+OBozWWQcCDCuJIWgj51+fj6XX4se3Q==
   dependencies:
     mongoose "^5.9.25"
     sc-common "^1.6.0"
 
-sc-common@^1.6.0, sc-common@^1.7.0:
+sc-common@^1.6.0:
   version "1.7.0"
   resolved "http://npm.lumigame.com/sc-common/-/sc-common-1.7.0.tgz#8af3683ef7957b3a51153e1a85a6e7a8dbf88243"
   integrity sha512-+bgvCtmo06YMkGfAruAht9oePO3R48Lzzncz2slGGSsPAzAjh7lMezjB4uOoH/aDR7dOGY2CwKpmAvfeFpkxqQ==
@@ -7897,10 +7902,21 @@ sc-common@^1.6.0, sc-common@^1.7.0:
     mongoose-long "^0.3.0"
     numeral "^2.0.6"
 
-sc-game-base@2.2.1:
-  version "2.2.1"
-  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.2.1.tgz#ffdbeeda1678c5e098b8261d7606ba6c0f105bf3"
-  integrity sha512-Jr/uQrcusdkSOwc5qig63iNgncU6aMVO5mklq4luKdWU0w1ye47ctqiYRz18YJ/OfdDqojzZMst57iUx5hsIlg==
+sc-common@^1.8.0:
+  version "1.8.0"
+  resolved "https://npm.lumigame.com/sc-common/-/sc-common-1.8.0.tgz#125ce2efae5a7ddb328981790766f9ee8e5be359"
+  integrity sha512-QVUpBms9Vt0Bmm2GcFaf44pYQvbXB7odI+vZJqnr0ainWWLgVynK4wxcKn6y7bNhTxP6MGIX8lFHcpgilXn3eQ==
+  dependencies:
+    "@sentry/node" "^5.19.1"
+    jsonwebtoken "^8.5.1"
+    jwks-rsa "^1.8.1"
+    mongoose-long "^0.3.0"
+    numeral "^2.0.6"
+
+sc-game-base@2.6.0:
+  version "2.6.0"
+  resolved "https://npm.lumigame.com/sc-game-base/-/sc-game-base-2.6.0.tgz#e678ab3caeb1a08d72b0a5ad14f93ff0177f40b9"
+  integrity sha512-U0Gb+DC9TOARY3spSE3dqWll5rrKaiosvaSVGltYZLo1SzxaKXo/xQQ1RTeBvhnh5Q72YNB7Qj6adDgKruhn7g==
   dependencies:
     awilix "^4.3.1"
     axios "^0.20.0"
@@ -7914,10 +7930,11 @@ sc-game-base@2.2.1:
     mongoose "^5.9.25"
     morgan "^1.10.0"
     openid-client "^4.2.0"
-    sc-base-apis "1.14.1"
-    sc-base-database "1.9.1"
-    sc-common "^1.7.0"
+    sc-base-apis "1.15.2"
+    sc-base-database "1.9.2"
+    sc-common "^1.8.0"
     socket.io "^4.1.2"
+    socket.io-msgpack-parser "^3.0.1"
     socket.io-prom-metrics "^1.0.3"
 
 sc-semantic-release@^1.2.0:
@@ -8168,6 +8185,14 @@ socket.io-adapter@~2.3.2:
   version "2.3.2"
   resolved "http://npm.lumigame.com/socket.io-adapter/-/socket.io-adapter-2.3.2.tgz#039cd7c71a52abad984a6d57da2c0b7ecdd3c289"
   integrity sha512-PBZpxUPYjmoogY0aoaTmo1643JelsaS1CiAwNjRVdrI0X9Seuc19Y2Wife8k88avW6haG8cznvwbubAZwH4Mtg==
+
+socket.io-msgpack-parser@^3.0.1:
+  version "3.0.1"
+  resolved "https://npm.lumigame.com/socket.io-msgpack-parser/-/socket.io-msgpack-parser-3.0.1.tgz#48ea37b51f1fa1b09253bc97073be9204664f3c6"
+  integrity sha512-H/tlF8kp0TKcfiXEBvBE7fiHK+S0sgtG5zk6W+pWsJL+OggtiJLAatZE1YdvNmv274mSsgFzCrz39cYXFnyudQ==
+  dependencies:
+    component-emitter "~1.3.0"
+    notepack.io "~2.2.0"
 
 socket.io-parser@~4.0.4:
   version "4.0.4"

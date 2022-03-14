@@ -399,7 +399,7 @@ describe("settle-game-round-consumer", () => {
             const dependencies = initDependencies();
             dependencies.definition = { id: 5 };
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const bet = { memberId: 2, siteId: 3, freeBet: false };
+            const bet = { memberId: 2, playerId: 12, siteId: 3, freeBet: false };
             const roundId = 1;
             const time = 4;
             const betResult = { totalBetAmount: 10 };
@@ -411,6 +411,8 @@ describe("settle-game-round-consumer", () => {
                     siteId: 3,
                     time: 4,
                     partnerId: undefined,
+                    operatorId: undefined,
+                    playerId: 2,
                 },
                 settlementInfo: { redPlay: 10, freeBet: false },
             };
@@ -427,7 +429,7 @@ describe("settle-game-round-consumer", () => {
             const dependencies = initDependencies();
             dependencies.definition = { id: 5 };
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const bet = { memberId: 2, siteId: 3, freeBet: true, freeSpin: true };
+            const bet = { memberId: 2, playerId: 12, siteId: 3, freeBet: true, freeSpin: true };
             const roundId = 1;
             const time = 4;
             const betResult = { totalBetAmount: 10 };
@@ -439,6 +441,8 @@ describe("settle-game-round-consumer", () => {
                     siteId: 3,
                     time: 4,
                     partnerId: undefined,
+                    operatorId: undefined,
+                    playerId: 2,
                 },
                 settlementInfo: { redPlay: 0, freeBet: true },
             };
@@ -626,11 +630,12 @@ describe("settle-game-round-consumer", () => {
     });
 
     describe("isUserEnableJackpot", () => {
-        it("when currency is UUS and jackpot.excludeUUS should return false", async () => {
+        it("when currency is test currency and jackpot.excludeTestCurrency should return false", async () => {
             // arrange
             const dependencies = initDependencies();
             dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeUUS = true;
+            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = true;
+            dependencies.gameData.currencies = [{ name: "UUS", isTest: true }];
             const consumer = new SettleGameRoundConsumer(dependencies);
             const player = { session: { currencyName: "UUS" } };
 
@@ -645,7 +650,8 @@ describe("settle-game-round-consumer", () => {
             // arrange
             const dependencies = initDependencies();
             dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeUUS = false;
+            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = false;
+            dependencies.gameData.currencies = [{ name: "UUS", isTest: true }];
             const consumer = new SettleGameRoundConsumer(dependencies);
             const player = { session: { currencyName: "UUS" } };
 
@@ -660,7 +666,8 @@ describe("settle-game-round-consumer", () => {
             // arrange
             const dependencies = initDependencies();
             dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeUUS = false;
+            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = true;
+            dependencies.gameData.currencies = [{ name: "IN", isTest: false }];
             const consumer = new SettleGameRoundConsumer(dependencies);
             const player = { session: { currencyName: "IN" } };
 

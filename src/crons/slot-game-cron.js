@@ -177,12 +177,12 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
     mapToIngameData(bets) {
         return bets.reduce((ingame, bet) => {
-            const { bonusChests, result, settlementResult, id: roundId, time, uid: UID, name, memberId, jackpot } = bet;
+            const { bonusChests, result, settlementResult, id: roundId, time, uid: UID, name, memberId, jackpot, playerId } = bet;
 
             const player = {
                 UID,
                 profile: { name },
-                session: { memberId },
+                session: { memberId, playerId },
             };
 
             ingame[name] = {
