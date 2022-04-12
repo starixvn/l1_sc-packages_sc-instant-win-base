@@ -30,17 +30,13 @@ export default class BonusBoardGenerator {
     }
 
     calculateBonusRateRange(noPaylines) {
-        if (noPaylines <= 4) {
+        if (noPaylines <= 5) {
             return { min: 1, max: 3 };
-        }
-
-        if (noPaylines === 5) {
-            return { min: 1, max: 3.36 };
         }
 
         const min = 0.32 * (noPaylines - 2);
         const max = 1.12 * (noPaylines - 2);
 
-        return { min: parseFloat(min.toFixed(2)), max: parseFloat(max.toFixed(2)) };
+        return { min: Math.floor(parseFloat(min.toFixed(2))), max: Math.floor(parseFloat(max.toFixed(2))) };
     }
 }

@@ -77,10 +77,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 5", () => {
-            it("should return {min: 1, max: 3.36}", () => {
+            it("should return {min: 1, max: 3}", () => {
                 // arrange
                 const noPaylines = 5;
-                const expectedValue = { min: 1, max: 3.36 };
+                const expectedValue = { min: 1, max: 3 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -90,10 +90,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 6", () => {
-            it("should return {min: 1.28, max: 4.48}", () => {
+            it("should return {min: 1, max: 4}", () => {
                 // arrange
                 const noPaylines = 6;
-                const expectedValue = { min: 1.28, max: 4.48 };
+                const expectedValue = { min: 1, max: 4 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -103,10 +103,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 7", () => {
-            it("should return {min: 1.6, max: 5.6}", () => {
+            it("should return {min: 1, max: 5}", () => {
                 // arrange
                 const noPaylines = 7;
-                const expectedValue = { min: 1.6, max: 5.6 };
+                const expectedValue = { min: 1, max: 5 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -116,10 +116,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 8", () => {
-            it("should return {min: 1.92, max: 6.72}", () => {
+            it("should return {min: 1, max: 6}", () => {
                 // arrange
                 const noPaylines = 8;
-                const expectedValue = { min: 1.92, max: 6.72 };
+                const expectedValue = { min: 1, max: 6 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -129,10 +129,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 9", () => {
-            it("should return {min: 2.24, max: 7.84}", () => {
+            it("should return {min: 2, max: 7}", () => {
                 // arrange
                 const noPaylines = 9;
-                const expectedValue = { min: 2.24, max: 7.84 };
+                const expectedValue = { min: 2, max: 7 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -142,10 +142,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 10", () => {
-            it("should return {min: 2.56, max: 8.96}", () => {
+            it("should return {min: 2, max: 8}", () => {
                 // arrange
                 const noPaylines = 10;
-                const expectedValue = { min: 2.56, max: 8.96 };
+                const expectedValue = { min: 2, max: 8 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -155,10 +155,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 11", () => {
-            it("should return {min: 2.88, max: 10.08}", () => {
+            it("should return {min: 2, max: 10}", () => {
                 // arrange
                 const noPaylines = 11;
-                const expectedValue = { min: 2.88, max: 10.08 };
+                const expectedValue = { min: 2, max: 10 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -168,10 +168,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 12", () => {
-            it("should return {min: 3.2, max: 11.2}", () => {
+            it("should return {min: 3, max: 11}", () => {
                 // arrange
                 const noPaylines = 12;
-                const expectedValue = { min: 3.2, max: 11.2 };
+                const expectedValue = { min: 3, max: 11 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -181,10 +181,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 13", () => {
-            it("should return {min: 3.52, max: 12.32}", () => {
+            it("should return {min: 3, max: 12}", () => {
                 // arrange
                 const noPaylines = 13;
-                const expectedValue = { min: 3.52, max: 12.32 };
+                const expectedValue = { min: 3, max: 12 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -194,10 +194,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 14", () => {
-            it("should return {min: 3.84, max: 13.44}", () => {
+            it("should return {min: 3, max: 13}", () => {
                 // arrange
                 const noPaylines = 14;
-                const expectedValue = { min: 3.84, max: 13.44 };
+                const expectedValue = { min: 3, max: 13 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -207,10 +207,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 15", () => {
-            it("should return {min: 4.16, max: 14.56}", () => {
+            it("should return {min: 4, max: 14}", () => {
                 // arrange
                 const noPaylines = 15;
-                const expectedValue = { min: 4.16, max: 14.56 };
+                const expectedValue = { min: 4, max: 14 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -220,10 +220,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 16", () => {
-            it("should return {min: 4.48, max: 15.68}", () => {
+            it("should return {min: 4, max: 15}", () => {
                 // arrange
                 const noPaylines = 16;
-                const expectedValue = { min: 4.48, max: 15.68 };
+                const expectedValue = { min: 4, max: 15 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -233,10 +233,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 17", () => {
-            it("should return {min: 4.8, max: 16.8}", () => {
+            it("should return {min: 4, max: 16}", () => {
                 // arrange
                 const noPaylines = 17;
-                const expectedValue = { min: 4.8, max: 16.8 };
+                const expectedValue = { min: 4, max: 16 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -246,10 +246,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 18", () => {
-            it("should return {min: 5.12, max: 17.92}", () => {
+            it("should return {min: 5, max: 17}", () => {
                 // arrange
                 const noPaylines = 18;
-                const expectedValue = { min: 5.12, max: 17.92 };
+                const expectedValue = { min: 5, max: 17 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -259,10 +259,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 19", () => {
-            it("should return {min: 5.44, max: 19.04}", () => {
+            it("should return {min: 5, max: 19}", () => {
                 // arrange
                 const noPaylines = 19;
-                const expectedValue = { min: 5.44, max: 19.04 };
+                const expectedValue = { min: 5, max: 19 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -272,10 +272,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 20", () => {
-            it("should return {min: 5.76, max: 20.16}", () => {
+            it("should return {min: 5, max: 20}", () => {
                 // arrange
                 const noPaylines = 20;
-                const expectedValue = { min: 5.76, max: 20.16 };
+                const expectedValue = { min: 5, max: 20 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -285,10 +285,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 21", () => {
-            it("should return {min: 6.08, max: 21.28}", () => {
+            it("should return {min: 6, max: 21}", () => {
                 // arrange
                 const noPaylines = 21;
-                const expectedValue = { min: 6.08, max: 21.28 };
+                const expectedValue = { min: 6, max: 21 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -298,10 +298,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 22", () => {
-            it("should return {min: 6.4, max: 22.4}", () => {
+            it("should return {min: 6, max: 22}", () => {
                 // arrange
                 const noPaylines = 22;
-                const expectedValue = { min: 6.4, max: 22.4 };
+                const expectedValue = { min: 6, max: 22 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -311,10 +311,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 23", () => {
-            it("should return {min: 6.72, max: 23.52}", () => {
+            it("should return {min: 6, max: 23}", () => {
                 // arrange
                 const noPaylines = 23;
-                const expectedValue = { min: 6.72, max: 23.52 };
+                const expectedValue = { min: 6, max: 23 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -324,10 +324,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 24", () => {
-            it("should return {min: 7.04, max: 24.64}", () => {
+            it("should return {min: 7, max: 24}", () => {
                 // arrange
                 const noPaylines = 24;
-                const expectedValue = { min: 7.04, max: 24.64 };
+                const expectedValue = { min: 7, max: 24 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
@@ -337,10 +337,10 @@ describe("BonusBoardGenerator", () => {
             });
         });
         describe("when number of paylines is 25", () => {
-            it("should return {min: 7.36, max: 25.76}", () => {
+            it("should return {min: 7, max: 25}", () => {
                 // arrange
                 const noPaylines = 25;
-                const expectedValue = { min: 7.36, max: 25.76 };
+                const expectedValue = { min: 7, max: 25 };
 
                 // act
                 const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
