@@ -11,11 +11,11 @@ export default class BonusBoardGenerator {
         this.size = definition.bonusSize;
     }
 
-    generate(betAmount, noPaylines) {
+    generate(betAmount, minRate, maxRate, numberOfPaylines) {
         let bonusBoard = [];
 
         for (let counter = 0; counter < this.size; counter++) {
-            const bonusRate = this.chance.natural(this.calculateBonusRateRange(noPaylines));
+            const bonusRate = this.chance.natural(this.calculateBonusRateRange(minRate, maxRate, numberOfPaylines));
             const amount = parseFloat((bonusRate * betAmount).toFixed(2));
             const bonus = { amount, picked: false };
 
@@ -29,13 +29,12 @@ export default class BonusBoardGenerator {
         return bonusBoard;
     }
 
-    calculateBonusRateRange(noPaylines) {
-        if (noPaylines <= 5) {
-            return { min: 1, max: 3 };
-        }
+    calculateBonusRateRange(minRate, maxRate, numberOfPaylines) {
+        const paylinesRate = Math.max(numberOfPaylines - 2, 1);
+        const totalPaylines = 25;
 
-        const min = 0.32 * (noPaylines - 2);
-        const max = 1.12 * (noPaylines - 2);
+        const min = Math.max((minRate / totalPaylines) * paylinesRate, 1);
+        const max = Math.max((maxRate / totalPaylines) * paylinesRate, 3);
 
         return { min: Math.floor(parseFloat(min.toFixed(2))), max: Math.floor(parseFloat(max.toFixed(2))) };
     }

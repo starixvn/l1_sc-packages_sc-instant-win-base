@@ -154,10 +154,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async processBonus(player, finish, bet) {
-        const { icons: odds } = this.gameData.gameConfigs.slotsConfig;
+        const { bonus: bonusConfig, icons: odds } = this.gameData.gameConfigs.slotsConfig;
         const { result, settlementResult } = finish;
 
-        finish.bonusChests = this.bonusBoardGenerator.generate(bet.bet, bet.paylines.length);
+        finish.bonusChests = this.bonusBoardGenerator.generate(bet.bet, bonusConfig.min, bonusConfig.max, bet.paylines.length);
 
         bet.odds = odds;
         bet.result = result;

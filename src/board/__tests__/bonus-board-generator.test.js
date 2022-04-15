@@ -9,9 +9,10 @@ describe("BonusBoardGenerator", () => {
             const amount = 1;
             const minRate = 8;
             const maxRate = 28;
+            const numberOfPaylines = 1;
 
             // act
-            const board = boardGenerator.generate(amount, minRate, maxRate);
+            const board = boardGenerator.generate(amount, minRate, maxRate, numberOfPaylines);
 
             // assert
             expect(board.length).toEqual(bonusSize);
@@ -19,6 +20,9 @@ describe("BonusBoardGenerator", () => {
     });
 
     describe("calculateBonusRateRange", () => {
+        const minRate = 8;
+        const maxRate = 28;
+
         let boardGenerator;
         beforeEach(() => {
             boardGenerator = new BonusBoardGenerator({ bonusSize: 9 });
@@ -27,11 +31,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 1", () => {
             it("should return {min: 1, max: 3}", () => {
                 // arrange
-                const noPaylines = 1;
+                const numberOfPaylines = 1;
                 const expectedValue = { min: 1, max: 3 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -40,11 +44,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 2", () => {
             it("should return {min: 1, max: 3}", () => {
                 // arrange
-                const noPaylines = 2;
+                const numberOfPaylines = 2;
                 const expectedValue = { min: 1, max: 3 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -53,11 +57,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 3", () => {
             it("should return {min: 1, max: 3}", () => {
                 // arrange
-                const noPaylines = 3;
+                const numberOfPaylines = 3;
                 const expectedValue = { min: 1, max: 3 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -66,11 +70,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 4", () => {
             it("should return {min: 1, max: 3}", () => {
                 // arrange
-                const noPaylines = 4;
+                const numberOfPaylines = 4;
                 const expectedValue = { min: 1, max: 3 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -79,11 +83,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 5", () => {
             it("should return {min: 1, max: 3}", () => {
                 // arrange
-                const noPaylines = 5;
+                const numberOfPaylines = 5;
                 const expectedValue = { min: 1, max: 3 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -92,11 +96,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 6", () => {
             it("should return {min: 1, max: 4}", () => {
                 // arrange
-                const noPaylines = 6;
+                const numberOfPaylines = 6;
                 const expectedValue = { min: 1, max: 4 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -105,11 +109,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 7", () => {
             it("should return {min: 1, max: 5}", () => {
                 // arrange
-                const noPaylines = 7;
+                const numberOfPaylines = 7;
                 const expectedValue = { min: 1, max: 5 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -118,11 +122,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 8", () => {
             it("should return {min: 1, max: 6}", () => {
                 // arrange
-                const noPaylines = 8;
+                const numberOfPaylines = 8;
                 const expectedValue = { min: 1, max: 6 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -131,11 +135,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 9", () => {
             it("should return {min: 2, max: 7}", () => {
                 // arrange
-                const noPaylines = 9;
+                const numberOfPaylines = 9;
                 const expectedValue = { min: 2, max: 7 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -144,11 +148,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 10", () => {
             it("should return {min: 2, max: 8}", () => {
                 // arrange
-                const noPaylines = 10;
+                const numberOfPaylines = 10;
                 const expectedValue = { min: 2, max: 8 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -157,11 +161,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 11", () => {
             it("should return {min: 2, max: 10}", () => {
                 // arrange
-                const noPaylines = 11;
+                const numberOfPaylines = 11;
                 const expectedValue = { min: 2, max: 10 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -170,11 +174,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 12", () => {
             it("should return {min: 3, max: 11}", () => {
                 // arrange
-                const noPaylines = 12;
+                const numberOfPaylines = 12;
                 const expectedValue = { min: 3, max: 11 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -183,11 +187,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 13", () => {
             it("should return {min: 3, max: 12}", () => {
                 // arrange
-                const noPaylines = 13;
+                const numberOfPaylines = 13;
                 const expectedValue = { min: 3, max: 12 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -196,11 +200,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 14", () => {
             it("should return {min: 3, max: 13}", () => {
                 // arrange
-                const noPaylines = 14;
+                const numberOfPaylines = 14;
                 const expectedValue = { min: 3, max: 13 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -209,11 +213,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 15", () => {
             it("should return {min: 4, max: 14}", () => {
                 // arrange
-                const noPaylines = 15;
+                const numberOfPaylines = 15;
                 const expectedValue = { min: 4, max: 14 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -222,11 +226,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 16", () => {
             it("should return {min: 4, max: 15}", () => {
                 // arrange
-                const noPaylines = 16;
+                const numberOfPaylines = 16;
                 const expectedValue = { min: 4, max: 15 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -235,11 +239,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 17", () => {
             it("should return {min: 4, max: 16}", () => {
                 // arrange
-                const noPaylines = 17;
+                const numberOfPaylines = 17;
                 const expectedValue = { min: 4, max: 16 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -248,11 +252,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 18", () => {
             it("should return {min: 5, max: 17}", () => {
                 // arrange
-                const noPaylines = 18;
+                const numberOfPaylines = 18;
                 const expectedValue = { min: 5, max: 17 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -261,11 +265,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 19", () => {
             it("should return {min: 5, max: 19}", () => {
                 // arrange
-                const noPaylines = 19;
+                const numberOfPaylines = 19;
                 const expectedValue = { min: 5, max: 19 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -274,11 +278,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 20", () => {
             it("should return {min: 5, max: 20}", () => {
                 // arrange
-                const noPaylines = 20;
+                const numberOfPaylines = 20;
                 const expectedValue = { min: 5, max: 20 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -287,11 +291,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 21", () => {
             it("should return {min: 6, max: 21}", () => {
                 // arrange
-                const noPaylines = 21;
+                const numberOfPaylines = 21;
                 const expectedValue = { min: 6, max: 21 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -300,11 +304,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 22", () => {
             it("should return {min: 6, max: 22}", () => {
                 // arrange
-                const noPaylines = 22;
+                const numberOfPaylines = 22;
                 const expectedValue = { min: 6, max: 22 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -313,11 +317,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 23", () => {
             it("should return {min: 6, max: 23}", () => {
                 // arrange
-                const noPaylines = 23;
+                const numberOfPaylines = 23;
                 const expectedValue = { min: 6, max: 23 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -326,11 +330,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 24", () => {
             it("should return {min: 7, max: 24}", () => {
                 // arrange
-                const noPaylines = 24;
+                const numberOfPaylines = 24;
                 const expectedValue = { min: 7, max: 24 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
@@ -339,11 +343,11 @@ describe("BonusBoardGenerator", () => {
         describe("when number of paylines is 25", () => {
             it("should return {min: 7, max: 25}", () => {
                 // arrange
-                const noPaylines = 25;
+                const numberOfPaylines = 25;
                 const expectedValue = { min: 7, max: 25 };
 
                 // act
-                const actualValue = boardGenerator.calculateBonusRateRange(noPaylines);
+                const actualValue = boardGenerator.calculateBonusRateRange(minRate, maxRate, numberOfPaylines);
 
                 // assert
                 expect(actualValue).toStrictEqual(expectedValue);
