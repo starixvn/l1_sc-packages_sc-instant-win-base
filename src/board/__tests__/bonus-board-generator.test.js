@@ -1,11 +1,13 @@
 import { BonusBoardGenerator } from "..";
 
 describe("BonusBoardGenerator", () => {
+    const boardPaylines = Array(25);
+
     describe("generate", () => {
         it("should generate approriate board base on definition", () => {
             // arrange
             const bonusSize = 10;
-            const boardGenerator = new BonusBoardGenerator({ bonusSize });
+            const boardGenerator = new BonusBoardGenerator({ bonusSize }, { paylines: boardPaylines });
             const amount = 1;
             const minRate = 8;
             const maxRate = 28;
@@ -25,7 +27,7 @@ describe("BonusBoardGenerator", () => {
 
         let boardGenerator;
         beforeEach(() => {
-            boardGenerator = new BonusBoardGenerator({ bonusSize: 9 });
+            boardGenerator = new BonusBoardGenerator({ bonusSize: 9 }, { paylines: boardPaylines });
         });
 
         describe("when number of paylines is 1", () => {
