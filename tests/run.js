@@ -47,6 +47,15 @@ function generateThreeBoards() {
     }
 }
 
+function getOddsRange(noPaylines) {
+    // default { min: 5, max: 20 }
+
+    const min = Math.max(0.32 * Math.max(noPaylines - 2, 1), 1);
+    const max = Math.max(1.12 * Math.max(noPaylines - 2, 1), 3);
+
+    return { min, max };
+}
+
 function runOneMillions(mode) {
     const chance = new Chance();
     const stakes = [0.1, 1, 5];
@@ -82,7 +91,9 @@ function runOneMillions(mode) {
     for (let counter = 0; counter < 100000; counter++) {
         const amount = chance.pickone(stakes);
         const board = generator.generate(mode);
-        const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
+        const randomPaylines = [paylines[0]];
+        // const randomPaylines = [chance.pickone(paylines)];
+        //const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
         const result = calculator.calculate(board, randomPaylines, odds);
         summary.totalAmount += amount * randomPaylines.length;
         summary.totalPaylines += randomPaylines.length;
@@ -108,7 +119,8 @@ function runOneMillions(mode) {
 
         if (result.bonus.odds > 0) {
             for (let index = 0; index < result.bonus.odds; index++) {
-                const bonus = chance.integer({ min: 8, max: 28 }) * amount;
+                const oddsRange = getOddsRange(randomPaylines.length);
+                const bonus = chance.integer(oddsRange) * amount;
                 summary.bonusAmount += bonus;
                 summary.winAmount += bonus;
             }
@@ -135,7 +147,7 @@ function runOneMillions(mode) {
     summary.winLoss = summary.totalAmount - summary.winAmount;
     summary.payoutRatio = `${((summary.winAmount / summary.totalAmount) * 100).toFixed(2)}%`;
 
-    console.log(summary);
+    console.log(summary.payoutRatio);
 }
 
 function runAllModes() {

@@ -619,7 +619,7 @@ describe("settle-game-round-consumer", () => {
             consumer.collectBonusResult = jest.fn();
             const player = { profile: { name: "player1" } };
             const finish = {};
-            const bet = { save: jest.fn() };
+            const bet = { save: jest.fn(), paylines: [] };
 
             // act
             await consumer.processBonus(player, finish, bet);
