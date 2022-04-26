@@ -1,3 +1,13 @@
+## [1.2.2](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.2.1...v1.2.2) (2022-04-26)
+
+
+### Bug Fixes
+
+* dynamic bonus calculation ([83fe61f](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/83fe61f05208b0070f954c7a28a321adb6fd4dc1))
+* dynamic bonus rate formula base on number of paylines ([0adec11](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/0adec11cb694ebabbbf014587d04f10c7d7ae258))
+* floor min-max bonus ([175a17d](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/175a17d8606b7b3bc0eb544f243b3767b535ce5d))
+* update calculation ([bb32c85](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/bb32c851c9755d85b3f080199e04f11fec291f06))
+
 ## [1.2.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.2.0...v1.2.1) (2022-03-14)
 
 
