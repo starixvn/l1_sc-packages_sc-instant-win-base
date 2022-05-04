@@ -1,4 +1,4 @@
-import awilix from "awilix";
+import { asClass, asValue } from "awilix";
 import { hitJackpot } from "sc-base-apis";
 import { gameNotifications } from "sc-base-database";
 import { Core, Table } from "sc-game-base";
@@ -12,8 +12,6 @@ import { HallOfFameQuery, SlotHistoryQuery } from "./query-apis";
 import { SlotHttpRouter, SlotSocketRouter } from "./routers";
 import SlotGameData from "./slot-game-data";
 import SlotGameDefinition from "./slot-game-definition";
-
-const { asClass, asValue } = awilix;
 
 export default class SlotContainerRegistry extends Table.TableContainerRegistry {
     /**
