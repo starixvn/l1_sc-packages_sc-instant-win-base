@@ -1,3 +1,20 @@
+# [1.3.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.2.2...v1.3.0) (2022-05-05)
+
+
+### Bug Fixes
+
+* operator token ([24171e4](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/24171e4f395783cd77e8c2bbb12c05fdc64b5391))
+* rebase master ([0b1b76a](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/0b1b76a6d356e4e8bcbdf9234fcd6c26f8d2cbe6))
+* upgrade sc-game-base 2.8.1-beta.2 ([3904c60](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/3904c6062d98416813cad3dbb30ef08a62c98e93))
+* upgrade sc-game-base 2.9.0 ([170876d](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/170876d22a5f8a1053f54452213f4e5bd85f4ea4))
+
+
+### Features
+
+* upgrade sc-game-base@2.7.2-beta.2 ([c8c4eda](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/c8c4eda8499ff21abf16d8f65d5da03f8eb9c359))
+* upgrade sc-game-base@2.7.2-beta.3 ([71fd911](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/71fd911bb09baf5c493ed55306d5b89272a874a0))
+* upgrade sc-game-base@2.8.1-beta.0 ([b8fc8da](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/b8fc8dad4fe5f2f0edad24f65525fd396722c069))
+
 ## [1.2.2](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.2.1...v1.2.2) (2022-04-26)
 
 
