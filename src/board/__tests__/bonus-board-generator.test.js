@@ -2,22 +2,58 @@ import { BonusBoardGenerator } from "..";
 
 describe("BonusBoardGenerator", () => {
     const boardPaylines = Array(25);
+    const bonusSize = 10;
+    const amount = 1;
+    const minRate = 8;
+    const maxRate = 28;
+    const numberOfPaylines = 1;
 
     describe("generate", () => {
         it("should generate approriate board base on definition", () => {
             // arrange
-            const bonusSize = 10;
             const boardGenerator = new BonusBoardGenerator({ bonusSize }, { paylines: boardPaylines });
-            const amount = 1;
-            const minRate = 8;
-            const maxRate = 28;
-            const numberOfPaylines = 1;
 
             // act
             const board = boardGenerator.generate(amount, minRate, maxRate, numberOfPaylines);
 
             // assert
             expect(board.length).toEqual(bonusSize);
+        });
+
+        describe("when apply new bonus calculator", () => {
+            const boardGenerator = new BonusBoardGenerator({ bonusSize, applyNewBonusCalculation: true }, { paylines: boardPaylines });
+
+            beforeEach(() => {
+                boardGenerator.calculateBonusRateRange = jest.fn();
+            });
+
+            it("should call calculateBonusRateRange", () => {
+                // arrange
+
+                // act
+                boardGenerator.generate(amount, minRate, maxRate, numberOfPaylines);
+
+                // assert
+                expect(boardGenerator.calculateBonusRateRange).toHaveBeenCalledWith(minRate, maxRate, numberOfPaylines);
+            });
+        });
+
+        describe("when NOT apply new bonus calculator", () => {
+            const boardGenerator = new BonusBoardGenerator({ bonusSize }, { paylines: boardPaylines });
+
+            beforeEach(() => {
+                boardGenerator.calculateBonusRateRange = jest.fn();
+            });
+
+            it("should NOT call calculateBonusRateRange", () => {
+                // arrange
+
+                // act
+                boardGenerator.generate(amount, minRate, maxRate, numberOfPaylines);
+
+                // assert
+                expect(boardGenerator.calculateBonusRateRange).not.toHaveBeenCalled();
+            });
         });
     });
 

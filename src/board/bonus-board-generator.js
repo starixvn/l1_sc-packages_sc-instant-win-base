@@ -12,13 +12,17 @@ export default class BonusBoardGenerator {
         this.chance = new Chance();
         this.size = definition.bonusSize;
         this.totalPaylines = (boardDefinition ?? defaultDefinition).paylines.length;
+        this.applyNewBonusCalculation = definition.applyNewBonusCalculation;
     }
 
     generate(betAmount, minRate, maxRate, numberOfPaylines) {
         let bonusBoard = [];
 
         for (let counter = 0; counter < this.size; counter++) {
-            const bonusRate = this.chance.natural(this.calculateBonusRateRange(minRate, maxRate, numberOfPaylines));
+            const bonusRate = this.applyNewBonusCalculation
+                ? this.chance.natural(this.calculateBonusRateRange(minRate, maxRate, numberOfPaylines))
+                : this.chance.natural({ min: minRate, max: maxRate });
+
             const amount = parseFloat((bonusRate * betAmount).toFixed(2));
             const bonus = { amount, picked: false };
 
