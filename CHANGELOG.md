@@ -1,3 +1,10 @@
+# [1.4.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.3.0...v1.4.0) (2022-05-05)
+
+
+### Features
+
+* toggle bonus calculation methods ([2b0530f](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/2b0530fc5d320d848995c52af7cc1c0e17351e43))
+
 # [1.3.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.2.2...v1.3.0) (2022-05-05)
 
 
