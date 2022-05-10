@@ -1,4 +1,4 @@
-import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 
 import { FreeSpinsConsumer, IdCountersConsumer } from "..";
@@ -7,10 +7,10 @@ import SlotGameData from "../../slot-game-data";
 const gameData = stubGameData();
 
 /** @type {mongoose.Model}*/
-const freeSpinsRepository = stubMongooseModelStupidly(mongoose.Model);
+const freeSpinsRepository = stubMongoose(mongoose.Model);
 
 /** @type {mongoose.Model}*/
-const gameNotificationsRepository = stubMongooseModelStupidly(mongoose.Model);
+const gameNotificationsRepository = stubMongoose(mongoose.Model);
 
 const idCountersConsumer = stub(IdCountersConsumer);
 

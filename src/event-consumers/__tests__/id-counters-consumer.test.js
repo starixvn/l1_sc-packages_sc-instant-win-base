@@ -1,10 +1,10 @@
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 
 import { IdCountersConsumer } from "..";
 
 /** @type {mongoose.Model}*/
-const idCountersRepository = stubMongooseModelStupidly(mongoose.Model);
+const idCountersRepository = stubMongoose(mongoose.Model);
 
 describe("getLatestId", () => {
     it("should return 0 if no data", async () => {

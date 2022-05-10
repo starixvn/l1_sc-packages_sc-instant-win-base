@@ -1,4 +1,4 @@
-import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 import { logger } from "sc-common/logger";
 
@@ -11,10 +11,10 @@ const gameData = stubGameData();
 const gameDefinition = stubGameDefinition();
 
 /** @type {mongoose.Model}*/
-const jackpotsRepository = stubMongooseModelStupidly(mongoose.Model);
+const jackpotsRepository = stubMongoose(mongoose.Model);
 
 /** @type {mongoose.Model}*/
-const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
 
 const jackpotPublisher = stub(JackpotPublisher);
 const logService = stub(logger);
@@ -337,7 +337,7 @@ describe("getBasePool", () => {
 
     it("when not have currency stake levels should return null", async () => {
         // arrange
-        const cg = stubMongooseModelStupidly(mongoose.Model);
+        const cg = stubMongoose(mongoose.Model);
         cg.findOne().lean().exec.mockReturnValue(null);
         const consumer = new JackpotConsumer(gameDefinition, gameData, jackpotPublisher, logService, jackpotsRepository, cg);
 

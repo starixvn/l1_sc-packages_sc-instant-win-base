@@ -1,4 +1,4 @@
-import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stub, stubMongoose } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
 import { BaseEventPublishers } from "sc-game-base/src/core";
 
@@ -31,7 +31,7 @@ describe("composeBettingTimeValidationCriteria", () => {
 });
 
 describe("composeBetAmountValidationCriteria", () => {
-    const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+    const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
 
     it("should return invalidStakeLevel when amount is 0", async () => {
         // arrange
@@ -138,7 +138,7 @@ describe("composeBetChoiceValidationCriteria", () => {
 });
 
 describe("consume", () => {
-    const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+    const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
 
     it("should push payload into betQueue", async () => {
         // arrange

@@ -1,4 +1,4 @@
-import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 import { BaseEventPublishers, RoundQuery } from "sc-game-base/src/core";
 
@@ -12,10 +12,10 @@ const publisher = stub(BaseEventPublishers);
 const roundQuery = stub(RoundQuery);
 
 /** @type {mongoose.Model}*/
-const userInfosRepository = stubMongooseModelStupidly(mongoose.Model);
+const userInfosRepository = stubMongoose(mongoose.Model);
 /** @type {mongoose.Model}*/
-const jackpotsRepository = stubMongooseModelStupidly(mongoose.Model);
-const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
+const jackpotsRepository = stubMongoose(mongoose.Model);
+const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
 
 const freeSpinsConsumer = stub(FreeSpinsConsumer);
 const getBalance = jest.fn();
