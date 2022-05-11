@@ -28,7 +28,7 @@ const gameData = {
     },
 };
 
-describe("slot-game-bot", () => {
+describe("SlotGameBot", () => {
     let bot;
 
     beforeEach(() => {
@@ -126,20 +126,14 @@ describe("slot-game-bot", () => {
     });
 
     describe("placeBet", () => {
-        const botInfo = { id: 1, profile: {} };
+        const botInfo = { id: 1, profile: { name: "bot" } };
+        const stake = 1;
 
         beforeEach(() => {
-            bot.resetAllBotData();
-        });
-
-        it("should adjustStakeLevelsTracks", async () => {
-            // Arrange
-
-            paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }] });
             bot.gameData = {
                 gameConfigs: {
                     slotsConfig: {
-                        jackpot: {},
+                        jackpot: { enabled: false },
                         stakeLevels: [
                             { stake: 1, botRatio: 40 },
                             { stake: 5, botRatio: 40 },
@@ -148,8 +142,15 @@ describe("slot-game-bot", () => {
                     },
                 },
             };
+
+            bot.resetAllBotData();
             bot.adjustStakeLevelsTracks = jest.fn();
-            bot.getBetAmount = () => 1;
+            bot.getBetAmount = () => stake;
+        });
+
+        it("should adjustStakeLevelsTracks", async () => {
+            // Arrange
+            paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }] });
 
             // Act
             await bot.placeBet(botInfo);
@@ -158,61 +159,84 @@ describe("slot-game-bot", () => {
             expect(bot.adjustStakeLevelsTracks).toBeCalled();
         });
 
-        it("when jackpot enabled should call jackpotConsumer.contribute", async () => {
+        it("should generate board for bot", async () => {
+            // Arrange
+            const { jackpot } = bot.gameData.gameConfigs.slotsConfig;
+            paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }] });
+
+            // Act
+            await bot.placeBet(botInfo);
+
+            // Assert
+            expect(boardGenerator.generateForBots).toHaveBeenCalledWith(jackpot.enabled, bot.stakeLevelsTracks[stake].ratio);
+        });
+
+        it("should call boardCheatingConsumer", async () => {
             // Arrange
             paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }] });
-            bot.gameData = { gameConfigs: { slotsConfig: { jackpot: { enabled: true } } } };
-            bot.adjustStakeLevelsTracks = jest.fn();
-            bot.getBetAmount = () => 1;
+            boardGenerator.generateForBots.mockReturnValueOnce({});
 
             // Act
             await bot.placeBet(botInfo);
 
             // Assert
-            expect(jackpotConsumer.contribute).toBeCalled();
+            expect(boardCheatingConsumer.consume).toHaveBeenCalledWith(botInfo.profile.name, {});
         });
 
-        it("when jackpot enabled and have jackpotPayline should call jackpotConsumer.hit", async () => {
-            // Arrange
-            paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }], jackpotPayline: 0 });
-            bot.gameData = { gameConfigs: { slotsConfig: { jackpot: { enabled: true } } } };
-            bot.adjustStakeLevelsTracks = jest.fn();
-            bot.getBetAmount = () => 1;
+        describe("when jackpot enabled", () => {
+            beforeEach(() => {
+                bot.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+            });
+            it("should call jackpotConsumer.contribute", async () => {
+                // Arrange
+                paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }] });
 
-            // Act
-            await bot.placeBet(botInfo);
+                // Act
+                await bot.placeBet(botInfo);
 
-            // Assert
-            expect(jackpotConsumer.hit).toBeCalled();
+                // Assert
+                expect(jackpotConsumer.contribute).toBeCalled();
+            });
+
+            describe("when have jackpotPayline", () => {
+                it("should call jackpotConsumer.hit", async () => {
+                    // Arrange
+                    paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }], jackpotPayline: 0 });
+
+                    // Act
+                    await bot.placeBet(botInfo);
+
+                    // Assert
+                    expect(jackpotConsumer.hit).toBeCalled();
+                });
+            });
         });
 
-        it("when winningAmount exceed bigWin should call hallOfFameConsumer.add", async () => {
-            // Arrange
-            paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 5 }], jackpotPayline: 0 });
-            bot.gameData = { gameConfigs: { slotsConfig: { jackpot: { enabled: true } } } };
-            bot.adjustStakeLevelsTracks = jest.fn();
-            bot.getBetAmount = () => 1;
+        describe("when winningAmount exceed bigWin", () => {
+            it("should call hallOfFameConsumer.add", async () => {
+                // Arrange
+                paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 5 }], jackpotPayline: 0 });
 
-            // Act
-            await bot.placeBet(botInfo);
+                // Act
+                await bot.placeBet(botInfo);
 
-            // Assert
-            expect(hallOfFameConsumer.add).toBeCalled();
+                // Assert
+                expect(hallOfFameConsumer.add).toBeCalled();
+            });
         });
 
-        it("when winningAmount not exceed bigWin should call hallOfFameConsumer.add", async () => {
-            // Arrange
-            paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }], jackpotPayline: 0 });
-            bot.gameData = { gameConfigs: { slotsConfig: { jackpot: { enabled: true } } } };
-            bot.adjustStakeLevelsTracks = jest.fn();
-            bot.getBetAmount = () => 1;
-            bot.bigWinRatio = 50;
+        describe("when winningAmount NOT exceed bigWin", () => {
+            it("should not call hallOfFameConsumer.add", async () => {
+                // Arrange
+                paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }], jackpotPayline: 0 });
+                bot.bigWinRatio = 50;
 
-            // Act
-            await bot.placeBet(botInfo);
+                // Act
+                await bot.placeBet(botInfo);
 
-            // Assert
-            expect(hallOfFameConsumer.add).not.toBeCalled();
+                // Assert
+                expect(hallOfFameConsumer.add).not.toBeCalled();
+            });
         });
     });
 
