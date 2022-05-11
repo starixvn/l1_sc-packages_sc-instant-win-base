@@ -58,7 +58,7 @@ export default class BoardGenerator {
         return shuffledBoard;
     }
 
-    generateForBots(isJackpotEnabled, botRatio = 1) {
+    generateForBots(isJackpotEnabled, botRatio = 40) {
         const maxJackpotPossibility = Math.round(this.definition.fillingStrategyForBots.jackpotPossibilityRange / botRatio);
         const jackpotPossibility = this.chance.natural({ min: 0, max: maxJackpotPossibility });
 
