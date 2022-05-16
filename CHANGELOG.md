@@ -1,3 +1,13 @@
+## [1.4.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.0...v1.4.1) (2022-05-16)
+
+
+### Bug Fixes
+
+* destruct awilix ([2617598](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/261759897220af8d88b8bd69f93551d4fb51dda6))
+* get correct stake track for bot ([b42b61d](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/b42b61d5ed98f5ad24a6364a64d2fe8631a677b8))
+* update default botRatio ([aebc79c](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/aebc79c27df4e1a08b9625a228a74fedd3d40580))
+* update jackpot possibility for bot ([aefc146](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/aefc146f266c5d205c922bee9b93fca036ffe4f5))
+
 # [1.4.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.3.0...v1.4.0) (2022-05-05)
 
 
