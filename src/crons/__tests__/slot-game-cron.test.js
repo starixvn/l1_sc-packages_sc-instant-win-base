@@ -1,15 +1,15 @@
 import SlotGameCron from "../slot-game-cron";
 import { Core } from "sc-game-base";
 import mongoose from "mongoose";
-import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stub, stubMongoose } from "jest-micro-auto-stub";
 
-const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
-const archiveStatusesRepository = stubMongooseModelStupidly(mongoose.Model);
-const exchangeRatesRepository = stubMongooseModelStupidly(mongoose.Model);
-const currencyGroupGamesRepository = stubMongooseModelStupidly(mongoose.Model);
-const partnerConfigRepository = stubMongooseModelStupidly(mongoose.Model);
-const currencyGroupRepository = stubMongooseModelStupidly(mongoose.Model);
-const currencyRepository = stubMongooseModelStupidly(mongoose.Model);
+const roundsRepository = stubMongoose(mongoose.Model);
+const archiveStatusesRepository = stubMongoose(mongoose.Model);
+const exchangeRatesRepository = stubMongoose(mongoose.Model);
+const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
+const partnerConfigRepository = stubMongoose(mongoose.Model);
+const currencyGroupRepository = stubMongoose(mongoose.Model);
+const currencyRepository = stubMongoose(mongoose.Model);
 
 jest.mock("cron", () => {
     const mScheduleJob = {

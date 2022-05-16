@@ -152,16 +152,20 @@ function runOneMillions(mode) {
 
 function runAllModes() {
     console.log("===================EASY===================");
-    runOneMillions(difficulties.easy);
+    runOneMillionsForBots(difficulties.easy);
 
     console.log("===================MEDIUM===================");
-    runOneMillions(difficulties.medium);
+    runOneMillionsForBots(difficulties.medium);
 
     console.log("===================HARD===================");
-    runOneMillions(difficulties.hard);
+    runOneMillionsForBots(difficulties.hard);
 }
 
 function runOneMillionsForBots() {
+    let totalNumberOfTickets = 0;
+    let stakeLevelsTracks = stakeLevelsBotTracks();
+
+    const chance = new Chance();
     const generator = new BoardGenerator();
     const calculator = new PaylineCalculator();
     const paylines = [...Array(25).keys()];
@@ -172,19 +176,66 @@ function runOneMillionsForBots() {
         bonus: 0,
     };
 
-    for (let counter = 0; counter < 100000; counter++) {
-        const board = generator.generateForBots(jackpotEnabled);
+    for (let counter = 0; counter < 1_000_000; counter++) {
+        const betAmount = randomBotBetAmount(stakeLevelsTracks, chance, totalNumberOfTickets);
+        const track = stakeLevelsTracks.find((track) => track.stake === betAmount);
+
+        const board = generator.generateForBots(jackpotEnabled, track.ratio);
         const result = calculator.calculate(board, paylines, odds);
 
         if (result.jackpotPayline >= 0) {
             summary.jackpot += 1;
+
+            const track = stakeLevelsTracks.find((track) => track.stake === betAmount);
+            track.jackpot++;
         }
 
         summary.freeSpins += result.freeSpins.odds;
         summary.bonus += result.bonus.odds;
+
+        track.numberOfTickets++;
+        totalNumberOfTickets++;
     }
 
+    summary.stakeLevel = stakeLevelsTracks;
+
     console.log(summary);
+}
+
+function stakeLevelsBotTracks() {
+    const stakeLevelsConfigs = [
+        { stake: 1, botRatio: 20 },
+        { stake: 10, botRatio: 20 },
+        { stake: 50, botRatio: 60 },
+    ];
+
+    return stakeLevelsConfigs.map((config) => {
+        return {
+            stake: config.stake,
+            ratio: config.botRatio,
+            numberOfTickets: 0,
+            jackpot: 0,
+        };
+    });
+}
+
+function randomBotBetAmount(stakeLevelsTracks, chance, totalNumberOfTickets) {
+    const ratiosPerStakeLevel = stakeLevelsTracks.map((track) => {
+        return {
+            stake: track.stake,
+            underRatio: (track.numberOfTickets * 100) / totalNumberOfTickets < track.ratio,
+        };
+    });
+
+    const underRatioStakeLevels = chance.shuffle(ratiosPerStakeLevel.filter((stakeLevel) => stakeLevel.underRatio));
+
+    if (underRatioStakeLevels.length > 0) {
+        return underRatioStakeLevels[0].stake;
+    }
+
+    const randomStakeLevelIndex = chance.natural({ min: 0, max: stakeLevelsTracks.length - 1 });
+
+    return stakeLevelsTracks[randomStakeLevelIndex].stake;
 }
 
 function calculateSettlementResultOfSpecificBoard() {

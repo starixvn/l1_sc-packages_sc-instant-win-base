@@ -1,10 +1,10 @@
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 
 import { SlotHistoryQuery } from "..";
 
 /** @type {mongoose.Model}*/
-const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+const roundsRepository = stubMongoose(mongoose.Model);
 
 describe("queryHistory", () => {
     it("should return empty when page < 1", async () => {

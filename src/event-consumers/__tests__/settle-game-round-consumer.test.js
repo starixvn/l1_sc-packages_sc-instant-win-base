@@ -1,4 +1,4 @@
-import { stub, stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 import { Core } from "sc-game-base";
 import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
@@ -737,10 +737,10 @@ describe("settle-game-round-consumer", () => {
 
 function initDependencies() {
     /** @type {mongoose.Model}*/
-    const roundsRepository = stubMongooseModelStupidly(mongoose.Model);
+    const roundsRepository = stubMongoose(mongoose.Model);
 
     /** @type {mongoose.Model}*/
-    const betsRepository = stubMongooseModelStupidly(mongoose.Model);
+    const betsRepository = stubMongoose(mongoose.Model);
 
     const gameDefinition = stubGameDefinition();
     const gameData = stubGameData();

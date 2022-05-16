@@ -1,10 +1,10 @@
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 
 import { HallOfFameConsumer } from "..";
 
 /** @type {mongoose.Model}*/
-const famesRepository = stubMongooseModelStupidly(mongoose.Model);
+const famesRepository = stubMongoose(mongoose.Model);
 
 describe("add", () => {
     const testCases = [

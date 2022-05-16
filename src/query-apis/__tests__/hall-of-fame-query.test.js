@@ -1,11 +1,11 @@
-import { stubMongooseModelStupidly } from "jest-micro-auto-stub";
+import { stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 
 import { HallOfFameQuery } from "..";
 
-const famesRepository = stubMongooseModelStupidly(mongoose.Model);
-const jackpotsRepository = stubMongooseModelStupidly(mongoose.Model);
-const exchangeRatesRepository = stubMongooseModelStupidly(mongoose.Model);
+const famesRepository = stubMongoose(mongoose.Model);
+const jackpotsRepository = stubMongoose(mongoose.Model);
+const exchangeRatesRepository = stubMongoose(mongoose.Model);
 
 describe("queryBigWinningWinners", () => {
     it("should return empty when page < 1", async () => {

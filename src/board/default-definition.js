@@ -80,7 +80,7 @@ export default {
             0,
         ],
         normal: ["randomAnySymbol", "randomAnySymbol", "randomAnySymbol", 8, 7, 7, 8, "randomAnySymbol", "randomAnySymbol", 1, 1, 2, 0, 0, 0],
-        jackpotPossibilityRange: 50,
+        jackpotPossibilityRange: 2000,
     },
     numberOfShuffles: 3,
     paylines: [
