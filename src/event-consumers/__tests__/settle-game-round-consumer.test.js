@@ -666,7 +666,7 @@ describe("settle-game-round-consumer", () => {
             expect(actualValue).toBe(false);
         });
 
-        it("when currency is UUS and jackpot not excludeUUS should return true", async () => {
+        it("when currency is UUS and jackpot not excludeTestCurrency should return true", async () => {
             // arrange
             const dependencies = initDependencies();
             dependencies.definition = {};
@@ -812,7 +812,7 @@ function stubGameData() {
             stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }],
             jackpot: {
                 enabled: true,
-                excludeUUS: true,
+                excludeTestCurrency: true,
                 winningRatio: 0.98,
                 playerContributionRatio: 0.025,
                 botContributionRatio: 0.005,
