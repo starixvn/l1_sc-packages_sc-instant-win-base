@@ -71,7 +71,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             return;
         }
 
-        const betInfo = await this.generateBetInfo(payload, soonestExpiredFreeSpinSet);
+        const betInfo = await this.generateBetInfo(payload, soonestExpiredFreeSpinSet, player);
 
         await this.idCountersConsumer.consume("round");
         this.gameData.roundId++;
@@ -79,7 +79,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         await super.proceedBet(player, betInfo);
     }
 
-    async generateBetInfo(payload, freeSpinInfo) {
+    async generateBetInfo(payload, freeSpinInfo, player) {
         const betInfo = { ...payload };
         const { slotsConfig } = this.gameData.gameConfigs;
         const contributionRate = slotsConfig.jackpot ? slotsConfig.jackpot.playerContributionRatio : 0;
