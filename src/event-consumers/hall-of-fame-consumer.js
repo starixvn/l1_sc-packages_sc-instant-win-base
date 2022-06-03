@@ -36,8 +36,4 @@ export default class HallOfFameConsumer {
 
         await this.famesRepository.create(fame);
     }
-
-    calculateRate(session, gameData) {
-        return !!session ? session.multiplier * gameData.exchangeRates.code[session.currencyCode] : 1;
-    }
 }
