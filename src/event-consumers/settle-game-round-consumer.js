@@ -49,6 +49,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         hitJackpot,
         roundsRepository,
         betsRepository,
+        logService,
     }) {
         super({
             definition,
@@ -69,6 +70,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         this.bonusBoardGenerator = bonusBoardGenerator;
         this.paylineCalculator = paylineCalculator;
         this.hitJackpot = hitJackpot;
+        this.logService = logService;
     }
 
     async autoSettleRound(player, roundId) {
@@ -190,49 +192,54 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async settleBets(player, { result, settlementResult, roundId }, bet, bonusChests = []) {
-        if (bet) {
-            const odds = bet.odds ?? this.gameData.gameConfigs.slotsConfig.icons;
-            const bonus = this.calculateBonusAmount(bonusChests);
-            const betResult = this.calculatePaylineResult(settlementResult.winningPaylines, bet, bonus);
+        try {
+            if (bet) {
+                const odds = bet.odds ?? this.gameData.gameConfigs.slotsConfig.icons;
+                const bonus = this.calculateBonusAmount(bonusChests);
+                const betResult = this.calculatePaylineResult(settlementResult.winningPaylines, bet, bonus);
 
-            bet.odds = bet.odds ?? odds;
-            bet.result = bet.result.length === 0 ? result : bet.result;
-            bet.settlementResult = bet.settlementResult ?? settlementResult;
-            bet.bonusChests = bonusChests;
-            bet.betWin = betResult.totalWin;
-            bet.paid = true;
-            bet.endTime = new Date();
+                bet.odds = bet.odds ?? odds;
+                bet.result = bet.result.length === 0 ? result : bet.result;
+                bet.settlementResult = bet.settlementResult ?? settlementResult;
+                bet.bonusChests = bonusChests;
+                bet.betWin = betResult.totalWin;
+                bet.paid = true;
+                bet.endTime = new Date();
 
-            await bet.save();
-            await this.callEndGame(bet, roundId, bet.endTime, betResult);
+                await bet.save();
+                await this.callEndGame(bet, roundId, bet.endTime, betResult);
 
-            await this.userBetResultPublisher.publishToUser(
-                bet.uid,
-                this.collectRoundResult({
-                    player,
-                    result,
-                    settlementResult,
-                    roundId,
-                    betWin: bet.betWin,
-                    bigWin: betResult.bigWin,
-                    betByFreeSpin: bet.freeSpin,
-                })
-            );
+                await this.userBetResultPublisher.publishToUser(
+                    bet.uid,
+                    this.collectRoundResult({
+                        player,
+                        result,
+                        settlementResult,
+                        roundId,
+                        betWin: bet.betWin,
+                        bigWin: betResult.bigWin,
+                        betByFreeSpin: bet.freeSpin,
+                    })
+                );
 
-            if (betResult.bigWin) {
-                await this.hallOfFameConsumer.add(player, {
-                    roundId,
-                    bet: bet.bet,
-                    totalAmount: bet.totalAmount,
-                    winningAmount: betResult.totalWin,
-                    numberOfPaylines: bet.paylines.length,
-                    freeSpin: bet.freeSpin,
-                });
+                if (betResult.bigWin) {
+                    await this.hallOfFameConsumer.add(player, {
+                        roundId,
+                        bet: bet.bet,
+                        rate: bet.rate,
+                        totalAmount: bet.totalAmount,
+                        winningAmount: betResult.totalWin,
+                        numberOfPaylines: bet.paylines.length,
+                        freeSpin: bet.freeSpin,
+                    });
+                }
+
+                delete this.gameData.ingame[player.profile.name].bonusChests;
+                delete this.gameData.ingame[player.profile.name].finish;
+                delete this.gameData.ingame[player.profile.name].player;
             }
-
-            delete this.gameData.ingame[player.profile.name].bonusChests;
-            delete this.gameData.ingame[player.profile.name].finish;
-            delete this.gameData.ingame[player.profile.name].player;
+        } catch (ex) {
+            this.logService.logError(ex);
         }
     }
 

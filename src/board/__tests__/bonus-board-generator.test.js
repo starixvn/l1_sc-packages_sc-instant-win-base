@@ -11,7 +11,7 @@ describe("BonusBoardGenerator", () => {
     describe("generate", () => {
         it("should generate approriate board base on definition", () => {
             // arrange
-            const boardGenerator = new BonusBoardGenerator({ bonusSize }, { paylines: boardPaylines });
+            const boardGenerator = new BonusBoardGenerator({ bonusSize });
 
             // act
             const board = boardGenerator.generate(amount, minRate, maxRate, numberOfPaylines);
