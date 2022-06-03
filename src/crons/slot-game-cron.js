@@ -93,11 +93,11 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             );
         }
 
-        await this.updateExchangeRates();
         await this.loadUnsettledBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
         await this.getSettingForNewRound();
+        await this.updateExchangeRates();
 
         if (this.gameData.gameConfigs.slotsConfig?.jackpot.enabled) {
             await this.jackpotConsumer.initialize();

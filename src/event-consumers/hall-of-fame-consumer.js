@@ -11,7 +11,7 @@ export default class HallOfFameConsumer {
         this.gameData = gameData;
     }
 
-    async add(player, { roundId, bet, totalAmount, winningAmount, numberOfPaylines, freeSpin = false, rate = 0 }) {
+    async add(player, { roundId, bet, totalAmount, winningAmount, numberOfPaylines, freeSpin = false, rate }) {
         const fame = {
             uid: player.UID,
             name: player.profile.name,
@@ -29,7 +29,7 @@ export default class HallOfFameConsumer {
             fame.memberId = player.session.memberId;
             fame.partnerId = player.session.partnerId;
             fame.currency = player.session.currencyName;
-            fame.rate = rate || this.calculateRate(player.session, this.gameData);
+            fame.rate = rate;
             fame.operatorId = player.session.partnerId;
             fame.playerId = player.session.memberId;
         }
