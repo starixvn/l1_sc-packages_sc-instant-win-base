@@ -12,7 +12,7 @@
         "betaver": "npm version prerelease --preid beta",
         "pubbeta": "npm publish --registry http://npm.lumigame.com --tag beta",
         "semantic-release": "semantic-release"
-    },
+    }, 
     "jestSonar": {
         "reportPath": "reports",
         "reportFile": "test-reporter.xml",
@@ -36,7 +36,7 @@
     "dependencies": {
         "chance": "^1.1.7",
         "lodash": "^4.17.20",
-        "sc-game-base": "2.9.0"
+        "sc-game-base": "3.0.1"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.12.11",
