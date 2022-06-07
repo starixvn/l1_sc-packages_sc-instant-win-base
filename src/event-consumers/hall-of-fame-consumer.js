@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import GameData from "sc-game-base/src/core/game-data";
-import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class HallOfFameConsumer {
     /**
@@ -12,7 +11,7 @@ export default class HallOfFameConsumer {
         this.gameData = gameData;
     }
 
-    async add(player, { roundId, bet, totalAmount, winningAmount, numberOfPaylines, freeSpin = false }) {
+    async add(player, { roundId, bet, totalAmount, winningAmount, numberOfPaylines, freeSpin = false, rate }) {
         const fame = {
             uid: player.UID,
             name: player.profile.name,
@@ -30,16 +29,11 @@ export default class HallOfFameConsumer {
             fame.memberId = player.session.memberId;
             fame.partnerId = player.session.partnerId;
             fame.currency = player.session.currencyName;
-            fame.rate = this.calculateRate(player.session, this.gameData);
-
+            fame.rate = rate;
             fame.operatorId = player.session.partnerId;
             fame.playerId = player.session.memberId;
         }
 
         await this.famesRepository.create(fame);
-    }
-
-    calculateRate(session, gameData) {
-        return !!session ? session.multiplier * gameData.exchangeRates.code[session.currencyCode] : 1;
     }
 }

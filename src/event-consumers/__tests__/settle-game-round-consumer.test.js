@@ -456,6 +456,26 @@ describe("settle-game-round-consumer", () => {
     });
 
     describe("settleBets", () => {
+        it("when error should logError", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            consumer.callEndGame = async () => {
+                throw new Exception();
+            };
+            const player = {};
+            const result = {};
+            const settlementResult = {};
+            const roundId = {};
+            const bet = {};
+
+            // act
+            await consumer.settleBets(player, { result, settlementResult, roundId }, bet);
+
+            // assert
+            expect(dependencies.logService.logError).toBeCalled();
+        });
+
         it("when not have bet should not call consumer.callEndGame", async () => {
             // arrange
             const dependencies = initDependencies();
@@ -754,6 +774,7 @@ function initDependencies() {
     const boardGenerator = stub(BoardGenerator);
     const bonusBoardGenerator = stub(BonusBoardGenerator);
     const paylineCalculator = new PaylineCalculator();
+    const logService = { logError: jest.fn() };
     const endGame = jest.fn();
     const hitJackpot = jest.fn();
 
@@ -774,6 +795,7 @@ function initDependencies() {
         hitJackpot,
         roundsRepository,
         betsRepository,
+        logService,
     };
 }
 

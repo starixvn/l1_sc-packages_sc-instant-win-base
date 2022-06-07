@@ -96,7 +96,6 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         await this.loadUnsettledBetsToIngame();
         await this.bonusConsumer.processExpiredBonus();
         await this.freeSpinsConsumer.reload();
-
         await this.getSettingForNewRound();
         await this.updateExchangeRates();
 
@@ -177,12 +176,30 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
     mapToIngameData(bets) {
         return bets.reduce((ingame, bet) => {
-            const { bonusChests, result, settlementResult, id: roundId, time, uid: UID, name, memberId, jackpot, playerId } = bet;
+            const {
+                bonusChests,
+                result,
+                settlementResult,
+                id: roundId,
+                time,
+                uid: UID,
+                name,
+                memberId,
+                jackpot,
+                playerId,
+                currency,
+                partnerId,
+            } = bet;
 
             const player = {
                 UID,
                 profile: { name },
-                session: { memberId, playerId },
+                session: {
+                    memberId,
+                    playerId,
+                    currencyName: currency,
+                    partnerId,
+                },
             };
 
             ingame[name] = {
