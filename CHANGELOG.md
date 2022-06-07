@@ -1,3 +1,14 @@
+## [1.4.2](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.1...v1.4.2) (2022-06-07)
+
+
+### Bug Fixes
+
+* remove unused method ([711cf6a](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/711cf6a684777effe6c55b6cd38fe0682dfef532))
+* restart game and big win ([8df7e79](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8df7e794c6bffe2949d1e18559bca7e3c3ac9a78))
+* review code ([285ab0d](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/285ab0dc4ab3d4315b673123af4d0e156dbb5306))
+* upgrade sc-game-base@3.0.0 ([916bc28](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/916bc28f470b1f9c2649a10d264fe760465101c0))
+* upgrade sc-game-base@3.0.1 ([c19fbdd](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/c19fbddedec1ec7cf6389724c961ada92145f590))
+
 ## [1.4.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.0...v1.4.1) (2022-05-16)
 
 
