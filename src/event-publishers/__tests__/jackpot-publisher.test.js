@@ -46,19 +46,22 @@ describe("jackpot-publisher", () => {
         it("when not have error should publishToUser with correct info", () => {
             // arrange
             const publisher = new JackpotPublisher(2);
-            publisher.mainServiceCommunicator = { post: jest.fn() };
+            publisher.notificationServiceCommunicator = { post: jest.fn() };
 
             // act
             publisher.sendJackpotWinner({ user: "winner" });
 
             // assert
-            expect(publisher.mainServiceCommunicator.post).toBeCalledWith("jackpotWinner", expect.objectContaining({ gameId: 2, user: "winner" }));
+            expect(publisher.notificationServiceCommunicator.post).toBeCalledWith(
+                "jackpotWinner",
+                expect.objectContaining({ gameId: 2, user: "winner" })
+            );
         });
 
         it("when have error should logError", () => {
             // arrange
             const publisher = new JackpotPublisher(2);
-            publisher.mainServiceCommunicator = undefined;
+            publisher.notificationServiceCommunicator = undefined;
             publisher.logService = { logError: jest.fn() };
 
             // act

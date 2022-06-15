@@ -8,15 +8,15 @@ export default class JackpotPublisher extends Core.BaseEventPublishers.BaseEvent
      * @param {Number} gameId
      * @param {String} gameName
      * @param {SlotGameData} gameData
-     * @param {Core.Helpers.authenticationHelpers} mainServiceCommunicator
+     * @param {Core.Helpers.authenticationHelpers} notificationServiceCommunicator
      * @param {logger} logService
      */
 
-    constructor(gameId, gameName, gameData, mainServiceCommunicator, logService) {
+    constructor(gameId, gameName, gameData, notificationServiceCommunicator, logService) {
         super(gameName, gameData);
 
         this.gameId = gameId;
-        this.mainServiceCommunicator = mainServiceCommunicator;
+        this.notificationServiceCommunicator = notificationServiceCommunicator;
         this.logService = logService;
     }
 
@@ -38,7 +38,7 @@ export default class JackpotPublisher extends Core.BaseEventPublishers.BaseEvent
                 ...winner,
             };
 
-            await this.mainServiceCommunicator.post("jackpotWinner", params);
+            await this.notificationServiceCommunicator.post("jackpotWinner", params);
         } catch (error) {
             this.logService.logError(error);
         }
