@@ -1,6 +1,10 @@
 {
     "name": "sc-slot-game-base",
+<<<<<<< HEAD
     "version": "1.4.7-beta.1",
+=======
+    "version": "1.4.3",
+>>>>>>> fix: upgrade sc-game-base@3.0.3-beta.4
     "description": "The codebase of Saba slot games.",
     "main": "src/index.js",
     "scripts": {
@@ -36,11 +40,7 @@
     "dependencies": {
         "chance": "^1.1.7",
         "lodash": "^4.17.20",
-<<<<<<< HEAD
         "sc-game-base": "3.0.4-beta.1"
-=======
-        "sc-game-base": "3.0.3-beta.4"
->>>>>>> fix: upgrade sc-game-base@3.0.3-beta.4
     },
     "devDependencies": {
         "@babel/preset-env": "^7.12.11",
