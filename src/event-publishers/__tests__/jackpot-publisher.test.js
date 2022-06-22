@@ -1,5 +1,8 @@
 import JackpotPublisher from "../jackpot-publisher";
 import { Core } from "sc-game-base";
+import authenticationHelpers from "sc-game-base/src/core/helpers/authentication-helpers";
+
+jest.mock("sc-game-base/src/core/helpers/authentication-helpers");
 
 describe("jackpot-publisher", () => {
     describe("extends", () => {
@@ -45,15 +48,20 @@ describe("jackpot-publisher", () => {
     describe("sendJackpotWinner", () => {
         it("when not have error should publishToUser with correct info", () => {
             // arrange
-            const publisher = new JackpotPublisher(2);
-            publisher.notificationServiceCommunicator = { post: jest.fn() };
+            const notificationServiceUrl = "notification-service";
+            const appConfigs = {
+                notificationServiceSettings: {
+                    url: notificationServiceUrl,
+                },
+            };
+            const publisher = new JackpotPublisher(2, "", {}, appConfigs, {});
 
             // act
             publisher.sendJackpotWinner({ user: "winner" });
 
             // assert
-            expect(publisher.notificationServiceCommunicator.post).toBeCalledWith(
-                "jackpotWinner",
+            expect(authenticationHelpers.post).toBeCalledWith(
+                `${notificationServiceUrl}/jackpotWinner`,
                 expect.objectContaining({ gameId: 2, user: "winner" })
             );
         });

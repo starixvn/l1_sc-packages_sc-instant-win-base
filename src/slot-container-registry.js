@@ -2,7 +2,6 @@ import { asClass, asValue } from "awilix";
 import { hitJackpot } from "sc-base-apis";
 import { gameNotifications } from "sc-base-database";
 import { Core, Table } from "sc-game-base";
-import { authenticationHelpers } from "sc-game-base/src/core/helpers";
 import * as Board from "./board";
 import { SlotGameBot, SlotGameCron, SlotProcessBetQueue } from "./crons";
 import * as EventConsumers from "./event-consumers";
@@ -61,7 +60,6 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
             hitJackpot: asValue(hitJackpot),
             historyQuery: asClass(SlotHistoryQuery).singleton(),
             hallOfFameQuery: asClass(HallOfFameQuery).singleton(),
-            notificationServiceCommunicator: asValue(authenticationHelpers),
         });
     }
 
