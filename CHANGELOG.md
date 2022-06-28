@@ -1,3 +1,23 @@
+## [1.4.3](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.2...v1.4.3) (2022-06-28)
+
+
+### Bug Fixes
+
+* operator token for sc ([d0ea288](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/d0ea288d5660e0610274cc2dcd8c58e771e544d4))
+* rebase branch ([18b8d8e](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/18b8d8e6eb86fb6000c503b1b29b1255f5553f2a))
+* release version ([e4a3fce](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/e4a3fceff03932276fbab9bf2e010a6e06edb903))
+* remove mainServiceCommunicator ([59d38e6](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/59d38e6ca9b8720a72f6b8d4b0184974f8baa793))
+* revert verify session ([6048b87](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/6048b87f1ec1526ec34ce29cdd3037f610696cc3))
+* separate branch ([436d453](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/436d45335095d38fbed48d9c4c2d592a9176e520))
+* unit test ([b7ba7dd](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/b7ba7ddc3d71f1c98ced91c21a365336ad335d19))
+* update authenticationHelpers ([12a308c](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/12a308c3fdc46bdfedbe364e03059694b728474d))
+* update blocking time ([a78d0a6](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/a78d0a6c5b9ce9066f717545588fbb34467236fe))
+* update place bet blocking time ([5710a08](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/5710a0842b381a6916d056a17658ea5817fa56f6))
+* upgrade sc-game-base@3.0.3-beta.3 ([1270200](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/12702000b30b02c677f69fd13d002535125312e2))
+* upgrade sc-game-base@3.0.3-beta.4 ([4ebab59](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/4ebab5947c6a988b152fde6e7d69c695925b2ca4))
+* upgrade sc-game-base@3.0.3-beta.4 ([174ef40](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/174ef40a666d1b36bdeaecb7e2ef553681a25796))
+* upgrade sc-game-base@3.0.3-beta.4 ([b3847ef](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/b3847efc3854af28cee13674724898131e89b515))
+
 ## [1.4.2](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.1...v1.4.2) (2022-06-07)
 
 
