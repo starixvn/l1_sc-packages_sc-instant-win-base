@@ -1,3 +1,10 @@
+## [1.4.4](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.3...v1.4.4) (2022-06-29)
+
+
+### Bug Fixes
+
+* query history ([d836ef6](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/d836ef69955aac5b85c6a1f78cdd8e2236317d0e))
+
 ## [1.4.3](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.2...v1.4.3) (2022-06-28)
 
 
