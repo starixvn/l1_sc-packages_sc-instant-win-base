@@ -7969,20 +7969,20 @@ sc-api-client@1.3.1:
     axios "^0.19.2"
     openid-client "^3.15.9"
 
-sc-base-apis@1.17.0:
-  version "1.17.0"
-  resolved "http://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.17.0.tgz"
-  integrity sha512-JJrptteFM1NZdcWGOkb6GY/ZsQHrN/LS+BX/Qn8N3eQ3ThH9EfPOtM2goJautHNY1bTWm6gHAfJrppU9/Db5GA==
+sc-base-apis@1.17.1:
+  version "1.17.1"
+  resolved "http://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.17.1.tgz#9eae09c67fd77bb9c1460ea0325280efd532b9ca"
+  integrity sha512-uTZ2YIgvo9AXwAV05EAUt2GK3nrTRku6+iHMXfxTTtzoKpaBKIkafc9Hfdg9mGQD+TQBeYQxhR8Hn+kYpYwy8g==
   dependencies:
     moment "^2.27.0"
     sc-api-client "1.3.1"
-    sc-base-database "1.10.0"
+    sc-base-database "1.10.1"
     sc-common "1.8.1"
 
-sc-base-database@1.10.0:
-  version "1.10.0"
-  resolved "http://npm.lumigame.com/sc-base-database/-/sc-base-database-1.10.0.tgz"
-  integrity sha512-DOJBqvuaZYdwWxyZQYr83+XY+schx9ExkXZWc20U4G/sNIGYwxXHnvTuSpKwP97aIy0sYRBn4up5fkAGkV7raA==
+sc-base-database@1.10.1:
+  version "1.10.1"
+  resolved "http://npm.lumigame.com/sc-base-database/-/sc-base-database-1.10.1.tgz#ffa166dafa4ec9220fb42990b973bc80489de232"
+  integrity sha512-VQh7D72S3JcpDlZKU0QL40EVEionhnjXWTOP5pCr/NYPX4vMY7W+5U10p5Lr0KkeNtOM1hCN/IYtxzhlQOtrpg==
   dependencies:
     mongoose "^5.9.25"
     sc-common "1.8.1"
@@ -7998,10 +7998,10 @@ sc-common@1.8.1:
     mongoose-long "^0.3.0"
     numeral "^2.0.6"
 
-sc-game-base@3.0.3:
-  version "3.0.3"
-  resolved "http://npm.lumigame.com/sc-game-base/-/sc-game-base-3.0.3.tgz#a2b0ace7413b404c47173e4fe2eec024bc50d11d"
-  integrity sha512-Nk13FH7p6Ct2sbRWn2Th48emMNwC3enIkjrcUAXj0flUi+Q3TGvUKckWBlcaqlELmD81/9euGVx24guoWaIorA==
+sc-game-base@3.0.5:
+  version "3.0.5"
+  resolved "http://npm.lumigame.com/sc-game-base/-/sc-game-base-3.0.5.tgz#cb78aa18da0fc140773696804311f50a7d484f7d"
+  integrity sha512-is7NZZHrEmnVGw8EwXiTXWoscx4rnC8Zpi8f+CNkrPTLSJqJSex8HuXUy8cpqvjNXvxJnuAjIu+cAZEO29Sxng==
   dependencies:
     awilix "^4.3.1"
     axios "^0.20.0"
@@ -8015,8 +8015,8 @@ sc-game-base@3.0.3:
     mongoose "^5.9.25"
     morgan "^1.10.0"
     openid-client "^4.2.0"
-    sc-base-apis "1.17.0"
-    sc-base-database "1.10.0"
+    sc-base-apis "1.17.1"
+    sc-base-database "1.10.1"
     sc-common "1.8.1"
     socket.io "^4.1.2"
     socket.io-msgpack-parser "^3.0.1"

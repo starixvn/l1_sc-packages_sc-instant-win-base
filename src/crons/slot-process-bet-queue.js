@@ -62,8 +62,6 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         }
 
         const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(player);
-        const { slotsConfig } = this.gameData.gameConfigs;
-        const contributionRate = slotsConfig.jackpot ? slotsConfig.jackpot.playerContributionRatio : 0;
 
         payload.freeSpin = payload.freeSpin || (soonestExpiredFreeSpinSet == null ? false : true);
 
@@ -73,21 +71,31 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             return;
         }
 
-        if (soonestExpiredFreeSpinSet) {
-            const { bet, paylines } = soonestExpiredFreeSpinSet;
-
-            payload.betChoice = paylines;
-            payload.amount = bet;
-        }
-
-        payload.totalAmount = parseFloat((payload.amount * payload.betChoice.length).toFixed(2));
-        payload.contributionRate = parseFloat(contributionRate.toFixed(4));
-        payload.contributionAmount = parseFloat((contributionRate * payload.totalAmount).toFixed(4));
+        const betInfo = await this.generateBetInfo(payload, soonestExpiredFreeSpinSet, player);
 
         await this.idCountersConsumer.consume("round");
         this.gameData.roundId++;
 
-        await super.proceedBet(player, payload);
+        await super.proceedBet(player, betInfo);
+    }
+
+    async generateBetInfo(payload, freeSpinInfo, player) {
+        const betInfo = { ...payload };
+        const { slotsConfig } = this.gameData.gameConfigs;
+        const contributionRate = slotsConfig.jackpot ? slotsConfig.jackpot.playerContributionRatio : 0;
+
+        if (freeSpinInfo) {
+            const { bet, paylines } = freeSpinInfo;
+
+            betInfo.betChoice = paylines;
+            betInfo.amount = bet;
+        }
+
+        betInfo.totalAmount = parseFloat((betInfo.amount * betInfo.betChoice.length).toFixed(2));
+        betInfo.contributionRate = parseFloat(contributionRate.toFixed(4));
+        betInfo.contributionAmount = parseFloat((contributionRate * betInfo.totalAmount).toFixed(4));
+
+        return betInfo;
     }
 
     formatApiBetInfo(payload) {
