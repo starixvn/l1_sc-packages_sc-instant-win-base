@@ -1,3 +1,13 @@
+## [1.4.5](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.4...v1.4.5) (2022-07-12)
+
+
+### Bug Fixes
+
+* add player param to generateBetInfo func ([de04071](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/de040719d77354e15581ede1434b7458caba5937))
+* change generateBetUnfi to async func ([3206ea9](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/3206ea96cf6e1b8d4c44b4c7078a1f70abab4a56))
+* extract generateBetInfo func from proceedBet ([14417c1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/14417c1c7d02987ef31985199595ba3586a17f65))
+* upgrade sc-game-base@3.0.2-beta.1 ([07231cf](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/07231cfa557d8be6cb6caa4b136efba8aa6d64ea))
+
 ## [1.4.4](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.3...v1.4.4) (2022-06-29)
 
 
