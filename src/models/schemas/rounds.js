@@ -55,7 +55,6 @@ const bonusChestSchema = new mongoose.Schema(
 export default new mongoose.Schema({
     id: { type: Number, required: true },
     name: { type: String, required: true },
-    memberId: { type: Number },
     siteId: { type: String },
     uid: { type: String },
 
@@ -75,7 +74,6 @@ export default new mongoose.Schema({
     time: { type: Date },
     endTime: { type: Date },
 
-    partnerId: { type: String, require: true },
     currency: { type: String, require: true },
     rate: { type: Number, require: true },
     exchangeRateId: { type: Number, require: true },

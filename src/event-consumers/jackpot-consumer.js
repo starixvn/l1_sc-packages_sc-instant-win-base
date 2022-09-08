@@ -105,7 +105,7 @@ export default class JackpotConsumer {
         const winnerAdjustment = {
             winningRatio,
             winnerName: player.profile.name,
-            winnerId: player.session?.memberId,
+            winnerId: player.session?.playerId,
             hitAt: roundId,
             hitTime: new Date(),
         };

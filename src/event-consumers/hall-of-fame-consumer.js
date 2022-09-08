@@ -26,12 +26,10 @@ export default class HallOfFameConsumer {
         };
 
         if (!!player.session) {
-            fame.memberId = player.session.memberId;
-            fame.partnerId = player.session.partnerId;
             fame.currency = player.session.currencyName;
             fame.rate = rate;
-            fame.operatorId = player.session.partnerId;
-            fame.playerId = player.session.memberId;
+            fame.operatorId = player.session.operatorId;
+            fame.playerId = player.session.operatorId;
         }
 
         await this.famesRepository.create(fame);
