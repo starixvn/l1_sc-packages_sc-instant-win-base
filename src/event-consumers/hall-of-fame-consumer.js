@@ -29,7 +29,7 @@ export default class HallOfFameConsumer {
             fame.currency = player.session.currencyName;
             fame.rate = rate;
             fame.operatorId = player.session.operatorId;
-            fame.playerId = player.session.operatorId;
+            fame.playerId = player.session.playerId;
         }
 
         await this.famesRepository.create(fame);
