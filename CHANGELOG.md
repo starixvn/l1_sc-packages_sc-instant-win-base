@@ -1,3 +1,15 @@
+# [1.5.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.5...v1.5.0) (2022-09-14)
+
+
+### Bug Fixes
+
+* create fame ([dfd44e6](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/dfd44e67c49252721ef8f0531df58ccde713479b))
+
+
+### Features
+
+* update db schemas, remove duplicated fields ([952a25f](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/952a25ffa17d78c89de79c641f1678e6a46752d9))
+
 ## [1.4.5](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.4...v1.4.5) (2022-07-12)
 
 
