@@ -9,7 +9,7 @@ const famesRepository = stubMongoose(mongoose.Model);
 describe("add", () => {
     const testCases = [
         {
-            session: { memberId: 12, playerId: 12 },
+            session: { playerId: 12 },
             fame: {
                 roundId: 1,
                 bet: 5,
@@ -21,7 +21,7 @@ describe("add", () => {
             exchangeRates: { code: {} },
         },
         {
-            session: { memberId: 12, playerId: 12 },
+            session: { playerId: 12 },
             fame: {
                 roundId: 1,
                 bet: 5,

@@ -21,7 +21,7 @@ export default class SlotHistoryQuery {
             paid: false,
             odds: false,
             siteId: false,
-            memberId: false,
+            playerId: false,
             __v: false,
             __archive: false,
         };

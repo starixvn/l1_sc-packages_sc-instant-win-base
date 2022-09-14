@@ -184,21 +184,19 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
                 time,
                 uid: UID,
                 name,
-                memberId,
                 jackpot,
                 playerId,
                 currency,
-                partnerId,
+                operatorId,
             } = bet;
 
             const player = {
                 UID,
                 profile: { name },
                 session: {
-                    memberId,
                     playerId,
                     currencyName: currency,
-                    partnerId,
+                    operatorId,
                 },
             };
 

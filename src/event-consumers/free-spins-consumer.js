@@ -73,9 +73,8 @@ export default class FreeSpinsConsumer {
         };
         const gainedFreeSpin = {
             uid: player.UID,
-            memberId: player.session?.memberId,
             name: memberName,
-            playerId: player.session?.memberId,
+            playerId: player.session?.playerId,
             ...newlyCachedFreeSpin,
         };
         const newlyCreatedFreeSpin = await this.freeSpinsRepository.create(gainedFreeSpin);
@@ -149,7 +148,7 @@ export default class FreeSpinsConsumer {
         };
         const projection = {
             _id: false,
-            memberId: false,
+            playerId: false,
             __v: false,
             __archive: false,
         };

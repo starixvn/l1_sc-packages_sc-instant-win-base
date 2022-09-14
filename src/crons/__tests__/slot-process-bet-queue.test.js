@@ -35,14 +35,14 @@ describe("slot-process-bet-queue", () => {
             const roundsRepository = { create: jest.fn() };
             const gameData = { exchangeRates: {} };
             const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
-            const player = { session: { memberId: 1, playerId: 1, siteId: 2 }, profile: { name: "user3" } };
+            const player = { session: { playerId: 1, siteId: 2 }, profile: { name: "user3" } };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
             // act
             await cron.upsertBet(player, 1, bet);
 
             // assert
-            expect(roundsRepository.create).toHaveBeenCalledWith(expect.objectContaining({ memberId: 1, playerId: 1, siteId: 2 }));
+            expect(roundsRepository.create).toHaveBeenCalledWith(expect.objectContaining({ playerId: 1, siteId: 2 }));
         });
 
         it("when not have player session should create correct info", async () => {
