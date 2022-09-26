@@ -1,3 +1,10 @@
+## [1.5.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.5.0...v1.5.1) (2022-09-26)
+
+
+### Bug Fixes
+
+* playing permission ([c4c710a](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/c4c710ae9a7fe4ae0751f8d0d97062acf1354c18))
+
 # [1.5.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.4.5...v1.5.0) (2022-09-14)
 
 
