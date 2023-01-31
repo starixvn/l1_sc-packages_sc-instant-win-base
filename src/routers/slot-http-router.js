@@ -11,11 +11,10 @@ export default class SlotHttpRouter extends Core.Routers.HttpRouter {
      * @param {PaylineCalculator} paylineCalculator
      * @param {logger} logService
      */
-    constructor(appConfigs, gameData, paylineCalculator, logService) {
-        super(appConfigs, gameData);
+    constructor(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator) {
+        super(appConfigs, gameData, historyQuery, metricQuery, logService);
 
         this.paylineCalculator = paylineCalculator;
-        this.logService = logService;
     }
 
     init(app) {
