@@ -18,6 +18,8 @@ const appConfigs = {
 };
 const app = { get: jest.fn(), post: jest.fn() };
 const paylineCalculator = new PaylineCalculator();
+const historyQuery = {};
+const metricQuery = {};
 const logService = stub(logger);
 const res = {
     send: jest.fn(),
@@ -26,7 +28,7 @@ const res = {
 describe("SlotHttpRouter", () => {
     it("instance should inherit HttpRouter", () => {
         // act
-        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
 
         // assert
         expect(router instanceof HttpRouter);
@@ -36,7 +38,7 @@ describe("SlotHttpRouter", () => {
 describe("init", () => {
     it("should call supper init", () => {
         // arrange
-        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
         spyOn(HttpRouter.prototype, "init");
 
         // act
@@ -48,7 +50,7 @@ describe("init", () => {
 
     it("should call app.post", () => {
         // arrange
-        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
 
         // act
         router.init(app);
@@ -65,7 +67,7 @@ describe("handleSetBoard", () => {
 
     it("should logError if params are invalid", () => {
         // arrange
-        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
 
         // act
         router.handleSetBoard({}, res);
@@ -77,7 +79,7 @@ describe("handleSetBoard", () => {
 
     it("should logError if monitor result is invalid", () => {
         // arrange
-        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
 
         // act
         router.handleSetBoard({ name: "A", result: [] }, res);
@@ -89,7 +91,7 @@ describe("handleSetBoard", () => {
 
     it("should assign monitoring result to settlement", () => {
         // arrange
-        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
         const playerName = "A";
         const result = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
 
@@ -110,7 +112,7 @@ describe("handleGetOpeningBonus", () => {
 
     it("should send empty if not have player ingame", () => {
         // arrange
-        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
 
         // act
         router.handleGetOpeningBonus(res);
@@ -121,7 +123,7 @@ describe("handleGetOpeningBonus", () => {
 
     it("should send users who are opening bonuses", () => {
         // arrange
-        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
         const playerName = "A";
         gameData.ingame[playerName] = {
             player: { profile: { name: playerName } },
@@ -137,7 +139,7 @@ describe("handleGetOpeningBonus", () => {
 
     it("when has error should write log", () => {
         // arrange
-        const router = new SlotHttpRouter(appConfigs, gameData, paylineCalculator, logService);
+        const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
         gameData.ingame = null;
 
         // act
