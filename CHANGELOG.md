@@ -1,3 +1,15 @@
+# [1.6.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.5.1...v1.6.0) (2023-02-24)
+
+
+### Bug Fixes
+
+* upgrade stable package ([ff0c77f](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/ff0c77f0fde417d3472f3b56394e07f943882d2e))
+
+
+### Features
+
+* upgrade game base for updating domain ([70ad7f2](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/70ad7f229731672f7270a8addb06d844838ff672))
+
 ## [1.5.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.5.0...v1.5.1) (2022-09-26)
 
 
