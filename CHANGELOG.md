@@ -1,3 +1,10 @@
+## [1.6.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.6.0...v1.6.1) (2023-03-15)
+
+
+### Bug Fixes
+
+* get metrics issue ([f1f5067](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/f1f50677015b0c486d9d6d7204c407cf9a93b1f1))
+
 # [1.6.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.5.1...v1.6.0) (2023-02-24)
 
 
