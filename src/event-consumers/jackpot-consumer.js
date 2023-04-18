@@ -24,7 +24,7 @@ export default class JackpotConsumer {
         this.currencyGroupGamesRepository = currencyGroupGamesRepository;
     }
 
-    async contribute(player, { pool, totalAmount, roundId }) {
+    async contribute(player, { pool, totalAmount, roundId }, rate) {
         const contributedByMember = !!player.session;
         const basePool = contributedByMember ? this.getBasePool(player, pool) : pool;
         if (basePool == null) {
@@ -38,7 +38,7 @@ export default class JackpotConsumer {
             return;
         }
 
-        const baseTotalAmount = totalAmount;
+        const baseTotalAmount = totalAmount * rate;
 
         const contributionRatio = contributedByMember
             ? this.gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio

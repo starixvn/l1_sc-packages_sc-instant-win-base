@@ -103,7 +103,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
 
             if (jackpot.enabled && !bet.freeSpin && this.isUserEnableJackpot(player)) {
-                await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId });
+                await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId }, bet.rate);
             }
         }
     }
