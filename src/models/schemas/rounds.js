@@ -52,6 +52,14 @@ const bonusChestSchema = new mongoose.Schema(
     { _id: false }
 );
 
+const jackpotContributionSchema = new mongoose.Schema(
+    {
+        contributionRate: { type: Number, default: 0 },
+        baseContributionAmount: { type: Number, default: 0 },
+    },
+    { _id: false }
+);
+
 export default new mongoose.Schema({
     id: { type: Number, required: true },
     name: { type: String, required: true },
@@ -66,6 +74,7 @@ export default new mongoose.Schema({
     result: { type: [Number] },
     settlementResult: { type: settlementResultSchema },
     bonusChests: { type: [bonusChestSchema] },
+    jackpot: { type: jackpotContributionSchema },
 
     odds: { type: Object },
     betWin: { type: Number, default: 0 },

@@ -6,7 +6,7 @@ import * as Board from "./board";
 import { SlotGameBot, SlotGameCron, SlotProcessBetQueue } from "./crons";
 import * as EventConsumers from "./event-consumers";
 import { BonusPublisher, JackpotPublisher } from "./event-publishers";
-import { IdCounters, Jackpots } from "./models";
+import { IdCounters } from "./models";
 import { HallOfFameQuery, SlotHistoryQuery } from "./query-apis";
 import { SlotHttpRouter, SlotSocketRouter } from "./routers";
 import SlotGameData from "./slot-game-data";
@@ -43,7 +43,6 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
         super.registerModels();
 
         this.container.register({
-            jackpotsRepository: asValue(Jackpots),
             idCountersRepository: asValue(IdCounters),
             gameNotificationsRepository: asValue(gameNotifications),
         });
@@ -51,6 +50,7 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
         this.container.register({
             famesRepository: asValue(undefined),
             freeSpinsRepository: asValue(undefined),
+            jackpotsRepository: asValue(undefined),
         });
     }
 
@@ -88,7 +88,6 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
             userDisconnectConsumer: asClass(EventConsumers.OutGameConsumer).singleton(),
             placeBetConsumer: asClass(EventConsumers.PlaceBetConsumer).singleton(),
             settleGameRoundConsumer: asClass(EventConsumers.SettleGameRoundConsumer).singleton().proxy(),
-            userSignInConsumer: asClass(EventConsumers.UserSignInConsumer).singleton(),
         });
     }
 

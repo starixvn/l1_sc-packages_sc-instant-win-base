@@ -1,5 +1,5 @@
-import SlotProcessBetQueue from "../slot-process-bet-queue";
 import { Core } from "sc-game-base";
+import SlotProcessBetQueue from "../slot-process-bet-queue";
 
 describe("slot-process-bet-queue", () => {
     describe("extends", () => {
@@ -33,13 +33,13 @@ describe("slot-process-bet-queue", () => {
         it("when have player session should create correct info", async () => {
             // arrange
             const roundsRepository = { create: jest.fn() };
-            const gameData = { exchangeRates: {} };
+            const gameData = { exchangeRates: {}, gameConfigs: { slotsConfig: { jackpot: { enabled: false } } } };
             const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
             const player = { session: { playerId: 1, siteId: 2 }, profile: { name: "user3" } };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
             // act
-            await cron.upsertBet(player, 1, bet);
+            await cron.upsertBet(player, 1, bet, 1);
 
             // assert
             expect(roundsRepository.create).toHaveBeenCalledWith(expect.objectContaining({ playerId: 1, siteId: 2 }));
@@ -48,7 +48,7 @@ describe("slot-process-bet-queue", () => {
         it("when not have player session should create correct info", async () => {
             // arrange
             const roundsRepository = { create: jest.fn() };
-            const gameData = { exchangeRates: {} };
+            const gameData = { exchangeRates: {}, gameConfigs: { slotsConfig: { jackpot: { enabled: false } } } };
             const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
             const player = { profile: { name: "user3" }, session: null };
             const bet = { totalAmount: 10, freeSpin: 1 };
@@ -58,6 +58,29 @@ describe("slot-process-bet-queue", () => {
 
             // assert
             expect(roundsRepository.create).toHaveBeenCalledWith(expect.objectContaining({ name: "user3" }));
+        });
+
+        describe("when jackpot is enabled", () => {
+            it("Should calculate contribution amount", async () => {
+                // arrange
+                const roundsRepository = { create: jest.fn() };
+                const gameData = { exchangeRates: {}, gameConfigs: { slotsConfig: { jackpot: { enabled: true } } } };
+                const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
+                const player = { session: { playerId: 1, siteId: 2 }, profile: { name: "user3" } };
+                const bet = { totalAmount: 10, freeSpin: 1, contributionRate: 0.025 };
+                const rate = 0.8;
+                // act
+                await cron.upsertBet(player, 1, bet, rate);
+
+                // assert
+                expect(roundsRepository.create).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        playerId: 1,
+                        siteId: 2,
+                        jackpot: { contributionRate: bet.contributionRate, baseContributionAmount: bet.totalAmount * bet.contributionRate * rate },
+                    })
+                );
+            });
         });
     });
 

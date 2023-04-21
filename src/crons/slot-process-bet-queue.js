@@ -1,6 +1,6 @@
-import { helpers, logger } from "sc-common";
+import { round } from "lodash";
+import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
-
 import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import SlotGameData from "./../slot-game-data";
@@ -91,9 +91,9 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             betInfo.amount = bet;
         }
 
-        betInfo.totalAmount = parseFloat((betInfo.amount * betInfo.betChoice.length).toFixed(2));
-        betInfo.contributionRate = parseFloat(contributionRate.toFixed(4));
-        betInfo.contributionAmount = parseFloat((contributionRate * betInfo.totalAmount).toFixed(4));
+        betInfo.totalAmount = round(betInfo.amount * betInfo.betChoice.length, 2);
+        betInfo.contributionRate = contributionRate;
+        betInfo.contributionAmount = round(contributionRate * betInfo.totalAmount, 4);
 
         return betInfo;
     }
@@ -142,6 +142,14 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             rate: rate,
             exchangeRateId: this.gameData.exchangeRates.exId,
         };
+
+        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
+        if (jackpot.enabled) {
+            newBet.jackpot = {
+                contributionRate: bet.contributionRate,
+                baseContributionAmount: round(bet.totalAmount * bet.contributionRate * rate, 4),
+            };
+        }
 
         if (player.session) {
             newBet.siteId = player.session.siteId;

@@ -22,7 +22,6 @@ const logService = stub(logger);
 describe("contribute", () => {
     const pool = 1;
     const runningPoolFilter = {
-        gameId: gameDefinition.id,
         pool,
         winnerName: { $exists: false },
         createdAt: { $lte: gameData.roundId },
@@ -45,7 +44,7 @@ describe("contribute", () => {
         // arrange
         const consumer = initConsumer();
         spyOn(consumer, "getBasePool").and.returnValue(null);
-        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate: 1 };
         const player = { session: {} };
 
         // act
@@ -59,7 +58,7 @@ describe("contribute", () => {
     it("should update approriate contribution for bot and publish pool info", async () => {
         // arrange
         const consumer = initConsumer();
-        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate: 1 };
         jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
             amount: 12,
         });
@@ -90,7 +89,7 @@ describe("contribute", () => {
     it("should update approriate contribution for player and publish pool info", async () => {
         // arrange
         const consumer = initConsumer();
-        const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate: 1 };
         jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
             amount: 12,
         });

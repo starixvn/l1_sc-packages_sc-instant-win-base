@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { endGame as endGameApi, hitJackpot as hitJackpotApi } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
 import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "./../board";
@@ -103,7 +102,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             }
 
             if (jackpot.enabled && !bet.freeSpin && this.isUserEnableJackpot(player)) {
-                await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId }, bet.rate);
+                await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId, rate: bet.rate });
             }
         }
     }

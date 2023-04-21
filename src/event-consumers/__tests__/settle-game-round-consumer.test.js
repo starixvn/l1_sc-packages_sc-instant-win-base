@@ -96,7 +96,7 @@ describe("settleRound", () => {
         // arrange
         const consumer = new SettleGameRoundConsumer(initDependencies());
         const player = stubPlayer();
-        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name };
+        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, rate: 1 };
         const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
         consumer.boardGenerator.generate.mockReturnValueOnce(board);
         consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
@@ -114,7 +114,7 @@ describe("settleRound", () => {
         // arrange
         const consumer = new SettleGameRoundConsumer(initDependencies());
         const player = stubPlayer();
-        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name };
+        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, rate: 1 };
         const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
         consumer.boardGenerator.generate.mockReturnValueOnce(board);
         consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
@@ -133,7 +133,7 @@ describe("settleRound", () => {
         // arrange
         const consumer = new SettleGameRoundConsumer(initDependencies());
         const player = stubPlayer();
-        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name };
+        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, rate: 1 };
         const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
         consumer.boardGenerator.generate.mockReturnValueOnce(board);
         consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
@@ -161,7 +161,7 @@ describe("settleRound", () => {
             // arrange
             const consumer = new SettleGameRoundConsumer(initDependencies());
             const player = stubPlayer();
-            const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, freeSpin: testCase.freeSpin };
+            const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, freeSpin: testCase.freeSpin, rate: 1 };
             const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
             consumer.boardGenerator.generate.mockReturnValueOnce(board);
             consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);

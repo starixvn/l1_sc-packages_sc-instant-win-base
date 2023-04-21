@@ -1,10 +1,9 @@
+import { round } from "lodash";
 import mongoose from "mongoose";
-import { logger } from "sc-common";
-
 import { JackpotPublisher } from "./../event-publishers";
+import { MultipleCurrencyHelper } from "./../helpers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
-import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class JackpotConsumer {
     /**
@@ -24,7 +23,7 @@ export default class JackpotConsumer {
         this.currencyGroupGamesRepository = currencyGroupGamesRepository;
     }
 
-    async contribute(player, { pool, totalAmount, roundId }, rate) {
+    async contribute(player, { pool, totalAmount, roundId, rate }) {
         const contributedByMember = !!player.session;
         const basePool = contributedByMember ? this.getBasePool(player, pool) : pool;
         if (basePool == null) {
@@ -43,10 +42,9 @@ export default class JackpotConsumer {
         const contributionRatio = contributedByMember
             ? this.gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio
             : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
-        const contributionAmount = parseFloat((baseTotalAmount * contributionRatio).toFixed(4));
+        const contributionAmount = round(baseTotalAmount * contributionRatio, 4);
 
         const runningPoolFilter = {
-            gameId: this.definition.id,
             pool: basePool,
             winnerName: { $exists: false },
             createdAt: { $lte: roundId },
@@ -94,7 +92,6 @@ export default class JackpotConsumer {
 
         const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningRatio;
         const runningPoolFilter = {
-            gameId: this.definition.id,
             pool: basePool,
             winnerName: { $exists: false },
             createdAt: { $lt: roundId },
@@ -148,7 +145,6 @@ export default class JackpotConsumer {
         await Promise.all(
             stakeLevels.map(async (stakeLevel) => {
                 const runningPoolFilter = {
-                    gameId: this.definition.id,
                     pool: stakeLevel.stake,
                     winnerName: { $exists: false },
                 };
@@ -171,8 +167,6 @@ export default class JackpotConsumer {
         this.logService.log(`Init new jackpot pool ${pool} at round ${roundId}`);
 
         await this.jackpotsRepository.create({
-            gameId: this.definition.id,
-            gameName: this.definition.name,
             pool,
             initAmount,
             amount: initAmount,
@@ -183,7 +177,6 @@ export default class JackpotConsumer {
 
     async getLatestRoundId() {
         const runningPoolFilter = {
-            gameId: this.definition.id,
             winnerName: { $exists: false },
         };
 
