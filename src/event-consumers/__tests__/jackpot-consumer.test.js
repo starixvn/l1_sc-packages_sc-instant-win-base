@@ -2,6 +2,7 @@ import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 import { logger } from "sc-common/logger";
 
+import math from "lodash/math";
 import { JackpotPublisher } from "../../event-publishers";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
@@ -55,7 +56,7 @@ describe("contribute", () => {
         expect(jackpotPublisher.publishLatestPool).not.toBeCalled();
     });
 
-    it("should update approriate contribution for bot and publish pool info", async () => {
+    it("should update approriate contribution for bot with exchange rate and publish pool info", async () => {
         // arrange
         const consumer = initConsumer();
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate: 1 };
@@ -64,7 +65,7 @@ describe("contribute", () => {
         });
 
         spyOn(consumer, "getBasePool").and.returnValue(1);
-        const contributeAmount = 5 * gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
+        const contributeAmount = math.round(5 * gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio * bet.rate, 4);
         const poolAdjustment = {
             amount: contributeAmount,
             byBots: contributeAmount,
@@ -86,14 +87,14 @@ describe("contribute", () => {
         expect(jackpotPublisher.publishLatestPool).toBeCalledWith({ pool, amount: 12 });
     });
 
-    it("should update approriate contribution for player and publish pool info", async () => {
+    it.each([1, 0.9, 0.5, 0.6])("should update approriate contribution for player and publish pool info", async (rate) => {
         // arrange
         const consumer = initConsumer();
-        const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate: 1 };
+        const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate };
         jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
             amount: 12,
         });
-        const contributeAmount = 5 * gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio;
+        const contributeAmount = math.round(5 * gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio * rate, 4);
         const poolAdjustment = {
             amount: contributeAmount,
             byBots: 0,

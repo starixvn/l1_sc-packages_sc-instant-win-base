@@ -1,4 +1,4 @@
-import { round } from "lodash";
+import math from "lodash/math";
 import mongoose from "mongoose";
 import { JackpotPublisher } from "./../event-publishers";
 import { MultipleCurrencyHelper } from "./../helpers";
@@ -42,7 +42,7 @@ export default class JackpotConsumer {
         const contributionRatio = contributedByMember
             ? this.gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio
             : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
-        const contributionAmount = round(baseTotalAmount * contributionRatio, 4);
+        const contributionAmount = math.round(baseTotalAmount * contributionRatio, 4);
 
         const runningPoolFilter = {
             pool: basePool,

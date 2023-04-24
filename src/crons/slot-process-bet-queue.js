@@ -1,4 +1,4 @@
-import { round } from "lodash";
+import math from "lodash/math";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
@@ -91,9 +91,9 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             betInfo.amount = bet;
         }
 
-        betInfo.totalAmount = round(betInfo.amount * betInfo.betChoice.length, 2);
+        betInfo.totalAmount = math.round(betInfo.amount * betInfo.betChoice.length, 2);
         betInfo.contributionRate = contributionRate;
-        betInfo.contributionAmount = round(contributionRate * betInfo.totalAmount, 4);
+        betInfo.contributionAmount = math.round(contributionRate * betInfo.totalAmount, 4);
 
         return betInfo;
     }
@@ -147,7 +147,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         if (jackpot.enabled) {
             newBet.jackpot = {
                 contributionRate: bet.contributionRate,
-                baseContributionAmount: round(bet.totalAmount * bet.contributionRate * rate, 4),
+                baseContributionAmount: math.round(bet.totalAmount * bet.contributionRate * rate, 4),
             };
         }
 
