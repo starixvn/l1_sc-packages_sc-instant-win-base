@@ -82,7 +82,6 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
     async generateBetInfo(payload, freeSpinInfo, player) {
         const betInfo = { ...payload };
         const { slotsConfig } = this.gameData.gameConfigs;
-        const contributionRate = slotsConfig.jackpot ? slotsConfig.jackpot.playerContributionRatio : 0;
 
         if (freeSpinInfo) {
             const { bet, paylines } = freeSpinInfo;
@@ -92,6 +91,9 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         }
 
         betInfo.totalAmount = math.round(betInfo.amount * betInfo.betChoice.length, 2);
+
+        const contributionRate =
+            slotsConfig.jackpot.enabled && !player.session.disableJackpotGames && !payload.freeSpin ? slotsConfig.jackpot.playerContributionRatio : 0;
         betInfo.contributionRate = contributionRate;
         betInfo.contributionAmount = math.round(contributionRate * betInfo.totalAmount, 4);
 
@@ -144,8 +146,8 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         };
 
         const { jackpot } = this.gameData.gameConfigs.slotsConfig;
-        if (jackpot.enabled) {
-            newBet.jackpot = {
+        if (jackpot.enabled && !player.session.disableJackpotGames) {
+            newBet.jackpotContribution = {
                 contributionRate: bet.contributionRate,
                 baseContributionAmount: math.round(bet.totalAmount * bet.contributionRate * rate, 4),
             };

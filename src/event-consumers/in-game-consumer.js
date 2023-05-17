@@ -1,11 +1,10 @@
 import mongoose from "mongoose";
-import { getBalance as getBalanceApi } from "sc-base-apis";
 import { Core } from "sc-game-base";
 
+import { MultipleCurrencyHelper } from "./../helpers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 import FreeSpinsConsumer from "./free-spins-consumer";
-import { MultipleCurrencyHelper } from "./../helpers";
 
 export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
     /**
@@ -28,6 +27,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
 
     async buildPayload(realPlayer) {
         const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, realPlayer);
+        const { session } = realPlayer;
 
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
         const gameConfigs = {
@@ -45,14 +45,13 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             bet: soonestExpiredFreeSpinSet?.bet,
             paylines: soonestExpiredFreeSpinSet?.paylines,
         };
-        const jackpotPools = this.gameData.gameConfigs.slotsConfig.jackpot.enabled ? await this.getPools() : [];
+        const jackpotPools = this.gameData.gameConfigs.slotsConfig.jackpot.enabled && !session.disableJackpotGames ? await this.getPools() : [];
 
         await this.getBalance(realPlayer, true);
 
         const user = await this.getUserInfo(realPlayer.UID);
 
         const { exchangeRates } = this.gameData;
-        const { session } = realPlayer;
         const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
 
         return {
@@ -63,6 +62,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
                 ...user,
                 rate,
                 multiplier: session.multiplier,
+                disableJackpotGames: session.disableJackpotGames
             },
         };
     }

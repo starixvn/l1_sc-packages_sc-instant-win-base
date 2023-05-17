@@ -111,7 +111,11 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const { jackpot } = this.gameData.gameConfigs.slotsConfig;
         const isTestCurrency = this.gameData.currencies.some((currency) => currency.name === player.session.currencyName && currency.isTest);
 
-        return !isTestCurrency || !jackpot.excludeTestCurrency;
+        if (isTestCurrency) {
+            return !jackpot.excludeTestCurrency;
+        }
+
+        return !player.session.disableJackpotGames;
     }
 
     async generateRoundResult(player, roundId, bet) {
@@ -124,7 +128,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 ? await this.processJackpot(player, roundId, bet.bet, settlementResult.jackpotPayline)
                 : null;
 
-        settlementResult.winningPaylines = settlementResult.paylines.filter((payline) => payline.odds > 0);
+        settlementResult.winningPaylines = settlementResult.jackpot
+            ? settlementResult.paylines.filter((payline) => payline.odds > 0 && payline.symbol !== this.definition.specialSymbols.jackpot)
+            : settlementResult.paylines.filter((payline) => payline.odds > 0);
 
         return {
             roundId,

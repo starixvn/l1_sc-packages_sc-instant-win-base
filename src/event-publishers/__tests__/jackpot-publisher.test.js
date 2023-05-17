@@ -1,8 +1,29 @@
-import JackpotPublisher from "../jackpot-publisher";
 import { Core } from "sc-game-base";
 import authenticationHelpers from "sc-game-base/src/core/helpers/authentication-helpers";
+import JackpotPublisher from "../jackpot-publisher";
 
 jest.mock("sc-game-base/src/core/helpers/authentication-helpers");
+
+const gameData = {
+    realPlayers: [
+        {
+            session: {
+                disableJackpotGames: true,
+            },
+            socketClient: {
+                emit: jest.fn(),
+            },
+        },
+        {
+            session: {
+                disableJackpotGames: false,
+            },
+            socketClient: {
+                emit: jest.fn(),
+            },
+        },
+    ],
+};
 
 describe("jackpot-publisher", () => {
     describe("extends", () => {
@@ -16,32 +37,33 @@ describe("jackpot-publisher", () => {
     });
 
     describe("publishLatestPool", () => {
-        it("should publishToAllUsers with correct info", () => {
+        it("should publishToEligibleUsers with correct info", () => {
             // arrange
-            const publisher = new JackpotPublisher();
+            const publisher = new JackpotPublisher(29, "FourGuardians", gameData);
+            const spy = jest.spyOn(publisher, "publishToEligibleUsers");
             publisher.publishToAllUsers = jest.fn();
 
             // act
             publisher.publishLatestPool(1);
 
             // assert
-            expect(publisher.publishToAllUsers).toBeCalledWith(expect.objectContaining({ jackpotPool: 1 }));
+            expect(spy).toBeCalledWith(expect.objectContaining({ jackpotPool: 1 }));
         });
     });
 
     describe("publishWinner", () => {
-        it("should publishToAllUsers with correct info", async () => {
+        it("should publishToEligibleUsers with correct info", async () => {
             // arrange
-            const publisher = new JackpotPublisher();
+            const publisher = new JackpotPublisher(29, "FourGuardians", gameData);
             publisher.publishToUser = jest.fn();
-            publisher.publishToAllUsers = jest.fn();
+            const spy = jest.spyOn(publisher, "publishToEligibleUsers");
             publisher.sendJackpotWinner = jest.fn();
 
             // act
             await publisher.publishWinner(1, { username: "winner" });
 
             // assert
-            expect(publisher.publishToAllUsers).toBeCalledWith(expect.objectContaining({ jackpotWinner: { username: "winner" } }));
+            expect(spy).toBeCalledWith(expect.objectContaining({ jackpotWinner: { username: "winner" } }));
         });
     });
 
@@ -91,6 +113,20 @@ describe("jackpot-publisher", () => {
 
             // assert
             expect(publisher.publishToUser).toBeCalledWith(1, expect.objectContaining({ jackpotError: "error" }));
+        });
+    });
+
+    describe("publishToEligibleUsers", () => {
+        it("should only send data to user with disableJackpotGames = true", () => {
+            // arrange
+            const publisher = new JackpotPublisher(29, "FourGuardians", gameData);
+
+            // act
+            publisher.publishToEligibleUsers({ jackpotPool: [] });
+
+            // assert
+            expect(gameData.realPlayers.find((x) => x.session.disableJackpotGames).socketClient.emit).not.toHaveBeenCalled();
+            expect(gameData.realPlayers.find((x) => !x.session.disableJackpotGames).socketClient.emit).toHaveBeenCalledWith("FourGuardians", { jackpotPool: [] });
         });
     });
 });

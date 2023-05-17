@@ -1,4 +1,3 @@
-import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 import authenticationHelpers from "sc-game-base/src/core/helpers/authentication-helpers";
 
@@ -22,14 +21,24 @@ export default class JackpotPublisher extends Core.BaseEventPublishers.BaseEvent
     }
 
     publishLatestPool(pool) {
-        this.publishToAllUsers({ jackpotPool: pool });
+        this.publishToEligibleUsers({ jackpotPool: pool });
     }
 
     async publishWinner(playerId, winner) {
         this.publishToUser(playerId, { winningJackpot: winner });
-        this.publishToAllUsers({ jackpotWinner: winner });
+        this.publishToEligibleUsers({ jackpotWinner: winner });
 
         await this.sendJackpotWinner(winner);
+    }
+
+    publishToEligibleUsers(payload) {
+        const socketPlayers = Object.values(this.gameData.realPlayers)
+            .filter((player) => !player.session.disableJackpotGames)
+            .map((player) => player.socketClient);
+
+        socketPlayers.forEach((socket) => {
+            socket && socket.emit(this.gameName, payload);
+        });
     }
 
     async sendJackpotWinner(winner) {

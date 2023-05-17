@@ -74,7 +74,7 @@ export default new mongoose.Schema({
     result: { type: [Number] },
     settlementResult: { type: settlementResultSchema },
     bonusChests: { type: [bonusChestSchema] },
-    jackpot: { type: jackpotContributionSchema },
+    jackpotContribution: { type: jackpotContributionSchema },
 
     odds: { type: Object },
     betWin: { type: Number, default: 0 },

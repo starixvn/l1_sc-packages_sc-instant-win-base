@@ -1,3 +1,4 @@
+import math from "lodash/math";
 import { Core } from "sc-game-base";
 import SlotProcessBetQueue from "../slot-process-bet-queue";
 
@@ -77,7 +78,7 @@ describe("slot-process-bet-queue", () => {
                     expect.objectContaining({
                         playerId: 1,
                         siteId: 2,
-                        jackpot: { contributionRate: bet.contributionRate, baseContributionAmount: bet.totalAmount * bet.contributionRate * rate },
+                        jackpotContribution: { contributionRate: bet.contributionRate, baseContributionAmount: bet.totalAmount * bet.contributionRate * rate },
                     })
                 );
             });
@@ -218,8 +219,8 @@ describe("slot-process-bet-queue", () => {
         });
 
         const testCases = [
-            { jackpot: { playerContributionRatio: 5 }, soonestExpiredFreeSpinSet: { bet: 1, paylines: [] } },
-            { jackpot: undefined, soonestExpiredFreeSpinSet: null },
+            { jackpot: { enabled: true, playerContributionRatio: 5 }, soonestExpiredFreeSpinSet: { bet: 1, paylines: [] } },
+            { jackpot: {}, soonestExpiredFreeSpinSet: null },
         ];
 
         it.each(testCases)("when have soonestExpiredFreeSpinSet should call idCountersConsumer.consume", async (testCase) => {
@@ -256,7 +257,7 @@ describe("slot-process-bet-queue", () => {
                 placeBet,
                 baseMetrics,
             });
-            const player = { profile: { name: "player1" } };
+            const player = { profile: { name: "player1" }, session: { disabledJackpotGames: false } };
             const payload = { freeSpin: false, betChoice: [] };
 
             // act
@@ -264,6 +265,60 @@ describe("slot-process-bet-queue", () => {
 
             // assert
             expect(idCountersConsumer.consume).toBeCalled();
+        });
+    });
+
+    describe("generateBetInfo", () => {
+        describe("Jackpot is enabled", () => {
+            const gameData = {
+                gameConfigs: {
+                    slotsConfig: { jackpot: { enabled: true, playerContributionRatio: 0.05 } },
+                },
+            };
+            describe("When user can access jackpot", () => {
+                const player = {
+                    session: {
+                        disabledJackpotGames: false,
+                    },
+                };
+                it("Should calculate contribution rate & amount with normal spin", async () => {
+                    //Arrange
+                    const payload = {
+                        freeSpin: false,
+                        amount: 0.1,
+                        betChoice: [1, 2, 3],
+                    };
+                    const cron = new SlotProcessBetQueue({
+                        gameData,
+                    });
+
+                    //Act
+                    const result = await cron.generateBetInfo(payload, null, player);
+
+                    //Assert
+                    expect(result.contributionRate).toEqual(gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio);
+                    expect(result.contributionAmount).toEqual(math.round(payload.amount * payload.betChoice.length * gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio, 4));
+                });
+
+                it("contributionRate & contributionAmount should be 0 with free spin", async () => {
+                    //Arrange
+                    const payload = {
+                        freeSpin: true,
+                        amount: 0.1,
+                        betChoice: [1, 2, 3],
+                    };
+                    const cron = new SlotProcessBetQueue({
+                        gameData,
+                    });
+
+                    //Act
+                    const result = await cron.generateBetInfo(payload, null, player);
+
+                    //Assert
+                    expect(result.contributionRate).toEqual(0);
+                    expect(result.contributionAmount).toEqual(0);
+                });
+            });
         });
     });
 });
