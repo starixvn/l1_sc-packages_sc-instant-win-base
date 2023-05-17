@@ -78,7 +78,10 @@ describe("slot-process-bet-queue", () => {
                     expect.objectContaining({
                         playerId: 1,
                         siteId: 2,
-                        jackpotContribution: { contributionRate: bet.contributionRate, baseContributionAmount: bet.totalAmount * bet.contributionRate * rate },
+                        jackpotContribution: {
+                            contributionRate: bet.contributionRate,
+                            baseContributionAmount: bet.totalAmount * bet.contributionRate * rate,
+                        },
                     })
                 );
             });
@@ -278,7 +281,7 @@ describe("slot-process-bet-queue", () => {
             describe("When user can access jackpot", () => {
                 const player = {
                     session: {
-                        disabledJackpotGames: false,
+                        disableJackpotGames: false,
                     },
                 };
                 it("Should calculate contribution rate & amount with normal spin", async () => {
@@ -297,13 +300,41 @@ describe("slot-process-bet-queue", () => {
 
                     //Assert
                     expect(result.contributionRate).toEqual(gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio);
-                    expect(result.contributionAmount).toEqual(math.round(payload.amount * payload.betChoice.length * gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio, 4));
+                    expect(result.contributionAmount).toEqual(
+                        math.round(payload.amount * payload.betChoice.length * gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio, 4)
+                    );
                 });
 
                 it("contributionRate & contributionAmount should be 0 with free spin", async () => {
                     //Arrange
                     const payload = {
                         freeSpin: true,
+                        amount: 0.1,
+                        betChoice: [1, 2, 3],
+                    };
+                    const cron = new SlotProcessBetQueue({
+                        gameData,
+                    });
+
+                    //Act
+                    const result = await cron.generateBetInfo(payload, null, player);
+
+                    //Assert
+                    expect(result.contributionRate).toEqual(0);
+                    expect(result.contributionAmount).toEqual(0);
+                });
+            });
+
+            describe("When user can't access jackpot", () => {
+                const player = {
+                    session: {
+                        disableJackpotGames: true,
+                    },
+                };
+                it("contributionRate & contributionAmount should be 0", async () => {
+                    //Arrange
+                    const payload = {
+                        freeSpin: false,
                         amount: 0.1,
                         betChoice: [1, 2, 3],
                     };

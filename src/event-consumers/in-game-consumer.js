@@ -69,7 +69,6 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
 
     async getPools() {
         const runningPoolsFilter = {
-            gameId: this.definition.id,
             winnerName: { $exists: false },
         };
         const projection = {
