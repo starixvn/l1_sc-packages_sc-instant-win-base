@@ -129,7 +129,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 : null;
 
         settlementResult.winningPaylines = settlementResult.jackpot
-            ? settlementResult.paylines.filter((payline) => payline.odds > 0 && payline.symbol !== this.definition.specialSymbols.jackpot)
+            ? settlementResult.paylines.filter((payline) => payline.odds > 0 && payline.symbol !== this.boardGenerator.definition.specialSymbols.jackpot)
             : settlementResult.paylines.filter((payline) => payline.odds > 0);
 
         return {

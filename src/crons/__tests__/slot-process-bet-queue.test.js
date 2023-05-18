@@ -351,5 +351,37 @@ describe("slot-process-bet-queue", () => {
                 });
             });
         });
+
+        describe("Jackpot is disabled", () => {
+            const gameData = {
+                gameConfigs: {
+                    slotsConfig: { jackpot: { enabled: false } },
+                },
+            };
+
+            const player = {
+                session: {
+                    disableJackpotGames: false,
+                },
+            };
+            it("contributionRate & contributionAmount should be 0", async () => {
+                //Arrange
+                const payload = {
+                    freeSpin: false,
+                    amount: 0.1,
+                    betChoice: [1, 2, 3],
+                };
+                const cron = new SlotProcessBetQueue({
+                    gameData,
+                });
+
+                //Act
+                const result = await cron.generateBetInfo(payload, null, player);
+
+                //Assert
+                expect(result.contributionRate).toEqual(0);
+                expect(result.contributionAmount).toEqual(0);
+            });
+        });
     });
 });
