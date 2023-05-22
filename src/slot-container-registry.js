@@ -11,7 +11,6 @@ import { HallOfFameQuery, SlotHistoryQuery } from "./query-apis";
 import { SlotHttpRouter, SlotSocketRouter } from "./routers";
 import SlotGameData from "./slot-game-data";
 import SlotGameDefinition from "./slot-game-definition";
-import SlotGamePlayGamePermissionValidator from "./validators/slot-game-play-game-permission-validator";
 
 export default class SlotContainerRegistry extends Table.TableContainerRegistry {
     /**
@@ -107,14 +106,6 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
         this.container.register({
             socketRouter: asClass(SlotSocketRouter).proxy(),
             httpRouter: asClass(SlotHttpRouter),
-        });
-    }
-
-    registerValidators() {
-        super.registerValidators();
-
-        this.container.register({
-            playGamePermissionValidator: asClass(SlotGamePlayGamePermissionValidator).singleton(),
         });
     }
 }
