@@ -1,4 +1,3 @@
-import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
 import { BonusConsumer, InGameConsumer, PlaceBetConsumer } from "./../event-consumers";
@@ -81,7 +80,8 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
     async handleGettingJackpotWinners(payload) {
         try {
-            if (!this.verify()) {
+            const { session } = this.gameData.realPlayers[this.socketClient.id];
+            if (!this.verify() || session.disableJackpotGames) {
                 return;
             }
 

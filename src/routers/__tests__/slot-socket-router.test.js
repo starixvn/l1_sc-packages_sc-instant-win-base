@@ -118,13 +118,33 @@ describe("handleGettingBigWinningWinners", () => {
 describe("handleGettingJackpotWinners", () => {
     beforeEach(() => {
         jest.clearAllMocks();
-    });
+   
+        gameData.realPlayers[socketClient.id] = {
+            socketClient,
+            session: {
+                disableJackpotGames: false,
+            },
+        }; });
 
     it("should not call hallOfFameQuery when invalid request", async () => {
         // arrange
         const router = initRouter();
         spyOn(router, "verify").and.returnValue(false);
         spyOn(fameQuery, "queryJackpotWinners");
+
+        // act
+        await router.handleGettingJackpotWinners({});
+
+        // assert
+        expect(fameQuery.queryJackpotWinners).not.toHaveBeenCalled();
+    });
+
+    it("should not call hallOfFameQuery when disableJackpotGames=true", async () => {
+        // arrange
+        const router = initRouter();
+        spyOn(router, "verify").and.returnValue(true);
+        spyOn(fameQuery, "queryJackpotWinners");
+        gameData.realPlayers[socketClient.id].session.disableJackpotGames = true;
 
         // act
         await router.handleGettingJackpotWinners({});
