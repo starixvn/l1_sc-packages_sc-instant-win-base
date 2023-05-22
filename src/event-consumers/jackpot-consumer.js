@@ -189,7 +189,7 @@ export default class JackpotConsumer {
             .lean()
             .exec();
 
-        return pool.createdAt;
+        return pool ? pool.createdAt : 0;
     }
 
     getBasePool(player, stake) {
