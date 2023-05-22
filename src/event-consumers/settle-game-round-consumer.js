@@ -112,7 +112,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const isTestCurrency = this.gameData.currencies.some((currency) => currency.name === player.session.currencyName && currency.isTest);
 
         if (isTestCurrency) {
-            return !jackpot.excludeTestCurrency;
+            return !jackpot.excludeTestCurrency && !player.session.disableJackpotGames;
         }
 
         return !player.session.disableJackpotGames;

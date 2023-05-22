@@ -653,7 +653,7 @@ describe("settle-game-round-consumer", () => {
             dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = true;
             dependencies.gameData.currencies = [{ name: "UUS", isTest: true }];
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currencyName: "UUS" } };
+            const player = { session: { currencyName: "UUS", disableJackpotGames: false } };
 
             // act
             const actualValue = consumer.isUserEnableJackpot(player);
@@ -669,7 +669,7 @@ describe("settle-game-round-consumer", () => {
             dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = false;
             dependencies.gameData.currencies = [{ name: "UUS", isTest: true }];
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currencyName: "UUS" } };
+            const player = { session: { currencyName: "UUS", disableJackpotGames: false } };
 
             // act
             const actualValue = consumer.isUserEnableJackpot(player);
@@ -685,13 +685,29 @@ describe("settle-game-round-consumer", () => {
             dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = true;
             dependencies.gameData.currencies = [{ name: "IN", isTest: false }];
             const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currencyName: "IN" } };
+            const player = { session: { currencyName: "IN", disableJackpotGames: false } };
 
             // act
             const actualValue = consumer.isUserEnableJackpot(player);
 
             // assert
             expect(actualValue).toBe(true);
+        });
+
+        it("when disableJackpotGames is true should return false", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.definition = {};
+            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = false;
+            dependencies.gameData.currencies = [{ name: "IN", isTest: false }];
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const player = { session: { currencyName: "IN", disableJackpotGames: true } };
+
+            // act
+            const actualValue = consumer.isUserEnableJackpot(player);
+
+            // assert
+            expect(actualValue).toBe(false);
         });
     });
 
