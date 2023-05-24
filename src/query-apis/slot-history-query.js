@@ -30,7 +30,7 @@ export default class SlotHistoryQuery {
             .lean()
             .exec();
         const betLogs = rawBetLogs.map((rawBetLog) => {
-            const betLog = { ...rawBetLog, enableJackpot: rawBetLog.jackpotContribution !== null };
+            const betLog = { ...rawBetLog, enableJackpot: !!rawBetLog.jackpotContribution};
 
             delete betLog.bonusChests;
             delete betLog.jackpotContribution;
