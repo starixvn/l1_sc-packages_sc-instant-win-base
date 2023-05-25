@@ -23,6 +23,7 @@ const logService = stub(logger);
 describe("contribute", () => {
     const pool = 1;
     const runningPoolFilter = {
+        gameId: gameDefinition.id,
         pool,
         winnerName: { $exists: false },
         createdAt: { $lte: gameData.roundId },
@@ -80,6 +81,7 @@ describe("contribute", () => {
         expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
             runningPoolFilter,
             {
+                gameId: gameDefinition.id,
                 $inc: poolAdjustment,
             },
             sort
@@ -108,6 +110,7 @@ describe("contribute", () => {
         expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
             runningPoolFilter,
             {
+                gameId: gameDefinition.id,
                 $inc: poolAdjustment,
             },
             sort

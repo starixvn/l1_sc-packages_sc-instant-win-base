@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 
-export default new mongoose.Schema({
+const jackpotSchema = new mongoose.Schema({
+    gameId: { type: Number, required: true },
+    gameName: { type: String, required: true },
     pool: { type: Number, required: true }, // pool associated with each bet amount, such as 100, 100, etc.
     initAmount: { type: Number, required: true },
     amount: { type: Number, default: 0 },
@@ -18,3 +20,5 @@ export default new mongoose.Schema({
     createdTime: { type: Date, required: true },
     hitTime: { type: Date },
 });
+
+export default mongoose.model("Jackpot", jackpotSchema);

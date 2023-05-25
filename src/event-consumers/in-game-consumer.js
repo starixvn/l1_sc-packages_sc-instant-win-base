@@ -62,13 +62,14 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
                 ...user,
                 rate,
                 multiplier: session.multiplier,
-                disableJackpotGames: session.disableJackpotGames
+                disableJackpotGames: session.disableJackpotGames,
             },
         };
     }
 
     async getPools() {
         const runningPoolsFilter = {
+            gameId: this.definition.id,
             winnerName: { $exists: false },
         };
         const projection = {

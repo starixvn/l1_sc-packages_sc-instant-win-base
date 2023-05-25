@@ -45,6 +45,7 @@ export default class JackpotConsumer {
         const contributionAmount = math.round(baseTotalAmount * contributionRatio, 4);
 
         const runningPoolFilter = {
+            gameId: this.definition.id,
             pool: basePool,
             winnerName: { $exists: false },
             createdAt: { $lte: roundId },
@@ -61,6 +62,7 @@ export default class JackpotConsumer {
         const latestJackpotPool = await this.jackpotsRepository.findOneAndUpdate(
             runningPoolFilter,
             {
+                gameId: this.definition.id,
                 $inc: poolAdjustment,
             },
             {
@@ -115,6 +117,7 @@ export default class JackpotConsumer {
         const winningJackpot = await this.jackpotsRepository.findOneAndUpdate(
             runningPoolFilter,
             {
+                gameId: this.definition.id,
                 $set: winnerAdjustment,
             },
             {
@@ -145,6 +148,7 @@ export default class JackpotConsumer {
         await Promise.all(
             stakeLevels.map(async (stakeLevel) => {
                 const runningPoolFilter = {
+                    gameId: this.definition.id,
                     pool: stakeLevel.stake,
                     winnerName: { $exists: false },
                 };
@@ -167,6 +171,8 @@ export default class JackpotConsumer {
         this.logService.log(`Init new jackpot pool ${pool} at round ${roundId}`);
 
         await this.jackpotsRepository.create({
+            gameId: this.definition.id,
+            gameName: this.definition.name,
             pool,
             initAmount,
             amount: initAmount,
@@ -177,6 +183,7 @@ export default class JackpotConsumer {
 
     async getLatestRoundId() {
         const runningPoolFilter = {
+            gameId: this.definition.id,
             winnerName: { $exists: false },
         };
 
