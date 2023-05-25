@@ -50,7 +50,6 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
         this.container.register({
             famesRepository: asValue(undefined),
             freeSpinsRepository: asValue(undefined),
-            jackpotsRepository: asValue(undefined),
         });
     }
 
