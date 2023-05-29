@@ -38,7 +38,12 @@ export default class HallOfFameQuery {
                 .lean()
                 .exec()) ?? [];
 
-        return { bigWinningWinners: { winners, page, pageSize, total } };
+        winners.forEach(winner => {
+            winner.baseTotalAmount = winner.totalAmount * winner.rate;
+            winner.baseWinningAmount = winner.winningAmount * winner.rate;
+        })
+
+        return { bigWinningWinners: { winners: winners, page, pageSize, total } };
     }
 
     async queryJackpotWinners(page, pageSize = 10) {
