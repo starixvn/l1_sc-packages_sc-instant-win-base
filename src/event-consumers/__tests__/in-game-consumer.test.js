@@ -5,6 +5,7 @@ import { BaseEventPublishers, RoundQuery } from "sc-game-base/src/core";
 import { FreeSpinsConsumer, InGameConsumer } from "../";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
+import JackpotValidator from "../../validators/jackpot-validator";
 
 const gameData = stubGameData();
 const definition = stubGameDefinition();
@@ -19,6 +20,7 @@ const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
 
 const freeSpinsConsumer = stub(FreeSpinsConsumer);
 const getBalance = jest.fn();
+const jackpotValidator = new JackpotValidator(gameData);
 
 describe("getPools", () => {
     it("should get pools from jackpot repository", async () => {
@@ -101,6 +103,7 @@ function createInGameConsumer() {
         userInfosRepository,
         jackpotsRepository,
         currencyGroupGamesRepository,
+        jackpotValidator
     });
 }
 

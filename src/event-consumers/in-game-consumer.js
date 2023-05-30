@@ -18,11 +18,12 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
      * @param {mongoose.Model} dependencies.userInfosRepository
      * @param {mongoose.Model} dependencies.jackpotsRepository
      */
-    constructor({ definition, gameData, roundQuery, publisher, freeSpinsConsumer, getBalance, userInfosRepository, jackpotsRepository }) {
+    constructor({ definition, gameData, roundQuery, publisher, freeSpinsConsumer, getBalance, userInfosRepository, jackpotsRepository, jackpotValidator }) {
         super(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository);
 
         this.freeSpinsConsumer = freeSpinsConsumer;
         this.jackpotsRepository = jackpotsRepository;
+        this.jackpotValidator = jackpotValidator;
     }
 
     async buildPayload(realPlayer) {
@@ -45,7 +46,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             bet: soonestExpiredFreeSpinSet?.bet,
             paylines: soonestExpiredFreeSpinSet?.paylines,
         };
-        const jackpotPools = this.gameData.gameConfigs.slotsConfig.jackpot.enabled && !session.disableJackpotGames ? await this.getPools() : [];
+        const jackpotPools = this.jackpotValidator.canAccessJackpot(realPlayer) ? await this.getPools() : [];
 
         await this.getBalance(realPlayer, true);
 

@@ -49,6 +49,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         roundsRepository,
         betsRepository,
         logService,
+        jackpotValidator,
     }) {
         super({
             definition,
@@ -70,6 +71,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         this.paylineCalculator = paylineCalculator;
         this.hitJackpot = hitJackpot;
         this.logService = logService;
+        this.jackpotValidator = jackpotValidator;
     }
 
     async autoSettleRound(player, roundId) {
@@ -87,7 +89,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async settleRound(player, roundId) {
-        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
         const bet = await this.queryBets(roundId);
 
         if (bet) {
@@ -101,36 +102,19 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 await this.processBonus(player, finish, bet);
             }
 
-            if (jackpot.enabled && !bet.freeSpin && this.isUserEnableJackpot(player)) {
+            if (this.jackpotValidator.canContributeJackpotPools(player, bet.freeSpin)) {
                 await this.jackpotConsumer.contribute(player, { pool: bet.bet, totalAmount: bet.totalAmount, roundId, rate: bet.rate });
             }
         }
     }
 
-    isUserEnableJackpot(player) {
-        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
-        const isTestCurrency = this.gameData.currencies.some((currency) => currency.name === player.session.currencyName && currency.isTest);
-
-        if (isTestCurrency) {
-            return !jackpot.excludeTestCurrency && !player.session.disableJackpotGames;
-        }
-
-        return !player.session.disableJackpotGames;
-    }
-
     async generateRoundResult(player, roundId, bet) {
-        const { jackpot, icons: odds } = this.gameData.gameConfigs.slotsConfig;
+        const { icons: odds } = this.gameData.gameConfigs.slotsConfig;
         const result = this.generateResult(bet.name);
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
 
-        settlementResult.jackpot =
-            jackpot.enabled && settlementResult.jackpotPayline > -1 && this.isUserEnableJackpot(player)
-                ? await this.processJackpot(player, roundId, bet.bet, settlementResult.jackpotPayline)
-                : null;
-
-        settlementResult.winningPaylines = settlementResult.jackpot
-            ? settlementResult.paylines.filter((payline) => payline.odds > 0 && payline.symbol !== this.boardGenerator.definition.specialSymbols.jackpot)
-            : settlementResult.paylines.filter((payline) => payline.odds > 0);
+        settlementResult.jackpot = await this.settleJackpot(player, roundId, bet, settlementResult);
+        settlementResult.winningPaylines = this.settleWinningPaylines(settlementResult);
 
         return {
             roundId,
@@ -139,6 +123,20 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             jackpotWin: settlementResult.jackpot ? settlementResult.jackpot.winningAmount : 0,
             time: bet.time,
         };
+    }
+
+    async settleJackpot(player, roundId, bet, settlementResult) {
+        return settlementResult.jackpotPayline > -1 && this.jackpotValidator.canHitJackpot(player)
+            ? await this.processJackpot(player, roundId, bet, settlementResult.jackpotPayline)
+            : null;
+    }
+
+    settleWinningPaylines(settlementResult) {
+        return settlementResult.jackpot
+            ? settlementResult.paylines.filter(
+                  (payline) => payline.odds > 0 && payline.symbol !== this.boardGenerator.definition.specialSymbols.jackpot
+              )
+            : settlementResult.paylines.filter((payline) => payline.odds > 0);
     }
 
     generateResult(playerName) {
@@ -184,9 +182,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         await this.userBetResultPublisher.publishToUser(bet.uid, this.collectBonusResult({ result, settlementResult, roundId: finish.roundId }));
     }
 
-    async processJackpot(player, roundId, betAmount, winningLine) {
-        const winningAmount = (await this.jackpotConsumer.hit(player, { pool: betAmount, roundId })).amount;
-        const hitJackpotResult = await this.hitJackpot(player, { gameRoundId: roundId, gameId: this.definition.id, winningAmount });
+    async processJackpot(player, roundId, bet, winningLine) {
+        const winningAmount = (await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId })).amount;
+        const hitJackpotResult = await this.hitJackpot(player, {
+            gameRoundId: roundId,
+            gameId: this.definition.id,
+            winningAmount: math.round(winningAmount / bet.rate, 4),
+        });
+        
         const error = hitJackpotResult.isOk ? null : hitJackpotResult.response.message;
 
         if (error) {

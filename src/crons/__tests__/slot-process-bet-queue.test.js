@@ -1,5 +1,6 @@
 import math from "lodash/math";
 import { Core } from "sc-game-base";
+import JackpotValidator from "../../validators/jackpot-validator";
 import SlotProcessBetQueue from "../slot-process-bet-queue";
 
 describe("slot-process-bet-queue", () => {
@@ -277,7 +278,9 @@ describe("slot-process-bet-queue", () => {
                 gameConfigs: {
                     slotsConfig: { jackpot: { enabled: true, playerContributionRatio: 0.05 } },
                 },
+                currencies: []
             };
+            const jackpotValidator = new JackpotValidator(gameData);
             describe("When user can access jackpot", () => {
                 const player = {
                     session: {
@@ -293,6 +296,7 @@ describe("slot-process-bet-queue", () => {
                     };
                     const cron = new SlotProcessBetQueue({
                         gameData,
+                        jackpotValidator,
                     });
 
                     //Act
@@ -314,6 +318,7 @@ describe("slot-process-bet-queue", () => {
                     };
                     const cron = new SlotProcessBetQueue({
                         gameData,
+                        jackpotValidator,
                     });
 
                     //Act
@@ -340,6 +345,7 @@ describe("slot-process-bet-queue", () => {
                     };
                     const cron = new SlotProcessBetQueue({
                         gameData,
+                        jackpotValidator,
                     });
 
                     //Act
@@ -357,7 +363,9 @@ describe("slot-process-bet-queue", () => {
                 gameConfigs: {
                     slotsConfig: { jackpot: { enabled: false } },
                 },
+                currencies: []
             };
+            const jackpotValidator = new JackpotValidator(gameData);
 
             const player = {
                 session: {
@@ -373,6 +381,7 @@ describe("slot-process-bet-queue", () => {
                 };
                 const cron = new SlotProcessBetQueue({
                     gameData,
+                    jackpotValidator,
                 });
 
                 //Act

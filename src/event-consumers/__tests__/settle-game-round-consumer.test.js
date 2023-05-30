@@ -9,6 +9,7 @@ import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "../../bo
 import { JackpotPublisher } from "../../event-publishers";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
+import JackpotValidator from "../../validators/jackpot-validator";
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -139,8 +140,8 @@ describe("settleRound", () => {
         consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
         consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
         spyOn(consumer, "queryBets").and.returnValue(bet);
-        spyOn(consumer, "isUserEnableJackpot").and.returnValue(true);
         spyOn(consumer, "settleBets");
+        consumer.jackpotValidator.canContributeJackpotPools.mockReturnValueOnce(true);
 
         // act
         await consumer.settleRound(player, 1);
@@ -149,34 +150,25 @@ describe("settleRound", () => {
         expect(consumer.jackpotConsumer.contribute).toBeCalled();
     });
 
-    const testCases = [
-        { userEnableJackpot: false },
-        { userEnableJackpot: true, freeSpin: true },
-        { userEnableJackpot: true, freeSpin: false, enableJackpot: false },
-    ];
+    it("when user cant contribute jackpot should not call jackpotConsumer.contribute", async () => {
+        // arrange
+        const consumer = new SettleGameRoundConsumer(initDependencies());
+        const player = stubPlayer();
+        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, freeSpin: false, rate: 1 };
+        const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
+        consumer.boardGenerator.generate.mockReturnValueOnce(board);
+        consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
+        consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+        spyOn(consumer, "queryBets").and.returnValue(bet);
+        consumer.jackpotValidator.canContributeJackpotPools.mockReturnValueOnce(false);
+        spyOn(consumer, "settleBets");
 
-    it.each(testCases)(
-        "when [disable jackpot or freeSpin or player has disable jackpot] should not call jackpotConsumer.contribute",
-        async (testCase) => {
-            // arrange
-            const consumer = new SettleGameRoundConsumer(initDependencies());
-            const player = stubPlayer();
-            const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, freeSpin: testCase.freeSpin, rate: 1 };
-            const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
-            consumer.boardGenerator.generate.mockReturnValueOnce(board);
-            consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
-            consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = testCase.enableJackpot;
-            spyOn(consumer, "queryBets").and.returnValue(bet);
-            spyOn(consumer, "isUserEnableJackpot").and.returnValue(testCase.userEnableJackpot);
-            spyOn(consumer, "settleBets");
+        // act
+        await consumer.settleRound(player, 1);
 
-            // act
-            await consumer.settleRound(player, 1);
-
-            // assert
-            expect(consumer.jackpotConsumer.contribute).not.toBeCalled();
-        }
-    );
+        // assert
+        expect(consumer.jackpotConsumer.contribute).not.toBeCalled();
+    });
 });
 
 describe("settle-game-round-consumer", () => {
@@ -645,87 +637,17 @@ describe("settle-game-round-consumer", () => {
         });
     });
 
-    describe("isUserEnableJackpot", () => {
-        it("when currency is test currency and jackpot.excludeTestCurrency should return false", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = true;
-            dependencies.gameData.currencies = [{ name: "UUS", isTest: true }];
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currencyName: "UUS", disableJackpotGames: false } };
-
-            // act
-            const actualValue = consumer.isUserEnableJackpot(player);
-
-            // assert
-            expect(actualValue).toBe(false);
-        });
-
-        it("when currency is UUS and jackpot not excludeTestCurrency should return true", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = false;
-            dependencies.gameData.currencies = [{ name: "UUS", isTest: true }];
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currencyName: "UUS", disableJackpotGames: false } };
-
-            // act
-            const actualValue = consumer.isUserEnableJackpot(player);
-
-            // assert
-            expect(actualValue).toBe(true);
-        });
-
-        it("when currency is not UUS should return true", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = true;
-            dependencies.gameData.currencies = [{ name: "IN", isTest: false }];
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currencyName: "IN", disableJackpotGames: false } };
-
-            // act
-            const actualValue = consumer.isUserEnableJackpot(player);
-
-            // assert
-            expect(actualValue).toBe(true);
-        });
-
-        it("when disableJackpotGames is true should return false", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.excludeTestCurrency = false;
-            dependencies.gameData.currencies = [{ name: "IN", isTest: false }];
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            const player = { session: { currencyName: "IN", disableJackpotGames: true } };
-
-            // act
-            const actualValue = consumer.isUserEnableJackpot(player);
-
-            // assert
-            expect(actualValue).toBe(false);
-        });
-    });
-
     describe("generateRoundResult", () => {
-        let testCases = [
-            { enableJackpot: false },
-            { enableJackpot: true, jackpotPayline: -1 },
-            { enableJackpot: true, jackpotPayline: 1, userEnableJackpot: false },
-        ];
-        it.each(testCases)("when [jackpot.enabled false or jackpotPayline==-1 or UserEnableJackpot false] should return 0", async (testCase) => {
+        let testCases = [{ jackpotPayline: -1 }, { jackpotPayline: 1 }];
+        it.each(testCases)("when user cant hit jackpot should return 0", async (testCase) => {
             // arrange
             const dependencies = initDependencies();
             dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = testCase.enableJackpot;
+            dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
 
             const consumer = new SettleGameRoundConsumer(dependencies);
             spyOn(consumer.paylineCalculator, "calculate").and.returnValue({ paylines: [], jackpotPayline: testCase.jackpotPayline });
-            spyOn(consumer, "isUserEnableJackpot").and.returnValue(testCase.userEnableJackpot);
+            consumer.jackpotValidator.canHitJackpot.mockReturnValueOnce(false);
             const player = { session: { currencyName: "UUS" } };
             const roundId = 1;
             const bet = {};
@@ -741,29 +663,26 @@ describe("settle-game-round-consumer", () => {
             { jackpot: { winningAmount: 10 }, expectedValue: 10 },
             { jackpot: null, expectedValue: 0 },
         ];
-        it.each(testCases)(
-            "when [jackpot.enabled true and jackpotPayline > -1 and UserEnableJackpot true] should return correct jackpotWin",
-            async (testCase) => {
-                // arrange
-                const dependencies = initDependencies();
-                dependencies.definition = {};
-                dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+        it.each(testCases)("when user can hit jackpot should return correct jackpotWin", async (testCase) => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.definition = {};
+            dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
 
-                const consumer = new SettleGameRoundConsumer(dependencies);
-                spyOn(consumer.paylineCalculator, "calculate").and.returnValue({ paylines: [], jackpotPayline: 1 });
-                spyOn(consumer, "isUserEnableJackpot").and.returnValue(true);
-                spyOn(consumer, "processJackpot").and.returnValue(testCase.jackpot);
-                const player = { session: { currencyName: "UUS" } };
-                const roundId = 1;
-                const bet = {};
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            spyOn(consumer.paylineCalculator, "calculate").and.returnValue({ paylines: [], jackpotPayline: 1 });
+            consumer.jackpotValidator.canHitJackpot.mockReturnValueOnce(true);
+            spyOn(consumer, "processJackpot").and.returnValue(testCase.jackpot);
+            const player = { session: { currencyName: "UUS" } };
+            const roundId = 1;
+            const bet = {};
 
-                // act
-                const actualValue = await consumer.generateRoundResult(player, roundId, bet);
+            // act
+            const actualValue = await consumer.generateRoundResult(player, roundId, bet);
 
-                // assert
-                expect(actualValue.jackpotWin).toBe(testCase.expectedValue);
-            }
-        );
+            // assert
+            expect(actualValue.jackpotWin).toBe(testCase.expectedValue);
+        });
     });
 });
 
@@ -789,7 +708,7 @@ function initDependencies() {
     const logService = { logError: jest.fn() };
     const endGame = jest.fn();
     const hitJackpot = jest.fn();
-
+    const jackpotValidator = stub(JackpotValidator);
     return {
         gameDefinition,
         gameData,
@@ -808,6 +727,7 @@ function initDependencies() {
         roundsRepository,
         betsRepository,
         logService,
+        jackpotValidator,
     };
 }
 

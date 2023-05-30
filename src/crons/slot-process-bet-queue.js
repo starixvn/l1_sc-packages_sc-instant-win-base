@@ -35,6 +35,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         userInfosRepository,
         idCountersConsumer,
         baseMetrics,
+        jackpotValidator,
     }) {
         super({
             definition,
@@ -52,6 +53,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         this.settleGameRoundConsumer = settleGameRoundConsumer;
         this.roundsRepository = roundsRepository;
         this.idCountersConsumer = idCountersConsumer;
+        this.jackpotValidator = jackpotValidator;
     }
 
     async proceedBet(player, payload) {
@@ -92,8 +94,9 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
         betInfo.totalAmount = math.round(betInfo.amount * betInfo.betChoice.length, 2);
 
-        const contributionRate =
-            slotsConfig.jackpot.enabled && !player.session.disableJackpotGames && !payload.freeSpin ? slotsConfig.jackpot.playerContributionRatio : 0;
+        const contributionRate = this.jackpotValidator.canContributeJackpotPools(player, payload.freeSpin)
+            ? slotsConfig.jackpot.playerContributionRatio
+            : 0;
         betInfo.contributionRate = contributionRate;
         betInfo.contributionAmount = math.round(contributionRate * betInfo.totalAmount, 4);
 
