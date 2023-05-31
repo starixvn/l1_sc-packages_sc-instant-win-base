@@ -49,13 +49,7 @@ export default class BoardGenerator {
     generate(difficulty) {
         const fillingStrategy = this.getFillingStrategy(difficulty);
         const generatedBoard = this.generateByStrategy(fillingStrategy);
-        let shuffledBoard = generatedBoard;
-
-        shuffledBoard = this.chance.shuffle(shuffledBoard);
-        shuffledBoard = this.chance.shuffle(shuffledBoard);
-        shuffledBoard = this.chance.shuffle(shuffledBoard);
-
-        return shuffledBoard;
+        return generatedBoard;
     }
 
     generateForBots(isJackpotEnabled, botRatio = 40) {
@@ -72,15 +66,16 @@ export default class BoardGenerator {
     }
 
     generateByStrategy(fillingStrategy) {
-        const generatedBoard = [];
+        const board = this.shuffle(fillingStrategy.reduce((result, repeat, symbol) => result.concat(Array(repeat).fill(symbol)), []));
+        return this.chance.pickset(board, this.definition.numberOfColumns * this.definition.numberOfRows);
+    }
 
-        fillingStrategy.forEach((literal) => {
-            const newSymbol = typeof literal === "string" ? this[literal]?.() : literal;
+    shuffle(board, times = 3) {
+        for (let time = 0; time < times; time++) {
+            board = this.chance.shuffle(board);
+        }
 
-            generatedBoard.push(newSymbol);
-        });
-
-        return generatedBoard;
+        return board;
     }
 
     randomAnySymbol() {
