@@ -68,6 +68,7 @@ export default new mongoose.Schema({
 
     bet: { type: Number, default: 0 },
     totalAmount: { type: Number, default: 0 },
+    baseTotalAmount: { type: Number, default: 0 },
     paylines: { type: [Number] },
     freeSpin: { type: Boolean, default: false },
 
@@ -78,15 +79,16 @@ export default new mongoose.Schema({
 
     odds: { type: Object },
     betWin: { type: Number, default: 0 },
+    baseBetWin: { type: Number, default: 0 },
     jackpotWin: { type: Number },
     paid: { type: Boolean, default: false },
     time: { type: Date },
     endTime: { type: Date },
 
-    currency: { type: String, require: true },
-    rate: { type: Number, require: true },
-    exchangeRateId: { type: Number, require: true },
+    currency: { type: String, required: true },
+    rate: { type: Number, required: true },
+    exchangeRateId: { type: Number, required: true },
 
-    operatorId: { type: String, require: true },
-    playerId: { type: Number },
+    operatorId: { type: String, required: true },
+    playerId: { type: Number, required: true },
 });

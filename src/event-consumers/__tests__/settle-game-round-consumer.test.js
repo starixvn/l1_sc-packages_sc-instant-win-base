@@ -547,7 +547,7 @@ describe("settle-game-round-consumer", () => {
             const winningLine = {};
 
             // act
-            await consumer.processJackpot(player, roundId, betAmount, winningLine);
+            await consumer.processJackpot(player, roundId, { betAmount, rate: 1 }, winningLine);
 
             // assert
             expect(consumer.jackpotPublisher.publishFailedJackpot).toBeCalled();
@@ -568,7 +568,7 @@ describe("settle-game-round-consumer", () => {
             const winningLine = {};
 
             // act
-            await consumer.processJackpot(player, roundId, betAmount, winningLine);
+            await consumer.processJackpot(player, roundId, { betAmount, rate: 1 }, winningLine);
 
             // assert
             expect(consumer.jackpotPublisher.publishFailedJackpot).not.toBeCalled();

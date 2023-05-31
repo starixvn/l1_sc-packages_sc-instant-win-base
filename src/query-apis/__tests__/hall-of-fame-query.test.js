@@ -72,9 +72,9 @@ describe("queryBigWinningWinners", () => {
             .find()
             .lean()
             .exec.mockReturnValueOnce([
-                { name: "a", totalAmount: 2, winningAmount: 7, freeSpin: false, rate: 1.5 },
-                { name: "b", totalAmount: 1, winningAmount: 7, freeSpin: true, rate: 1 },
-                { name: "c", totalAmount: 3, winningAmount: 10, freeSpin: false, rate: 1000 },
+                { name: "a", totalAmount: 2, winningAmount: 7, freeSpin: false, rate: 1.5, baseTotalAmount: 3, baseWinningAmount: 10.5 },
+                { name: "b", totalAmount: 1, winningAmount: 7, freeSpin: true, rate: 1, baseTotalAmount: 1, baseWinningAmount: 7 },
+                { name: "c", totalAmount: 3, winningAmount: 10, freeSpin: false, rate: 1000, baseTotalAmount: 3000, baseWinningAmount: 10000 },
             ]);
 
         famesRepository.countDocuments.mockReturnValue({ exec: jest.fn() });

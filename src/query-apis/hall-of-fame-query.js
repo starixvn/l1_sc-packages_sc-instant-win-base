@@ -26,7 +26,9 @@ export default class HallOfFameQuery {
             time: true,
             name: true,
             totalAmount: true,
+            baseTotalAmount: true,
             winningAmount: true,
+            baseWinningAmount: true,
             freeSpin: true,
             rate: true,
             exchangeRateId: true,
@@ -38,12 +40,7 @@ export default class HallOfFameQuery {
                 .lean()
                 .exec()) ?? [];
 
-        winners.forEach(winner => {
-            winner.baseTotalAmount = winner.totalAmount * winner.rate;
-            winner.baseWinningAmount = winner.winningAmount * winner.rate;
-        })
-
-        return { bigWinningWinners: { winners: winners, page, pageSize, total } };
+        return { bigWinningWinners: { winners, page, pageSize, total } };
     }
 
     async queryJackpotWinners(page, pageSize = 10) {

@@ -242,7 +242,7 @@ describe("slot-process-bet-queue", () => {
             const placeBetPublisher = { publishGameFailedBet: jest.fn() };
             const freeSpinsConsumer = { getSoonestExpiredFreeSpinSet: jest.fn() };
             freeSpinsConsumer.getSoonestExpiredFreeSpinSet.mockReturnValueOnce(testCase.soonestExpiredFreeSpinSet);
-
+            const jackpotValidator = { canContributeJackpotPools: jest.fn };
             const idCountersConsumer = { consume: jest.fn() };
             const validateBalance = () => {
                 return { isOk: false, response: { inSufficientBalance: false } };
@@ -260,6 +260,8 @@ describe("slot-process-bet-queue", () => {
                 validateBalance,
                 placeBet,
                 baseMetrics,
+                jackp,
+                jackpotValidator,
             });
             const player = { profile: { name: "player1" }, session: { disabledJackpotGames: false } };
             const payload = { freeSpin: false, betChoice: [] };
@@ -278,7 +280,7 @@ describe("slot-process-bet-queue", () => {
                 gameConfigs: {
                     slotsConfig: { jackpot: { enabled: true, playerContributionRatio: 0.05 } },
                 },
-                currencies: []
+                currencies: [],
             };
             const jackpotValidator = new JackpotValidator(gameData);
             describe("When user can access jackpot", () => {
@@ -363,7 +365,7 @@ describe("slot-process-bet-queue", () => {
                 gameConfigs: {
                     slotsConfig: { jackpot: { enabled: false } },
                 },
-                currencies: []
+                currencies: [],
             };
             const jackpotValidator = new JackpotValidator(gameData);
 

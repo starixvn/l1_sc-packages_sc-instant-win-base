@@ -19,6 +19,11 @@ const jackpotSchema = new mongoose.Schema({
 
     createdTime: { type: Date, required: true },
     hitTime: { type: Date },
+
+    rate: { type: Number },
+    exchangeRateId: { type: Number },
+    operatorId: { type: String },
+    currency: { type: String },
 });
 
 export default mongoose.model("Jackpot", jackpotSchema);

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { Core } from "sc-game-base";
 
+import math from "lodash/math";
 import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "./../board";
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
@@ -183,13 +184,21 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async processJackpot(player, roundId, bet, winningLine) {
-        const winningAmount = (await this.jackpotConsumer.hit(player, { pool: bet.bet, roundId })).amount;
+        const winningAmount = (
+            await this.jackpotConsumer.hit(player, {
+                pool: bet.bet,
+                roundId,
+                exchangeRateId: bet.exchangeRateId,
+                operatorId: bet.operatorId,
+                currency: bet.curency,
+            })
+        ).amount;
         const hitJackpotResult = await this.hitJackpot(player, {
             gameRoundId: roundId,
             gameId: this.definition.id,
             winningAmount: math.round(winningAmount / bet.rate, 4),
         });
-        
+
         const error = hitJackpotResult.isOk ? null : hitJackpotResult.response.message;
 
         if (error) {
@@ -211,6 +220,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 bet.settlementResult = bet.settlementResult ?? settlementResult;
                 bet.bonusChests = bonusChests;
                 bet.betWin = betResult.totalWin;
+                bet.baseBetWin = math.round(betResult.totalWin * bet.rate, 2);
                 bet.paid = true;
                 bet.endTime = new Date();
 
@@ -236,7 +246,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                         bet: bet.bet,
                         rate: bet.rate,
                         totalAmount: bet.totalAmount,
+                        baseTotalAmount: bet.baseTotalAmount,
                         winningAmount: betResult.totalWin,
+                        baseWinningAmount: bet.baseBetWin,
                         numberOfPaylines: bet.paylines.length,
                         freeSpin: bet.freeSpin,
                     });

@@ -1,9 +1,9 @@
-import SlotGameBot from "../slot-game-bot";
-import { Core } from "sc-game-base";
-import mongoose from "mongoose";
 import { stub, stubMongoose } from "jest-micro-auto-stub";
-import { IdCountersConsumer, BoardCheatingConsumer, HallOfFameConsumer, JackpotConsumer } from "../../event-consumers";
+import mongoose from "mongoose";
+import { Core } from "sc-game-base";
 import { BoardGenerator, PaylineCalculator } from "../../board";
+import { BoardCheatingConsumer, HallOfFameConsumer, IdCountersConsumer, JackpotConsumer } from "../../event-consumers";
+import SlotGameBot from "../slot-game-bot";
 
 const userInfosRepository = stubMongoose(mongoose.Model);
 userInfosRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
@@ -25,6 +25,9 @@ const gameData = {
                 { stake: 10, botRatio: 20 },
             ],
         },
+    },
+    exchangeRates: {
+        exId: 1,
     },
 };
 
@@ -130,16 +133,14 @@ describe("SlotGameBot", () => {
         const stake = 1;
 
         beforeEach(() => {
-            bot.gameData = {
-                gameConfigs: {
-                    slotsConfig: {
-                        jackpot: { enabled: false },
-                        stakeLevels: [
-                            { stake: 1, botRatio: 40 },
-                            { stake: 5, botRatio: 40 },
-                            { stake: 10, botRatio: 20 },
-                        ],
-                    },
+            bot.gameData.gameConfigs = {
+                slotsConfig: {
+                    jackpot: { enabled: false },
+                    stakeLevels: [
+                        { stake: 1, botRatio: 40 },
+                        { stake: 5, botRatio: 40 },
+                        { stake: 10, botRatio: 20 },
+                    ],
                 },
             };
 
@@ -202,7 +203,6 @@ describe("SlotGameBot", () => {
                 it("should call jackpotConsumer.hit", async () => {
                     // Arrange
                     paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 1 }], jackpotPayline: 0 });
-
                     // Act
                     await bot.placeBet(botInfo);
 

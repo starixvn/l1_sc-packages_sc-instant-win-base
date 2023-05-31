@@ -76,7 +76,7 @@ export default class JackpotConsumer {
         this.jackpotPublisher.publishLatestPool({ pool: basePool, amount: latestJackpotPool.amount });
     }
 
-    async hit(player, { pool, roundId }) {
+    async hit(player, { pool, roundId, exchangeRateId, rate, operatorId, currency }) {
         const hitByMember = !!player.session;
         const basePool = hitByMember ? this.getBasePool(player, pool) : pool;
         if (basePool == null) {
@@ -94,6 +94,7 @@ export default class JackpotConsumer {
 
         const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningRatio;
         const runningPoolFilter = {
+            gameId: this.definition.id,
             pool: basePool,
             winnerName: { $exists: false },
             createdAt: { $lt: roundId },
@@ -107,6 +108,10 @@ export default class JackpotConsumer {
             winnerId: player.session?.playerId,
             hitAt: roundId,
             hitTime: new Date(),
+            exchangeRateId,
+            rate,
+            currency,
+            operatorId,
         };
         const winnerProjection = {
             _id: false,
@@ -117,7 +122,6 @@ export default class JackpotConsumer {
         const winningJackpot = await this.jackpotsRepository.findOneAndUpdate(
             runningPoolFilter,
             {
-                gameId: this.definition.id,
                 $set: winnerAdjustment,
             },
             {

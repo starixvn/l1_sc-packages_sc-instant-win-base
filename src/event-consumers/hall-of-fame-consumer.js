@@ -11,23 +11,25 @@ export default class HallOfFameConsumer {
         this.gameData = gameData;
     }
 
-    async add(player, { roundId, bet, totalAmount, winningAmount, numberOfPaylines, freeSpin = false, rate }) {
+    async add(player, { roundId, bet, totalAmount, baseTotalAmount, winningAmount, baseWinningAmount, numberOfPaylines, freeSpin = false, rate }) {
         const fame = {
             uid: player.UID,
             name: player.profile.name,
             roundId,
             bet,
             totalAmount,
+            baseTotalAmount,
             winningAmount,
+            baseWinningAmount,
             numberOfPaylines,
             freeSpin,
             time: new Date(),
             exchangeRateId: this.gameData.exchangeRates.exId,
+            rate
         };
 
         if (!!player.session) {
             fame.currency = player.session.currencyName;
-            fame.rate = rate;
             fame.operatorId = player.session.operatorId;
             fame.playerId = player.session.playerId;
         }
