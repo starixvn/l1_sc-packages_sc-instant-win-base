@@ -88,12 +88,12 @@ function runOneMillions(mode) {
         winLoss: 0,
         payoutRatio: 0,
     };
-    for (let counter = 0; counter < 100000; counter++) {
+    for (let counter = 0; counter < 1000000; counter++) {
         const amount = chance.pickone(stakes);
         const board = generator.generate(mode);
-        const randomPaylines = [paylines[0]];
-        // const randomPaylines = [chance.pickone(paylines)];
-        //const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
+        //const randomPaylines = [paylines[0]];
+        //const randomPaylines = [chance.pickone(paylines)];
+        const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
         const result = calculator.calculate(board, randomPaylines, odds);
         summary.totalAmount += amount * randomPaylines.length;
         summary.totalPaylines += randomPaylines.length;
@@ -147,18 +147,18 @@ function runOneMillions(mode) {
     summary.winLoss = summary.totalAmount - summary.winAmount;
     summary.payoutRatio = `${((summary.winAmount / summary.totalAmount) * 100).toFixed(2)}%`;
 
-    console.log(summary.payoutRatio);
+    console.log(summary);
 }
 
 function runAllModes() {
     console.log("===================EASY===================");
-    runOneMillionsForBots(difficulties.easy);
+    //runOneMillionsForBots(difficulties.easy);
 
     console.log("===================MEDIUM===================");
-    runOneMillionsForBots(difficulties.medium);
+    //runOneMillionsForBots(difficulties.medium);
 
     console.log("===================HARD===================");
-    runOneMillionsForBots(difficulties.hard);
+    runOneMillions(difficulties.hard);
 }
 
 function runOneMillionsForBots() {
