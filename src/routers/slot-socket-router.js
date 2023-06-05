@@ -80,12 +80,13 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
     async handleGettingJackpotWinners(payload) {
         try {
-            const { session } = this.gameData.realPlayers[this.socketClient.id];
+            const player = this.gameData.realPlayers[this.socketClient.id];
+            const { session } = player;
             if (!this.verify() || session.disableJackpotGames) {
                 return;
             }
 
-            const jackpotWinners = await this.hallOfFameQuery.queryJackpotWinners(payload.page ?? 0);
+            const jackpotWinners = await this.hallOfFameQuery.queryJackpotWinners(player, payload.page ?? 0);
 
             this.socketClient.emit(this.definition.name, jackpotWinners);
         } catch (error) {

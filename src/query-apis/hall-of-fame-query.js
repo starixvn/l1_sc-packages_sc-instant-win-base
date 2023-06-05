@@ -40,10 +40,12 @@ export default class HallOfFameQuery {
                 .lean()
                 .exec()) ?? [];
 
+        await this.updateExchangeRateCode(player, winners);
+
         return { bigWinningWinners: { winners, page, pageSize, total } };
     }
 
-    async queryJackpotWinners(page, pageSize = 10) {
+    async queryJackpotWinners(player, page, pageSize = 10) {
         if (page < 1 || pageSize < 1) {
             return { jackpotWinners: {} };
         }
@@ -61,6 +63,7 @@ export default class HallOfFameQuery {
             pool: true,
             amount: true,
             winningRatio: true,
+            exchangeRateId: true,
         };
         const jackpotWinners = await this.jackpotsRepository
             .find(filter, projection, { sort: { hitTime: -1 }, skip: numberOfSkippedWinners, limit: pageSize })
@@ -75,9 +78,36 @@ export default class HallOfFameQuery {
                 name: jackpotWinner.winnerName,
                 bet: jackpotWinner.pool,
                 winningAmount,
+                exchangeRateId: jackpotWinner.exchangeRateId,
             };
         });
 
+        await this.updateExchangeRateCode(player, winners);
+
         return { jackpotWinners: { winners, page, pageSize, total } };
+    }
+
+    async updateExchangeRateCode(player, winners) {
+        const exchangeRates = await this.getExchangeRates(winners.map((w) => w.exchangeRateId));
+        const { session } = player;
+
+        for (const winner of winners) {
+            winner.exchangeRateCode = {
+                [session.currencyCode]: parseFloat(exchangeRates.find((er) => winner.exchangeRateId === er.exId)?.code[session.currencyCode]),
+            };
+        }
+    }
+
+    async getExchangeRates(exIds) {
+        const filter = {
+            exId: { $in: exIds },
+        };
+        const projection = {
+            _id: false,
+            exId: true,
+            code: true,
+        };
+
+        return this.exchangeRatesRepository.find(filter, projection).lean().exec();
     }
 }
