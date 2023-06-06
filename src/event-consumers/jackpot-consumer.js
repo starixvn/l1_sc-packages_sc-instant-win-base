@@ -90,8 +90,6 @@ export default class JackpotConsumer {
             return { amount: 0 };
         }
 
-        await this.initializeNewPool(basePool, roundId);
-
         const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningRatio;
         const runningPoolFilter = {
             gameId: this.definition.id,
@@ -131,6 +129,8 @@ export default class JackpotConsumer {
                 sort: nearestRunningPoolOrder,
             }
         );
+
+        await this.initializeNewPool(basePool, roundId);
 
         if (!winningJackpot) {
             this.logService.logCritical(`Couldn't find any running jackpot pool associated with: ${JSON.stringify(runningPoolFilter)}`);
