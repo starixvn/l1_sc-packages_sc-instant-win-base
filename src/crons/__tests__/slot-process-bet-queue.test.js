@@ -260,7 +260,6 @@ describe("slot-process-bet-queue", () => {
                 validateBalance,
                 placeBet,
                 baseMetrics,
-                jackp,
                 jackpotValidator,
             });
             const player = { profile: { name: "player1" }, session: { disabledJackpotGames: false } };
