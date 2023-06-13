@@ -36,7 +36,8 @@ describe("slot-process-bet-queue", () => {
             // arrange
             const roundsRepository = { create: jest.fn() };
             const gameData = { exchangeRates: {}, gameConfigs: { slotsConfig: { jackpot: { enabled: false } } } };
-            const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
+            const jackpotValidator = new JackpotValidator(gameData);
+            const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator });
             const player = { session: { playerId: 1, siteId: 2 }, profile: { name: "user3" } };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
@@ -51,7 +52,8 @@ describe("slot-process-bet-queue", () => {
             // arrange
             const roundsRepository = { create: jest.fn() };
             const gameData = { exchangeRates: {}, gameConfigs: { slotsConfig: { jackpot: { enabled: false } } } };
-            const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
+            const jackpotValidator = new JackpotValidator(gameData);
+            const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator });
             const player = { profile: { name: "user3" }, session: null };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
@@ -67,7 +69,8 @@ describe("slot-process-bet-queue", () => {
                 // arrange
                 const roundsRepository = { create: jest.fn() };
                 const gameData = { exchangeRates: {}, gameConfigs: { slotsConfig: { jackpot: { enabled: true } } } };
-                const cron = new SlotProcessBetQueue({ roundsRepository, gameData });
+                const jackpotValidator = new JackpotValidator(gameData);
+                const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator });
                 const player = { session: { playerId: 1, siteId: 2 }, profile: { name: "user3" } };
                 const bet = { totalAmount: 10, freeSpin: 1, contributionRate: 0.025 };
                 const rate = 0.8;
@@ -242,7 +245,7 @@ describe("slot-process-bet-queue", () => {
             const placeBetPublisher = { publishGameFailedBet: jest.fn() };
             const freeSpinsConsumer = { getSoonestExpiredFreeSpinSet: jest.fn() };
             freeSpinsConsumer.getSoonestExpiredFreeSpinSet.mockReturnValueOnce(testCase.soonestExpiredFreeSpinSet);
-            const jackpotValidator = { canContributeJackpotPools: jest.fn };
+            const jackpotValidator = { canContributeJackpotPools: jest.fn() };
             const idCountersConsumer = { consume: jest.fn() };
             const validateBalance = () => {
                 return { isOk: false, response: { inSufficientBalance: false } };

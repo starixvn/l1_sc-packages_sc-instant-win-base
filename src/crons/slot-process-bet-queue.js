@@ -149,8 +149,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
             exchangeRateId: this.gameData.exchangeRates.exId,
         };
 
-        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
-        if (jackpot.enabled && !player.session.disableJackpotGames) {
+        if (this.jackpotValidator.canAccessJackpot(player)) {
             newBet.jackpotContribution = {
                 contributionRate: bet.contributionRate,
                 baseContributionAmount: math.round(bet.totalAmount * bet.contributionRate * rate, 4),
