@@ -9,7 +9,7 @@ export default {
         freeSpins: 7,
     },
     fillingStrategies: {
-        hard: [32, 18, 11, 11, 10, 3, 2, 5, 4, 1, 1],
+        hard: [15, 12, 10, 7, 6, 5, 4, 3, 3, 1, 4],
         medium: [
             "randomAnySymbol",
             "randomAnySymbol",

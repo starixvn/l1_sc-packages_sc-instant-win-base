@@ -88,7 +88,7 @@ function runOneMillions(mode) {
         winLoss: 0,
         payoutRatio: 0,
     };
-    for (let counter = 0; counter < 1000000; counter++) {
+    for (let counter = 0; counter < 100000; counter++) {
         const amount = chance.pickone(stakes);
         const board = generator.generate(mode);
         //const randomPaylines = [paylines[0]];
@@ -114,6 +114,8 @@ function runOneMillions(mode) {
                     ? summary.winningPaylinesWithOdds[payline.odds] + 1
                     : 1;
                 summary.winAmount += amount * payline.odds;
+                summary[payline.symbol] = summary[payline.symbol] ?? {};
+                summary[payline.symbol][payline.odds] = (summary[payline.symbol][payline.odds] ?? 0) + 1;
             }
         });
 
