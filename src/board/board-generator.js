@@ -66,13 +66,14 @@ export default class BoardGenerator {
     }
 
     generateByStrategy(fillingStrategy) {
-        const shuffledBoard = this.shuffle(fillingStrategy.reduce((result, repeat, symbol) => result.concat(Array(repeat).fill(symbol)), []));
+        //const shuffledBoard = this.shuffle(fillingStrategy.reduce((result, repeat, symbol) => result.concat(Array(repeat).fill(symbol)), []));
+        const symbols = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
         const board = [];
-        /* for (let i = 0; i < this.definition.numberOfColumns * this.definition.numberOfRows; i++) {
-            board.push(this.chance.pickone(shuffledBoard));
+        for (let i = 0; i < this.definition.numberOfColumns * this.definition.numberOfRows; i++) {
+            board.push(this.chance.weighted(symbols, fillingStrategy));
         }
-        return this.shuffle(board); */
-        return this.shuffle(this.chance.pickset(shuffledBoard, this.definition.numberOfColumns * this.definition.numberOfRows));
+        return this.shuffle(board);
+        //return this.shuffle(this.chance.pickset(shuffledBoard, this.definition.numberOfColumns * this.definition.numberOfRows));
     }
 
     shuffle(board, times = 3) {
