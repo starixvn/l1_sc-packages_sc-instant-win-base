@@ -87,13 +87,14 @@ function runOneMillions(mode) {
         freeSpinAmount: 0,
         winLoss: 0,
         payoutRatio: 0,
+        symbols: Array(11).fill(0),
     };
     for (let counter = 0; counter < 100000; counter++) {
         const amount = chance.pickone(stakes);
         const board = generator.generate(mode);
-        //const randomPaylines = [paylines[0]];
+        const randomPaylines = [paylines[0]];
         //const randomPaylines = [chance.pickone(paylines)];
-        const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
+        //const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
         const result = calculator.calculate(board, randomPaylines, odds);
         summary.totalAmount += amount * randomPaylines.length;
         summary.totalPaylines += randomPaylines.length;
@@ -102,7 +103,9 @@ function runOneMillions(mode) {
         if (result.jackpotPayline >= 0) {
             summary.jackpot += 1;
         }
-
+        for (const symbol of board) {
+            summary.symbols[symbol]++;
+        }
         result.paylines.forEach((payline) => {
             if (payline.symbol === "9" && payline.odds > 0) {
                 summary.wild += 1;
