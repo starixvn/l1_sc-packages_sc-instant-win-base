@@ -1,5 +1,6 @@
 import Chance from "chance";
 
+import defaultDefinition from "../src/board/default-definition";
 import BoardGenerator from "./../src/board/board-generator";
 import BonusBoardGenerator from "./../src/board/bonus-board-generator";
 import difficulties from "./../src/board/difficulties";
@@ -56,10 +57,10 @@ function getOddsRange(noPaylines) {
     return { min, max };
 }
 
-function runOneMillions(mode) {
+export function runOneMillions(mode, boardDefinition) {
     const chance = new Chance();
     const stakes = [0.1, 1, 5];
-    const generator = new BoardGenerator();
+    const generator = new BoardGenerator(boardDefinition);
     const calculator = new PaylineCalculator();
     const paylines = [...Array(25).keys()];
 
@@ -87,13 +88,16 @@ function runOneMillions(mode) {
         freeSpinAmount: 0,
         winLoss: 0,
         payoutRatio: 0,
-        symbols: Array(11).fill(0),
+        symbolAppearances: Array(11).fill(0),
+        symbols: Array(11)
+            .fill()
+            .map((x) => ({ winAmount: 0 })),
     };
     for (let counter = 0; counter < 100000; counter++) {
-        const amount = chance.pickone(stakes);
+        const amount = stakes[1];
         const board = generator.generate(mode);
-        const randomPaylines = [paylines[0]];
-        //const randomPaylines = [chance.pickone(paylines)];
+        //const randomPaylines = [paylines[0]];
+        const randomPaylines = [chance.pickone(paylines)];
         //const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
         const result = calculator.calculate(board, randomPaylines, odds);
         summary.totalAmount += amount * randomPaylines.length;
@@ -104,7 +108,7 @@ function runOneMillions(mode) {
             summary.jackpot += 1;
         }
         for (const symbol of board) {
-            summary.symbols[symbol]++;
+            summary.symbolAppearances[symbol]++;
         }
         result.paylines.forEach((payline) => {
             if (payline.symbol === "9" && payline.odds > 0) {
@@ -117,8 +121,8 @@ function runOneMillions(mode) {
                     ? summary.winningPaylinesWithOdds[payline.odds] + 1
                     : 1;
                 summary.winAmount += amount * payline.odds;
-                summary[payline.symbol] = summary[payline.symbol] ?? {};
-                summary[payline.symbol][payline.odds] = (summary[payline.symbol][payline.odds] ?? 0) + 1;
+                summary.symbols[payline.symbol][payline.odds] = (summary.symbols[payline.symbol][payline.odds] ?? 0) + 1;
+                summary.symbols[payline.symbol].winAmount += payline.odds * amount;
             }
         });
 
@@ -128,6 +132,7 @@ function runOneMillions(mode) {
                 const bonus = chance.integer(oddsRange) * amount;
                 summary.bonusAmount += bonus;
                 summary.winAmount += bonus;
+                summary.symbols[defaultDefinition.specialSymbols.bonus].winAmount += bonus;
             }
         }
 
@@ -138,10 +143,21 @@ function runOneMillions(mode) {
                 const freeSpinAmount =
                     freeSpinResult.paylines
                         .filter((payline) => payline.odds > 0)
-                        .reduce((totalAmount, payline) => totalAmount + amount * payline.odds, 0) ?? 0;
+                        .reduce((totalAmount, payline) => {
+                            summary.symbols[payline.symbol][payline.odds] = (summary.symbols[payline.symbol][payline.odds] ?? 0) + 1;
+                            summary.symbols[payline.symbol].winAmount += payline.odds * amount;
+                            summary.winningPaylinesWithOdds[payline.odds] =
+                                (summary.winningPaylinesWithOdds[payline.odds] ?? 0) + payline.odds * amount;
+                            return totalAmount + amount * payline.odds;
+                        }, 0) ?? 0;
 
                 summary.freeSpinAmount += freeSpinAmount;
+                summary.symbols[defaultDefinition.specialSymbols.freeSpins].winAmount += freeSpinAmount;
+
                 summary.winAmount += freeSpinAmount;
+                for (const symbol of freeSpinBoard) {
+                    summary.symbolAppearances[symbol]++;
+                }
             }
         }
 
@@ -151,8 +167,9 @@ function runOneMillions(mode) {
 
     summary.winLoss = summary.totalAmount - summary.winAmount;
     summary.payoutRatio = `${((summary.winAmount / summary.totalAmount) * 100).toFixed(2)}%`;
-
     console.log(summary);
+
+    return summary;
 }
 
 function runAllModes() {
@@ -296,3 +313,4 @@ function checkPosibility() {
 }
 
 runAllModes();
+

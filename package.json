@@ -11,7 +11,8 @@
         "pub": "npm publish --registry http://npm.lumigame.com",
         "betaver": "npm version prerelease --preid beta",
         "pubbeta": "npm publish --registry http://npm.lumigame.com --tag beta",
-        "semantic-release": "semantic-release"
+        "semantic-release": "semantic-release",
+        "weight-test": "node --es-module-specifier-resolution=node  tests/weight-test.js"
     },
     "jestSonar": {
         "reportPath": "reports",

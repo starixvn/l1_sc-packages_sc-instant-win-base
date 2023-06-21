@@ -9,10 +9,7 @@ export default {
         freeSpins: 7,
     },
     fillingStrategies: {
-        hard: [
-            62.76200986756687, 35.799532588937936, 21.779278109581927, 12.84692287717476, 10.897039729940275, 5.869903921059465, 4.936380160997143,
-            6.434302778499092, 4.862477278628928, 1.9667618800311608, 1,
-        ], //[40, 28, 16.5, 15, 10, 5, 4.9, 5, 4, 0.5, 1],
+        hard: [24.21, 17, 15.8, 12, 10, 8, 7, 3.8, 3.2, 1.5, 0.5],
         medium: [
             "randomAnySymbol",
             "randomAnySymbol",
@@ -30,23 +27,7 @@ export default {
             0,
             2,
         ],
-        easy: [
-            "randomAnySymbol",
-            "randomAnySymbol",
-            "randomAnySymbol",
-            "randomAnySymbol",
-            "randomAnySymbol",
-            "randomLowPrizedSymbol",
-            "randomAnySymbol",
-            0,
-            3,
-            1,
-            2,
-            2,
-            1,
-            0,
-            4,
-        ],
+        easy: [21.7, 20.8, 19.9, 12.4, 11.6, 4.1, 3.2, 2.4, 1.8, 1.2, 0.6],
     },
     fillingStrategyForBots: {
         jackpot: [
