@@ -1,12 +1,12 @@
 import { stub, stubMongoose } from "jest-micro-auto-stub";
+import math from "lodash/math";
 import mongoose from "mongoose";
 import { logger } from "sc-common/logger";
-
-import math from "lodash/math";
 import { JackpotPublisher } from "../../event-publishers";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
 import JackpotConsumer from "../jackpot-consumer";
+import currencyData from "./currency-data.json";
 
 const gameData = stubGameData();
 const gameDefinition = stubGameDefinition();
@@ -21,7 +21,7 @@ const jackpotPublisher = stub(JackpotPublisher);
 const logService = stub(logger);
 
 describe("contribute", () => {
-    const pool = 1;
+    const pool = 1000;
     const runningPoolFilter = {
         gameId: gameDefinition.id,
         pool,
@@ -89,38 +89,72 @@ describe("contribute", () => {
         expect(jackpotPublisher.publishLatestPool).toBeCalledWith({ pool, amount: 12 });
     });
 
-    it.each([1, 0.9, 0.5, 0.6])("should update approriate contribution for player and publish pool info", async (rate) => {
-        // arrange
-        const consumer = initConsumer();
-        const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate };
-        jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
-            amount: 12,
-        });
-        const contributeAmount = math.round(5 * gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio * rate, 4);
-        const poolAdjustment = {
-            amount: contributeAmount,
-            byBots: 0,
-            byMembers: contributeAmount,
-        };
+    describe("contribution amount calculation", () => {
+        const paylines = [1, 12, 25];
+        const testData = [];
+        const { exchangeRate, currencies } = currencyData;
+        for (const currency of currencies) {
+            for (const stakeLevel of currency.stakeLevels) {
+                for (const payline of paylines) {
+                    testData.push([
+                        { ...currency, payline, stakeLevel },
+                        math.round(
+                            stakeLevel *
+                                payline *
+                                currency.multiplier *
+                                exchangeRate[currency.code] *
+                                gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio,
+                            4
+                        ),
+                    ]);
+                }
+            }
+        }
 
-        // act
-        await consumer.contribute({ session: { multiplier: 1, currencyCode: 0, currencyGroupId: "617a650628b7a500016388f5" } }, bet);
-
-        // assert
-        expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
-            runningPoolFilter,
-            {
+        it.each(testData)("%j base contribution amount should be %d", async (currency, expectedContributionAmount) => {
+            // arrange
+            const consumer = initConsumer();
+            const bet = {
+                pool: currency.stakeLevel,
+                totalAmount: currency.stakeLevel * currency.payline,
+                rate: exchangeRate[currency.code] * currency.multiplier,
+                roundId: gameData.roundId,
+            };
+            const baseStakeLevel = gameData.gameConfigs.slotsConfig.stakeLevels[currency.stakeLevels.indexOf(currency.stakeLevel)].stake;
+            spyOn(consumer, "getBasePool").and.returnValue(baseStakeLevel);
+            jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
+                amount: expectedContributionAmount,
+            });
+            const runningPoolFilter = {
                 gameId: gameDefinition.id,
-                $inc: poolAdjustment,
-            },
-            sort
-        );
-        expect(jackpotPublisher.publishLatestPool).toBeCalledWith({ pool, amount: 12 });
+                pool: baseStakeLevel,
+                winnerName: { $exists: false },
+                createdAt: { $lte: gameData.roundId },
+            };
+            const poolAdjustment = {
+                amount: expectedContributionAmount,
+                byBots: 0,
+                byMembers: expectedContributionAmount,
+            };
+
+            // act
+            await consumer.contribute({ session: { multiplier: currency.multiplier } }, bet);
+
+            // assert
+            expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
+                runningPoolFilter,
+                {
+                    gameId: gameDefinition.id,
+                    $inc: poolAdjustment,
+                },
+                sort
+            );
+        });
     });
 });
 
 describe("hit", () => {
-    const pool = 1;
+    const pool = 1000;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -148,6 +182,7 @@ describe("hit", () => {
         const consumer = initConsumer();
         const player = { profile: { name: "A" }, session: testCase.session };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
+        spyOn(consumer, "getBasePool").and.returnValue(pool);
 
         spyOn(consumer, "initializeNewPool");
 
@@ -165,7 +200,7 @@ describe("hit", () => {
         const player = { profile: { name: "A" }, session: { playerId: 12, currencyGroupId: "617a650628b7a500016388f5" } };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
         spyOn(consumer, "initializeNewPool");
-        spyOn(consumer, "getBasePool").and.returnValue(1);
+        spyOn(consumer, "getBasePool").and.returnValue(pool);
 
         // act
         const jackpot = await consumer.hit(player, bet);
@@ -184,7 +219,7 @@ describe("hit", () => {
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId };
         const winningJackpot = { amount: 12000 };
         jackpotsRepository.findOneAndUpdate.mockReturnValueOnce(winningJackpot);
-        spyOn(consumer, "getBasePool").and.returnValue(1);
+        spyOn(consumer, "getBasePool").and.returnValue(pool);
         const expectJackpotAmount = { amount: winningJackpot.amount * gameData.gameConfigs.slotsConfig.jackpot.winningRatio };
 
         spyOn(consumer, "initializeNewPool");
@@ -369,7 +404,7 @@ function stubGameData() {
         minbet: 1,
         maxbet: 1000,
         slotsConfig: {
-            stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }],
+            stakeLevels: [{ stake: 1000 }, { stake: 5000 }, { stake: 10000 }],
             jackpot: {
                 playerContributionRatio: 0.025,
                 botContributionRatio: 0.005,

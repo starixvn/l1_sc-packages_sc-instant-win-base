@@ -1,0 +1,29 @@
+{
+    "exchangeRate": {
+        "VND": 1,
+        "THB": 699.88,
+        "KRW": 17.8228,
+        "AUD": 15587.756,
+        "EURO": 25363.225,
+        "IDR": 1.5757,
+        "HKD": 2996.5779,
+        "JPY": 169.4249,
+        "NOK": 2153.8875,
+        "RON": 5102.4731,
+        "CHF": 26074.8389
+    },
+    "currencies": [
+        { "name": "INH", "code": "VND", "multiplier": 1000, "stakeLevels": [1, 5, 10] },
+        { "name": "TB", "code": "THB", "multiplier": 1, "stakeLevels": [1, 5, 10] },
+        { "name": "WON", "code": "KRW", "multiplier": 1, "stakeLevels": [20, 100, 500] },
+        { "name": "AUD", "code": "AUD", "multiplier": 1, "stakeLevels": [0.1, 0.5, 1] },
+        { "name": "EURO", "code": "EURO", "multiplier": 1, "stakeLevels": [0.1, 0.5, 1] },
+        { "name": "IN", "code": "IDR", "multiplier": 1000, "stakeLevels": [1, 5, 10] },
+        { "name": "HK$", "code": "HKD", "multiplier": 1, "stakeLevels": [0.5, 2, 5] },
+        { "name": "JPY", "code": "JPY", "multiplier": 1, "stakeLevels": [10, 50, 100] },
+        { "name": "NOK", "code": "NOK", "multiplier": 1, "stakeLevels": [0.5, 2, 5] },
+        { "name": "RON", "code": "RON", "multiplier": 1, "stakeLevels": [0.2, 0.5, 2] },
+        { "name": "CHF", "code": "CHF", "multiplier": 1, "stakeLevels": [0.1, 0.5, 1] },
+        { "name": "VND", "code": "VND", "multiplier": 1, "stakeLevels": [1000, 5000, 10000] }
+    ]
+}

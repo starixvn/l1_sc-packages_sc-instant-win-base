@@ -38,7 +38,6 @@ export default class JackpotConsumer {
         }
 
         const baseTotalAmount = totalAmount * rate;
-
         const contributionRatio = contributedByMember
             ? this.gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio
             : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
