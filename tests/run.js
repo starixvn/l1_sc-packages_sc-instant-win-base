@@ -174,10 +174,10 @@ export function runOneMillions(mode, boardDefinition) {
 
 function runAllModes() {
     console.log("===================EASY===================");
-    //runOneMillionsForBots(difficulties.easy);
+    runOneMillions(difficulties.easy);
 
     console.log("===================MEDIUM===================");
-    //runOneMillionsForBots(difficulties.medium);
+    runOneMillions(difficulties.medium);
 
     console.log("===================HARD===================");
     runOneMillions(difficulties.hard);
