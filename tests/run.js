@@ -94,10 +94,10 @@ export function runOneMillions(mode, boardDefinition) {
             .map((x) => ({ winAmount: 0 })),
     };
     for (let counter = 0; counter < 100000; counter++) {
-        const amount = stakes[1];
+        const amount = chance.pickone(stakes);
         const board = generator.generate(mode);
-        //const randomPaylines = [paylines[0]];
-        const randomPaylines = [chance.pickone(paylines)];
+        const randomPaylines = [paylines[0]];
+        //const randomPaylines = [chance.pickone(paylines)];
         //const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
         const result = calculator.calculate(board, randomPaylines, odds);
         summary.totalAmount += amount * randomPaylines.length;
@@ -313,4 +313,3 @@ function checkPosibility() {
 }
 
 runAllModes();
-
