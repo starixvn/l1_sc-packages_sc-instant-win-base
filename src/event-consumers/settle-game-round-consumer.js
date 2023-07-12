@@ -134,9 +134,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     settleWinningPaylines(settlementResult) {
         return settlementResult.jackpot
-            ? settlementResult.paylines.filter(
-                  (payline) => payline.odds > 0 && payline.symbol !== this.boardGenerator.definition.specialSymbols.jackpot
-              )
+            ? settlementResult.paylines.filter((payline) => payline.odds > 0 && payline.payline !== settlementResult.jackpotPayline)
             : settlementResult.paylines.filter((payline) => payline.odds > 0);
     }
 
@@ -295,7 +293,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         );
 
         betResult.totalBetAmount = bet.totalAmount;
-        betResult.bigWin = (betResult.totalWin + bonus) / bigWinRatio > betResult.totalBetAmount;
+        betResult.bigWin = (betResult.totalWin + bonus) / bigWinRatio >= betResult.totalBetAmount;
         betResult.totalWin = parseFloat((betResult.totalWin + bonus).toFixed(2));
         betResult.netWin = parseFloat((betResult.totalWin + bonus - betResult.totalBetAmount).toFixed(2));
         betResult.totalLost = betResult.totalBetAmount - betResult.totalWin > 0 ? betResult.totalBetAmount - betResult.totalWin : 0;
