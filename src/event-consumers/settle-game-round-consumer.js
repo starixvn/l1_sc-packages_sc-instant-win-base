@@ -189,6 +189,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 exchangeRateId: bet.exchangeRateId,
                 operatorId: bet.operatorId,
                 currency: bet.currency,
+                rate: bet.rate,
             })
         ).amount;
         const hitJackpotResult = await this.hitJackpot(player, {
