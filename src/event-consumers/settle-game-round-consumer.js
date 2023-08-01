@@ -182,7 +182,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async processJackpot(player, roundId, bet, winningLine) {
-        const winningAmount = (
+        const baseWinningAmount = (
             await this.jackpotConsumer.hit(player, {
                 pool: bet.bet,
                 roundId,
@@ -192,10 +192,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 rate: bet.rate,
             })
         ).amount;
+        const winningAmount = math.round(baseWinningAmount / bet.rate, 4);
+        
         const hitJackpotResult = await this.hitJackpot(player, {
             gameRoundId: roundId,
             gameId: this.definition.id,
-            winningAmount: math.round(winningAmount / bet.rate, 4),
+            winningAmount,
         });
 
         const error = hitJackpotResult.isOk ? null : hitJackpotResult.response.message;
