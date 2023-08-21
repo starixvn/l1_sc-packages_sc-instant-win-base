@@ -1,3 +1,24 @@
+# [1.7.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.6.1...v1.7.0) (2023-08-21)
+
+
+### Bug Fixes
+
+* hit jackpot collection update - update current pool then create new pool ([8e81ce5](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8e81ce5fce65e0cfba452aa267744d4d1180a2c5))
+* jackpot consumer - get latest round Id ([54c18cc](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/54c18ccd97df4a008c46176b376ec5468e5b2222))
+* settlement - get winningPaylines when user hits jackpot ([e501f8b](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/e501f8b17fe679b277f0b6f2187b29331fae2f0c))
+* slot history query - enableJackpot check ([c159ce5](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/c159ce5308e33341e4da16bfc7499576a9995956))
+* update lodash impot ([8afce27](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/8afce2766582c5321f1be0b456a7985475bb9ab2))
+
+
+### Features
+
+* add new fields to jackpot collection ([b2c8bae](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/b2c8bae38be025955cb686ed43756a5180181dd4))
+* jackpot - only accessible to user with disableJackpotGames=false ([fcd55bd](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/fcd55bd4c929ad2a105e44e270df0d9ae9a66c46))
+* update ingame consumer - get jackpot pools condition ([ff89656](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/ff89656ec467cfe45d1547416b718e44f0d72269))
+* update permission - support multiple currencies ([25944e3](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/25944e3c8bfd5901a7b484769399d2eba4a9dca7))
+* update slot history query - add enableJackpot ([643adc8](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/643adc83ebc5d900844e8104e9c4d032205bf912))
+* using board strategy from game config ([4d01d39](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/4d01d39215b508b7e23051b217efddc8097cf2b4))
+
 ## [1.6.1](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.6.0...v1.6.1) (2023-03-15)
 
 
