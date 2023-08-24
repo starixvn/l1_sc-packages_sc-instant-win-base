@@ -6,7 +6,5 @@ import * as Routers from "./routers";
 import SlotContainerRegistry from "./slot-container-registry";
 import SlotGameData from "./slot-game-data";
 import SlotGameDefinition from "./slot-game-definition";
-import SlotGameApp from "./slot-game-app";
 
-export { Crons, EventConsumers, EventPublishers, Models, Routers, SlotContainerRegistry, SlotGameData, SlotGameDefinition, SlotGameApp };
-
+export { Crons, EventConsumers, EventPublishers, Models, Routers, SlotContainerRegistry, SlotGameData, SlotGameDefinition };
