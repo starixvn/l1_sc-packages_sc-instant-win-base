@@ -8155,10 +8155,10 @@
     "mongoose-long" "^0.3.0"
     "numeral" "^2.0.6"
 
-"sc-game-base@4.0.0":
-  "integrity" "sha512-WI70demII8ERf1MupBJU16DRMwaQNETUXyixHFBl14JtdqlqwEuj9OEAbX5zmClhUhUT5uhmWFNu5I8zdaVLmw=="
-  "resolved" "http://npm.lumigame.com/sc-game-base/-/sc-game-base-4.0.0.tgz"
-  "version" "4.0.0"
+"sc-game-base@4.0.1-beta.0":
+  "integrity" "sha512-9RuJ9FmiqjUi+xz1lFMqfVx5lMvIGHtW0P51nx580YomT9/ewrzq7UL/Q3Us59/2mIHUm2vlKxvOH1arJp9fpA=="
+  "resolved" "http://npm.lumigame.com/sc-game-base/-/sc-game-base-4.0.1-beta.0.tgz"
+  "version" "4.0.1-beta.0"
   dependencies:
     "awilix" "^8.0.0"
     "axios" "^1.0.0"
@@ -8174,6 +8174,7 @@
     "sc-base-apis" "1.18.1"
     "sc-base-database" "1.11.1"
     "sc-common" "1.8.1"
+    "sc-instrument" "0.0.1-beta.16"
     "socket.io" "^4.5.4"
     "socket.io-msgpack-parser" "^3.0.1"
     "socket.io-prom-metrics" "^1.0.3"

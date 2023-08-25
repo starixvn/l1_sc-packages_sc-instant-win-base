@@ -1,7 +1,6 @@
 import math from "lodash/math";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
-import { tracer } from "sc-instrument";
 import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import SlotGameData from "./../slot-game-data";
@@ -55,26 +54,6 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         this.roundsRepository = roundsRepository;
         this.idCountersConsumer = idCountersConsumer;
         this.jackpotValidator = jackpotValidator;
-    }
-
-    dequeueBets() {
-        if (this.gameData.ingame) {
-            Object.values(this.gameData.ingame).forEach((playerInGame) => {
-                if (!playerInGame.betProcessing && playerInGame.betQueue && playerInGame.betQueue.length > 0) {
-                    const self = this;
-                    const { player, payload } = playerInGame.betQueue.shift();
-
-                    playerInGame.betProcessing = true;
-
-                    tracer.startActiveSpan("dequeueBet", async (span) => {
-                        self.proceedBet(player, payload)
-                            .then(() => (playerInGame.betProcessing = false))
-                            .catch(self.logService.logError)
-                            .finally(() => span.end());
-                    });
-                }
-            });
-        }
     }
 
     async proceedBet(player, payload) {
