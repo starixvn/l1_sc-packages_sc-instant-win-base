@@ -1,6 +1,6 @@
 import Chance from "chance";
 import defaultDefinition from "./default-definition";
-
+import difficulties from "./difficulties";
 export default class BoardGenerator {
     /**
      * @param {defaultDefinition} boardDefinition
@@ -14,8 +14,8 @@ export default class BoardGenerator {
     }
 
     generate(difficulty) {
-        const { gameConfigs } = this.gameData;
-        return this.generateByStrategy(gameConfigs.slotsConfig.symbolWeight[difficulty]);
+        const { slotsConfig } = this.gameData.gameConfigs;
+        return this.generateByStrategy(slotsConfig.symbolWeight?.[difficulty] ?? this.getFillingStrategy(difficulty));
     }
 
     generateForBots(isJackpotEnabled, botRatio = 40) {
@@ -45,5 +45,16 @@ export default class BoardGenerator {
         }
 
         return shuffledBoard;
+    }
+
+    getFillingStrategy(difficulty) {
+        switch (difficulty) {
+            case difficulties.hard:
+                return this.definition.fillingStrategies.hard;
+            case difficulties.medium:
+                return this.definition.fillingStrategies.medium;
+            default:
+                return this.definition.fillingStrategies.easy;
+        }
     }
 }
