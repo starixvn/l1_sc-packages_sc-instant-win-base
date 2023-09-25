@@ -8,11 +8,11 @@ stages:
 
 include:
     - project: "ci/common-ci"
-      ref: master
+      ref: registry-image-update
       file: "unit-test/js-unit-test.gitlab-ci.yml"
     - project: "ci/common-ci"
-      ref: master
+      ref: registry-image-update
       file: "sonarqube/sonarqube.js-unittest.gitlab-ci.yml"
     - project: "ci/common-ci"
-      ref: master
+      ref: registry-image-update
       file: "npm/publish-npm.gitlab-ci.yml"
