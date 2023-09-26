@@ -684,6 +684,54 @@ describe("settle-game-round-consumer", () => {
             expect(actualValue.jackpotWin).toBe(testCase.expectedValue);
         });
     });
+
+    describe("settleWinningPaylines", () => {
+        describe("settlementResult.jackpot has value", () => {
+            it("Result shouldnt include the jackpot payline", () => {
+                //Arrange
+                const dependencies = initDependencies();
+                dependencies.definition = {};
+                dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+                const consumer = new SettleGameRoundConsumer(dependencies);
+                const settlementResult = {
+                    paylines: [
+                        { payline: 0, odds: 2 },
+                        { payline: 1, odds: 1000 },
+                    ],
+                    jackpotPayline: 1,
+                };
+
+                //Act
+                const result = consumer.settleWinningPaylines(settlementResult);
+
+                //Assert
+                expect(result).not.toContain(settlementResult.jackpotPayline);
+            });
+        });
+
+        describe("settlementResult.jackpot is null", () => {
+            it("Result should include all winning paylines", () => {
+                //Arrange
+                const dependencies = initDependencies();
+                dependencies.definition = {};
+                dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+                const consumer = new SettleGameRoundConsumer(dependencies);
+                const settlementResult = {
+                    paylines: [
+                        { payline: 0, odds: 2 },
+                        { payline: 1, odds: 1000 },
+                    ],
+                    jackpotPayline: null,
+                };
+
+                //Act
+                const result = consumer.settleWinningPaylines(settlementResult);
+
+                //Assert
+                expect(result).toEqual(settlementResult.paylines);
+            });
+        });
+    });
 });
 
 function initDependencies() {

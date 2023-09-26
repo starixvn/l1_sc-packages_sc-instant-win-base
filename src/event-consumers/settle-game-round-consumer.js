@@ -128,7 +128,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async settleJackpot(player, roundId, bet, settlementResult) {
         return settlementResult.jackpotPayline > -1 && this.jackpotValidator.canHitJackpot(player)
-            ? await this.processJackpot(player, roundId, bet, settlementResult.jackpotPayline)
+            ? this.processJackpot(player, roundId, bet, settlementResult.jackpotPayline)
             : null;
     }
 
