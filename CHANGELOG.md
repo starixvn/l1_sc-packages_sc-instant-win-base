@@ -1,3 +1,26 @@
+# [2.0.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.7.0...v2.0.0) (2023-09-28)
+
+
+* feat!: use default symbol weight strategy if game configs doesnt have ([a937b9d](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/a937b9de1d58c1454b5ef84246dc651d704b10eb))
+
+
+### Bug Fixes
+
+* expose SlotGameApp ([ab64021](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/ab640218300b43d77dca63171143a5fb5a4a09c5))
+* remove sc-instrument-helper since OTEL now support esm ([e3e062e](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/e3e062e97a718c905990644f94a57d401204ed65))
+* remove unused constructor ([6344a0d](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/6344a0de7a56e481d7d8cce59affa1688d4ac954))
+
+
+### Features
+
+* add OTEL to instrument code ([3ff85e0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/3ff85e07fb0d5905e179e98d782d937dfae1fa9c))
+* upgrade game base that support OTEL default ([bf147bf](https://git3.nexdev.net/sc-packages/sc-slot-game-base/commit/bf147bf1c43cfeea4c7d80c40c2c549b677e1fc8))
+
+
+### BREAKING CHANGES
+
+* sc-game-base v4 + dynamic symbol weight for strategies
+
 # [1.7.0](https://git3.nexdev.net/sc-packages/sc-slot-game-base/compare/v1.6.1...v1.7.0) (2023-08-21)
 
 
