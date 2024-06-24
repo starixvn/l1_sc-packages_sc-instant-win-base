@@ -4,6 +4,7 @@ import { Core } from "sc-game-base";
 
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import { MultipleCurrencyHelper } from "./../helpers";
+import defaultDefinition from "../board/default-definition";
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     composeBettingTimeValidationCriteria() {
@@ -18,7 +19,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
     }
 
     composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
-        const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, player);
+        const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, player);
 
         return [
             {
@@ -26,27 +27,14 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
                 notice: this.getNoticeObj(SlotNoticeHelper.invalidStakeLevel),
             },
             {
-                failure: !stakeLevels.find((stakeLevel) => stakeLevel.stake === amount),
+                failure: !betLevels.includes(amount),
                 notice: this.getNoticeObj(SlotNoticeHelper.invalidStakeLevel),
             },
         ];
     }
 
     composeBetChoiceValidationCriteria(betChoice) {
-        return [
-            {
-                failure: betChoice.length < 1,
-                notice: this.getNoticeObj(SlotNoticeHelper.invalidPaylines),
-            },
-            {
-                failure: betChoice.filter((choice) => !this.definition.choices.includes(choice)).length > 0,
-                notice: this.getNoticeObj(SlotNoticeHelper.invalidPaylines),
-            },
-            {
-                failure: _.uniq(betChoice).length !== betChoice.length,
-                notice: this.getNoticeObj(SlotNoticeHelper.invalidPaylines),
-            },
-        ];
+        return [];
     }
 
     consume(player, payload) {
@@ -54,6 +42,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             amount: payload.amount,
             freeBet: payload.freeBet ?? false,
             freeSpin: payload.freeSpin ?? false,
+            betChoice: [...Object.keys(defaultDefinition.paylines)],
         });
 
         const { amount, betChoice, freeBet, roundId } = payload;

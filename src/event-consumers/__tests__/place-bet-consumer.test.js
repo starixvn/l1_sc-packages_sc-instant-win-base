@@ -1,4 +1,4 @@
-import { stub, stubMongoose } from "jest-micro-auto-stub";
+import { stub } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
 import { BaseEventPublishers } from "sc-game-base/src/core";
 
@@ -6,179 +6,169 @@ import SlotNoticeHelper from "../../helpers/slot-notice-helper";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
 import PlaceBetConsumer from "../place-bet-consumer";
-import mongoose from "mongoose";
 
-const gameData = stubGameData();
-const gameDefinition = stubGameDefinition();
-const publisher = stub(BaseEventPublishers);
+describe("PlaceBetConsumer", () => {
+    const gameData = stubGameData();
+    const gameDefinition = stubGameDefinition();
+    const publisher = stub(BaseEventPublishers);
 
-describe("composeBettingTimeValidationCriteria", () => {
-    it("should return placeBetNextRound when game was disabled", () => {
-        // arrange
-        gameData.gameConfigs.enabled = false;
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
+    let placeBetConsumer;
 
-        // act
-        const criterions = placeBetConsumer.composeBettingTimeValidationCriteria();
-
-        // assert
-        expect(criterions).not.toBeEmpty();
-        expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
-            failure: true,
-            notice: { errorCode: helpers.noticeHelper.placeBetNextRound },
-        });
+    beforeEach(() => {
+        placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, publisher);
     });
-});
 
-describe("composeBetAmountValidationCriteria", () => {
-    const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
+    describe("composeBettingTimeValidationCriteria", () => {
+        it("should return placeBetNextRound when game was disabled", () => {
+            // arrange
+            gameData.gameConfigs.enabled = false;
+            const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
 
-    it("should return invalidStakeLevel when amount is 0", async () => {
-        // arrange
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, undefined, currencyGroupGamesRepository);
-        const amount = 0;
+            // act
+            const criterions = placeBetConsumer.composeBettingTimeValidationCriteria();
 
-        // act
-        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria(
-            { session: { currencyGroupId: "617a650628b7a500016388f5" } },
-            {},
-            amount,
-            {}
-        );
-
-        // assert
-        expect(criterions.filter((x) => x.failure).length).toBe(2);
-        expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
-            failure: true,
-            notice: { errorCode: SlotNoticeHelper.invalidStakeLevel },
+            // assert
+            expect(criterions).not.toBeEmpty();
+            expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
+                failure: true,
+                notice: { errorCode: helpers.noticeHelper.placeBetNextRound },
+            });
         });
     });
 
-    it("should return invalidStakeLevel when amount is less than 0", async () => {
-        // arrange
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, undefined, currencyGroupGamesRepository);
-        const amount = -1;
+    describe("composeBetAmountValidationCriteria", () => {
+        describe("when amount is NOT valid bet level", () => {
+            it("should return invalidStakeLevel when amount is 0", () => {
+                // arrange
+                const amount = 0;
 
-        // act
-        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria({ session: {} }, {}, amount, {});
+                // act
+                const criterions = placeBetConsumer.composeBetAmountValidationCriteria(
+                    { session: { currencyGroupId: "617a650628b7a500016388f5" } },
+                    {},
+                    amount,
+                    {}
+                );
 
-        // assert
-        expect(criterions.filter((x) => x.failure).length).toBe(2);
-        expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
-            failure: true,
-            notice: { errorCode: SlotNoticeHelper.invalidStakeLevel },
+                // assert
+                expect(criterions.filter((x) => x.failure).length).toBe(2);
+                expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
+                    failure: true,
+                    notice: { errorCode: SlotNoticeHelper.invalidStakeLevel },
+                });
+            });
+
+            it("should return invalidStakeLevel when amount is less than 0", () => {
+                // arrange
+                const amount = -1;
+
+                // act
+                const criterions = placeBetConsumer.composeBetAmountValidationCriteria({ session: {} }, {}, amount, {});
+
+                // assert
+                expect(criterions.filter((x) => x.failure).length).toBe(2);
+                expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
+                    failure: true,
+                    notice: { errorCode: SlotNoticeHelper.invalidStakeLevel },
+                });
+            });
+
+            it("should return invalidStakeLevel when amount is not belongs to stake level configurations", () => {
+                // arrange
+                const amount = 2;
+
+                // act
+                const criterions = placeBetConsumer.composeBetAmountValidationCriteria(
+                    { session: { currencyGroupId: "617a650628b7a500016388f5" } },
+                    {},
+                    amount,
+                    {}
+                );
+
+                // assert
+                expect(criterions.filter((x) => x.failure).length).toBe(1);
+                expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
+                    failure: true,
+                    notice: { errorCode: SlotNoticeHelper.invalidStakeLevel },
+                });
+            });
+        });
+
+        describe("when amount is valid bet level", () => {
+            it("should return empty array", () => {
+                // arrange
+                const amount = 1;
+
+                // act
+                const criterions = placeBetConsumer.composeBetAmountValidationCriteria(
+                    { session: { currencyGroupId: "617a650628b7a500016388f5" } },
+                    {},
+                    amount,
+                    {}
+                );
+
+                // assert
+                expect(criterions.filter((criteria) => criteria.failure)).toBeEmpty();
+            });
         });
     });
 
-    it("should return invalidStakeLevel when amount is not belongs to stake level configurations", async () => {
-        // arrange
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, undefined, currencyGroupGamesRepository);
-        const amount = 2;
-
-        // act
-        const criterions = await placeBetConsumer.composeBetAmountValidationCriteria({ session: {} }, {}, amount, {});
-
-        // assert
-        expect(criterions.filter((x) => x.failure).length).toBe(1);
-        expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
-            failure: true,
-            notice: { errorCode: SlotNoticeHelper.invalidStakeLevel },
+    describe("consume", () => {
+        beforeEach(() => {
+            gameData.gameConfigs.enabled = true;
+            gameData.ingame = {};
         });
-    });
-});
 
-describe("composeBetChoiceValidationCriteria", () => {
-    it("should return invalidPaylines when bet choices are empty", () => {
-        // arrange
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
-        const betChoices = [];
+        it("should assign 25 paylines to betChoice", () => {
+            // arrange
+            const player = stubPlayer();
+            const payload = stubPayload();
 
-        // act
-        const criterions = placeBetConsumer.composeBetChoiceValidationCriteria(betChoices);
+            // act
+            placeBetConsumer.consume(player, payload);
+            const { betQueue } = placeBetConsumer.gameData.ingame[player.profile.name];
+            const betInfo = betQueue[0].payload;
 
-        // assert
-        expect(criterions.filter((x) => x.failure).length).toBe(1);
-        expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
-            failure: true,
-            notice: { errorCode: SlotNoticeHelper.invalidPaylines },
+            // assert
+            expect(betInfo.betChoice).toBeArrayOfSize(25);
         });
-    });
 
-    it("should return invalidPaylines when bet choices have duplications", () => {
-        // arrange
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
-        const betChoices = [1, 2, 3, 4, 5, 5];
+        it("should push payload into betQueue", () => {
+            // arrange
+            const player = stubPlayer();
+            const payload = stubPayload();
 
-        // act
-        const criterions = placeBetConsumer.composeBetChoiceValidationCriteria(betChoices);
+            // act
+            placeBetConsumer.consume(player, payload);
 
-        // assert
-        expect(criterions.filter((x) => x.failure).length).toBe(1);
-        expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
-            failure: true,
-            notice: { errorCode: SlotNoticeHelper.invalidPaylines },
+            // assert
+            expect(placeBetConsumer.gameData.ingame[player.profile.name].betQueue).not.toBeEmpty();
         });
-    });
 
-    it("should return invalidPaylines when bet choices are undefined", () => {
-        // arrange
-        const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
-        const betChoices = [5, 6];
+        it("should NOT push payload into betQueue if invalid bet", () => {
+            // arrange
+            const player = stubPlayer();
+            const payload = stubPayload(1.5);
 
-        // act
-        const criterions = placeBetConsumer.composeBetChoiceValidationCriteria(betChoices);
+            // act
+            placeBetConsumer.consume(player, payload);
 
-        // assert
-        expect(criterions.filter((x) => x.failure).length).toBe(1);
-        expect(criterions.filter((x) => x.failure)[0]).toStrictEqual({
-            failure: true,
-            notice: { errorCode: SlotNoticeHelper.invalidPaylines },
+            // assert
+            expect(placeBetConsumer.gameData.ingame[player.profile.name]).toBeUndefined();
         });
-    });
-});
 
-describe("consume", () => {
-    const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
+        it("betQueue should be doubled if it already contains once", () => {
+            // arrange
+            const player = stubPlayer();
+            const payload = stubPayload(1);
 
-    it("should push payload into betQueue", async () => {
-        // arrange
-        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher, currencyGroupGamesRepository);
-        const player = stubPlayer();
-        const payload = stubPayload();
+            // act
+            placeBetConsumer.consume(player, payload);
+            placeBetConsumer.consume(player, payload);
 
-        // act
-        consumer.consume(player, payload);
-
-        // assert
-        expect(consumer.gameData.ingame[player.profile.name].betQueue).not.toBeEmpty();
-    });
-
-    it("should NOT push payload into betQueue if invalid bet", async () => {
-        // arrange
-        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher, currencyGroupGamesRepository);
-
-        const player = stubPlayer();
-        const payload = stubPayload(1.5);
-
-        // act
-        consumer.consume(player, payload);
-
-        // assert
-        expect(consumer.gameData.ingame[player.profile.name]).toBeUndefined();
-    });
-
-    it("betQueue should be doubled if it already contains once", async () => {
-        // arrange
-        const consumer = new PlaceBetConsumer(gameDefinition, stubGameData(), publisher, currencyGroupGamesRepository);
-        const player = stubPlayer();
-        const payload = stubPayload(1);
-
-        // act
-        consumer.consume(player, payload);
-        consumer.consume(player, payload);
-
-        // assert
-        expect(consumer.gameData.ingame[player.profile.name].betQueue.length).toBe(2);
+            // assert
+            expect(placeBetConsumer.gameData.ingame[player.profile.name].betQueue.length).toBe(2);
+        });
     });
 });
 
@@ -191,11 +181,11 @@ function stubGameData() {
         minbet: 1,
         maxbet: 1000,
         slotsConfig: {
-            stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }],
+            betLevels: [0.1, 1, 5],
         },
     };
 
-    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
+    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", betLevels: [0.1, 1, 5] }];
     return gameData;
 }
 
