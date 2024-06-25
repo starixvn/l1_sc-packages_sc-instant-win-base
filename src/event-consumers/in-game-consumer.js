@@ -18,7 +18,17 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
      * @param {mongoose.Model} dependencies.userInfosRepository
      * @param {mongoose.Model} dependencies.jackpotsRepository
      */
-    constructor({ definition, gameData, roundQuery, publisher, freeSpinsConsumer, getBalance, userInfosRepository, jackpotsRepository, jackpotValidator }) {
+    constructor({
+        definition,
+        gameData,
+        roundQuery,
+        publisher,
+        freeSpinsConsumer,
+        getBalance,
+        userInfosRepository,
+        jackpotsRepository,
+        jackpotValidator,
+    }) {
         super(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository);
 
         this.freeSpinsConsumer = freeSpinsConsumer;
@@ -27,33 +37,17 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     }
 
     async buildPayload(realPlayer) {
-        const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, realPlayer);
         const { session } = realPlayer;
 
-        const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
-        const gameConfigs = {
-            baseStakeLevels: this.gameData.gameConfigs.slotsConfig.stakeLevels.map((level) => level.stake),
-            stakeLevels: stakeLevels.map((level) => level.stake),
-            odds,
-            jackpot: {
-                winningRatio: jackpot.winningRatio,
-            },
-        };
-        const totalOfFreeSpins = this.freeSpinsConsumer.getTotalAvaiableFreeSpins(realPlayer);
-        const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(realPlayer);
-        const freeSpins = {
-            total: totalOfFreeSpins,
-            bet: soonestExpiredFreeSpinSet?.bet,
-            paylines: soonestExpiredFreeSpinSet?.paylines,
-        };
+        const gameConfigs = this.getSlotGameConfig(realPlayer);
+        const freeSpins = this.getAvailableFreeSpins(realPlayer);
         const jackpotPools = this.jackpotValidator.canAccessJackpot(realPlayer) ? await this.getPools() : [];
 
         await this.getBalance(realPlayer, true);
 
         const user = await this.getUserInfo(realPlayer.UID);
 
-        const { exchangeRates } = this.gameData;
-        const rate = exchangeRates.code[session.currencyCode] * session.multiplier;
+        const { rate, multiplier } = this.getExchangeRate(session);
 
         return {
             gameConfigs,
@@ -62,9 +56,34 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             user: {
                 ...user,
                 rate,
-                multiplier: session.multiplier,
+                multiplier,
                 disableJackpotGames: session.disableJackpotGames,
             },
+        };
+    }
+
+    getSlotGameConfig(realPlayer) {
+        const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer);
+        const { icons: odds, jackpot, betLevels: baseBetLevels } = this.gameData.gameConfigs.slotsConfig;
+
+        return {
+            baseStakeLevels: baseBetLevels,
+            stakeLevels: betLevels,
+            odds,
+            jackpot: {
+                winningRatio: jackpot.winningRatio,
+            },
+        };
+    }
+
+    getAvailableFreeSpins(realPlayer) {
+        const totalOfFreeSpins = this.freeSpinsConsumer.getTotalAvaiableFreeSpins(realPlayer);
+        const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(realPlayer) ?? { bet: 0, paylines: [] };
+
+        return {
+            total: totalOfFreeSpins,
+            bet: soonestExpiredFreeSpinSet.bet,
+            paylines: soonestExpiredFreeSpinSet.paylines,
         };
     }
 
@@ -80,5 +99,14 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         };
 
         return this.jackpotsRepository.find(runningPoolsFilter, projection).lean().exec();
+    }
+
+    getExchangeRate(session) {
+        const { exchangeRates } = this.gameData;
+        const { multiplier, currencyCode } = session;
+        //TODO what if exchangeRates.code[currencyCode] is undefined?!?
+        const rate = exchangeRates.code[currencyCode] * multiplier;
+
+        return { rate, multiplier };
     }
 }

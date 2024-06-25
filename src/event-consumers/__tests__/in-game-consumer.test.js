@@ -7,105 +7,209 @@ import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
 import JackpotValidator from "../../validators/jackpot-validator";
 
-const gameData = stubGameData();
-const definition = stubGameDefinition();
-const publisher = stub(BaseEventPublishers);
-const roundQuery = stub(RoundQuery);
-
 /** @type {mongoose.Model}*/
 const userInfosRepository = stubMongoose(mongoose.Model);
 /** @type {mongoose.Model}*/
 const jackpotsRepository = stubMongoose(mongoose.Model);
 const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
-
-const freeSpinsConsumer = stub(FreeSpinsConsumer);
 const getBalance = jest.fn();
-const jackpotValidator = new JackpotValidator(gameData);
 
-describe("getPools", () => {
-    it("should get pools from jackpot repository", async () => {
-        // arrange
-        const consumer = createInGameConsumer();
-        const expectPools = [{ pool: 1, amount: 1000 }];
+describe("IngameConsumer", () => {
+    const gameData = stubGameData();
+    const definition = stubGameDefinition();
+    const publisher = stub(BaseEventPublishers);
+    const roundQuery = stub(RoundQuery);
+    const jackpotValidator = stub(JackpotValidator);
+    const freeSpinsConsumer = stub(FreeSpinsConsumer);
 
-        jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
+    let consumer;
 
-        // act
-        const pools = await consumer.getPools();
-
-        // assert
-        expect(pools).toStrictEqual(expectPools);
-    });
-});
-
-describe("buildPayload", () => {
-    it("when jackpot disabled should not call get jackpot pools", async () => {
-        // arrange
-        const consumer = createInGameConsumer();
-        consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = false;
-        spyOn(consumer, "getPools");
-
-        // act
-        await consumer.buildPayload({ session: { currencyGroupId: "617a650628b7a500016388f5" } });
-
-        // assert
-        expect(consumer.getPools).not.toBeCalled();
-        consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+    beforeEach(() => {
+        consumer = new InGameConsumer({
+            definition,
+            gameData,
+            roundQuery,
+            publisher,
+            freeSpinsConsumer,
+            getBalance,
+            userInfosRepository,
+            jackpotsRepository,
+            currencyGroupGamesRepository,
+            jackpotValidator,
+        });
     });
 
-    it("should contains jackpot pools", async () => {
-        // arrange
-        const consumer = createInGameConsumer();
-        const expectPools = [{ pool: 1, amount: 1000 }];
-        jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
-        const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
+    describe("getPools", () => {
+        it("should get pools from jackpot repository", async () => {
+            // arrange
+            const expectPools = [{ pool: 1, amount: 1000 }];
 
-        // act
-        const payload = await consumer.buildPayload(player);
+            jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
 
-        // assert
-        expect(payload.jackpotPools).not.toBeNull();
-        expect(payload.jackpotPools).toStrictEqual(expectPools);
+            // act
+            const pools = await consumer.getPools();
+
+            // assert
+            expect(pools).toStrictEqual(expectPools);
+        });
     });
 
-    it("should contains free spins", async () => {
-        // arrange
-        const consumer = createInGameConsumer();
-        const expectedFreeSpins = {
-            total: 2,
-            bet: 1,
-            paylines: [1, 2, 3],
-        };
+    describe("buildPayload", () => {
+        describe("when player cannot access jackpot", () => {
+            it(" should not call get jackpot pools", async () => {
+                // arrange
+                jackpotValidator.canAccessJackpot.mockReturnValueOnce(false);
+                consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = false;
+                spyOn(consumer, "getPools");
 
-        freeSpinsConsumer.getTotalAvaiableFreeSpins.mockReturnValueOnce(expectedFreeSpins.total);
-        freeSpinsConsumer.getSoonestExpiredFreeSpinSet.mockReturnValueOnce({
-            bet: expectedFreeSpins.bet,
-            paylines: expectedFreeSpins.paylines,
+                // act
+                await consumer.buildPayload({ session: { currencyGroupId: "617a650628b7a500016388f5" } });
+
+                // assert
+                expect(consumer.getPools).not.toBeCalled();
+                consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+            });
         });
 
-        // act
-        const payload = await consumer.buildPayload({ session: {} });
+        describe("when player able to access jackpot", () => {
+            it("should contains jackpot pools", async () => {
+                // arrange
+                const expectPools = [{ pool: 1, amount: 1000 }];
+                jackpotValidator.canAccessJackpot.mockReturnValueOnce(true);
 
-        // assert
-        expect(payload.freeSpins).not.toBeNull();
-        expect(payload.freeSpins).toStrictEqual(expectedFreeSpins);
+                jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
+                const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
+
+                // act
+                const payload = await consumer.buildPayload(player);
+
+                // assert
+                expect(payload.jackpotPools).not.toBeNull();
+                expect(payload.jackpotPools).toStrictEqual(expectPools);
+            });
+        });
+
+        it("always contains exchange rate", async () => {
+            // arrange
+            const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
+
+            // act
+            const { user } = await consumer.buildPayload(player);
+
+            // assert
+            expect(user.rate).not.toBeNull();
+            expect(user.rate).not.toBeUndefined();
+            expect(user.multiplier).not.toBeNull();
+            expect(user.multiplier).not.toBeUndefined();
+        });
+
+        it("always contains disableJackpotGames from session", async () => {
+            // arrange
+            const player = { session: { disableJackpotGames: true } };
+
+            // act
+            const { user } = await consumer.buildPayload(player);
+
+            // assert
+            expect(user.disableJackpotGames).not.toBeUndefined();
+            expect(user.disableJackpotGames).toBe(player.session.disableJackpotGames);
+        });
+
+        it("always contains free spins", async () => {
+            // arrange
+            const expectedFreeSpins = {
+                total: 2,
+                bet: 1,
+                paylines: [1, 2, 3],
+            };
+
+            freeSpinsConsumer.getTotalAvaiableFreeSpins.mockReturnValueOnce(expectedFreeSpins.total);
+            freeSpinsConsumer.getSoonestExpiredFreeSpinSet.mockReturnValueOnce({
+                bet: expectedFreeSpins.bet,
+                paylines: expectedFreeSpins.paylines,
+            });
+
+            // act
+            const payload = await consumer.buildPayload({ session: {} });
+
+            // assert
+            expect(payload.freeSpins).not.toBeNull();
+            expect(payload.freeSpins).toStrictEqual(expectedFreeSpins);
+        });
+    });
+
+    describe("getAvailableFreeSpins", () => {
+        it("always return NOT NULL", () => {
+            // arrange
+
+            // act
+            const freeSpins = consumer.getAvailableFreeSpins({ session: {} });
+
+            // assert
+            expect(freeSpins).not.toBeNull();
+        });
+
+        it("always return approriate format", () => {
+            // arrange
+            const expectedFreeSpins = {
+                total: 0,
+                bet: 0,
+                paylines: [],
+            };
+            freeSpinsConsumer.getTotalAvaiableFreeSpins.mockReturnValueOnce(0);
+
+            // act
+            const freeSpins = consumer.getAvailableFreeSpins({ session: {} });
+
+            // assert
+            expect(freeSpins).toStrictEqual(expectedFreeSpins);
+        });
+
+        describe("when have free spins", () => {
+            it("should return total, bet and paylines", () => {
+                // arrange
+                const expectedFreeSpins = {
+                    total: 2,
+                    bet: 1,
+                    paylines: [1, 2, 3],
+                };
+
+                freeSpinsConsumer.getTotalAvaiableFreeSpins.mockReturnValueOnce(expectedFreeSpins.total);
+                freeSpinsConsumer.getSoonestExpiredFreeSpinSet.mockReturnValueOnce({
+                    bet: expectedFreeSpins.bet,
+                    paylines: expectedFreeSpins.paylines,
+                });
+
+                // act
+                const freeSpins = consumer.getAvailableFreeSpins({ session: {} });
+
+                // assert
+                expect(freeSpins).toStrictEqual(expectedFreeSpins);
+            });
+        });
+    });
+
+    describe("getSlotGameConfig", () => {
+        it("always return approriate format", () => {
+            // arrange
+            const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
+            const expected = {
+                baseStakeLevels: [0.1, 1, 5],
+                stakeLevels: [0.1, 1, 5],
+                odds: [],
+                jackpot: {
+                    winningRatio: 0.98,
+                },
+            };
+
+            // act
+            const slotConfig = consumer.getSlotGameConfig(player);
+
+            // assert
+            expect(slotConfig).toStrictEqual(expected);
+        });
     });
 });
-
-function createInGameConsumer() {
-    return new InGameConsumer({
-        definition,
-        gameData,
-        roundQuery,
-        publisher,
-        freeSpinsConsumer,
-        getBalance,
-        userInfosRepository,
-        jackpotsRepository,
-        currencyGroupGamesRepository,
-        jackpotValidator
-    });
-}
 
 function stubGameData() {
     const gameData = new SlotGameData();
@@ -116,7 +220,7 @@ function stubGameData() {
         minbet: 1,
         maxbet: 1000,
         slotsConfig: {
-            stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }],
+            betLevels: [0.1, 1, 5],
             icons: [],
             jackpot: {
                 winningRatio: 0.98,
@@ -125,8 +229,9 @@ function stubGameData() {
         },
     };
 
-    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
-    gameData.exchangeRates = { code: [] };
+    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", betLevels: [0.1, 1, 5] }];
+    gameData.exchangeRates = { code: { AUD: 1 } };
+
     return gameData;
 }
 
