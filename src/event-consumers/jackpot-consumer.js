@@ -79,27 +79,11 @@ export default class JackpotConsumer {
         return poolAdjustment;
     }
 
-    //TODO add jackpot game to define which pool being hit
-    async hit(player, { pool, roundId, exchangeRateId, rate, operatorId, currency }) {
-        const hitByMember = !!player.session;
-
-        //TODO remove basePool
-        const basePool = hitByMember ? this.getBasePool(player, pool) : pool;
-        if (basePool == null) {
-            this.logService.logCritical(
-                `Couldn't find any base jackpot pool associated with: ${JSON.stringify({
-                    hasSession: !!player.session,
-                    currencyGroupId: player.session?.currencyGroupId,
-                    stake: pool,
-                })}`
-            );
-            return { amount: 0 };
-        }
-
+    async hit(player, { prize, roundId, exchangeRateId, rate, operatorId, currency }) {
         const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningRatio;
         const runningPoolFilter = {
             gameId: this.definition.id,
-            pool: basePool,
+            prize,
             winnerName: { $exists: false },
             createdAt: { $lt: roundId },
         };
@@ -136,7 +120,7 @@ export default class JackpotConsumer {
             }
         );
 
-        await this.initializeNewPool(basePool, roundId);
+        await this.initializeNewPool(prize, roundId);
 
         if (!winningJackpot) {
             this.logService.logCritical(`Couldn't find any running jackpot pool associated with: ${JSON.stringify(runningPoolFilter)}`);
@@ -152,21 +136,23 @@ export default class JackpotConsumer {
     }
 
     async initialize() {
-        // TODO init by pool, not by stake level
-        const stakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
+        const { pools } = this.gameData.gameConfigs.slotsConfig.jackpot;
         const roundId = this.gameData.roundId;
 
+        const prizes = Object.keys(pools);
+
         await Promise.all(
-            stakeLevels.map(async (stakeLevel) => {
+            prizes.map(async (prize) => {
                 const runningPoolFilter = {
                     gameId: this.definition.id,
-                    pool: stakeLevel.stake,
+                    pool: 0,
+                    prize: prize,
                     winnerName: { $exists: false },
                 };
                 const numberOfExistingPools = await this.jackpotsRepository.countDocuments(runningPoolFilter).exec();
 
                 if (numberOfExistingPools === 0) {
-                    await this.initializeNewPool(stakeLevel.stake, roundId);
+                    await this.initializeNewPool(prize, roundId);
                 }
 
                 if (numberOfExistingPools > 1) {
@@ -176,15 +162,16 @@ export default class JackpotConsumer {
         );
     }
 
-    async initializeNewPool(pool, roundId) {
-        const initAmount = this.gameData.gameConfigs.slotsConfig?.stakeLevels?.find((stakeLevel) => stakeLevel.stake === pool)?.jackpot ?? 0;
+    async initializeNewPool(prize, roundId) {
+        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
+        const initAmount = jackpot[prize].init;
 
-        this.logService.log(`Init new jackpot pool ${pool} at round ${roundId}`);
+        this.logService.log(`Init new jackpot prize ${prize} at round ${roundId}`);
 
         await this.jackpotsRepository.create({
             gameId: this.definition.id,
             gameName: this.definition.name,
-            pool,
+            prize: pool,
             initAmount,
             amount: initAmount,
             createdAt: roundId,
