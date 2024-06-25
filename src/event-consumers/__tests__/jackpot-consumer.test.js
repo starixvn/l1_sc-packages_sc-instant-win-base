@@ -20,125 +20,234 @@ const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
 const jackpotPublisher = stub(JackpotPublisher);
 const logService = stub(logger);
 
-describe("contribute", () => {
-    const pool = 1000;
-    const runningPoolFilter = {
-        gameId: gameDefinition.id,
-        pool,
-        winnerName: { $exists: false },
-        createdAt: { $lte: gameData.roundId },
-    };
-
-    const sort = {
-        new: true,
-        lean: true,
-        fields: { _id: false, amount: true },
-        sort: {
-            createdAt: -1,
-        },
-    };
+describe("JackpotConsumer", () => {
+    let consumer;
 
     beforeEach(() => {
+        consumer = initConsumer();
+    });
+
+    afterEach(() => {
         jest.clearAllMocks();
     });
 
-    it("when not find base pool should logCritical and return", async () => {
-        // arrange
-        const consumer = initConsumer();
-        spyOn(consumer, "getBasePool").and.returnValue(null);
+    describe("contribute", () => {
+        const pool = 1000;
+
+        const player = {};
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate: 1 };
-        const player = { session: {} };
 
-        // act
-        await consumer.contribute(player, bet);
+        it("should call contributeToPool with approriate prize and base amount", async () => {
+            // arrange
+            spyOn(consumer, "contributeToPool");
+            const poolConfigs = { bot: 0.01, contribute: 0.1, init: 5000 };
+            const expectedParams = { baseTotalAmount: 5, contributedByMember: false, prize: "minor", roundId: gameData.roundId, pool: poolConfigs };
 
-        // assert
-        expect(logService.logCritical).toBeCalled();
-        expect(jackpotPublisher.publishLatestPool).not.toBeCalled();
-    });
+            // act
+            await consumer.contribute(player, bet);
 
-    it("should update approriate contribution for bot with exchange rate and publish pool info", async () => {
-        // arrange
-        const consumer = initConsumer();
-        const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate: 1 };
-        jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
-            amount: 12,
+            // assert
+            expect(consumer.contributeToPool).toBeCalledWith(expectedParams);
         });
 
-        spyOn(consumer, "getBasePool").and.returnValue(1);
-        const contributeAmount = math.round(5 * gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio * bet.rate, 4);
-        const poolAdjustment = {
-            amount: contributeAmount,
-            byBots: contributeAmount,
-            byMembers: 0,
-        };
-        const player = {};
+        it("should call contributeToPool for all prizes", async () => {
+            // arrange
+            spyOn(consumer, "contributeToPool");
 
-        // act
-        await consumer.contribute(player, bet);
+            // act
+            await consumer.contribute(player, bet);
 
-        // assert
-        expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
-            runningPoolFilter,
-            {
-                gameId: gameDefinition.id,
-                $inc: poolAdjustment,
-            },
-            sort
-        );
-        expect(jackpotPublisher.publishLatestPool).toBeCalledWith({ pool, amount: 12 });
+            // assert
+            expect(consumer.contributeToPool).toBeCalledTimes(3);
+        });
     });
 
-    describe("contribution amount calculation", () => {
-        const paylines = [1, 12, 25];
-        const testData = [];
-        const { exchangeRate, currencies } = currencyData;
-        for (const currency of currencies) {
-            for (const stakeLevel of currency.stakeLevels) {
-                for (const payline of paylines) {
-                    testData.push([
-                        { ...currency, payline, stakeLevel },
-                        math.round(
-                            stakeLevel *
-                                payline *
-                                currency.multiplier *
-                                exchangeRate[currency.code] *
-                                gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio,
-                            4
-                        ),
-                    ]);
-                }
-            }
-        }
+    //TODO add more tests for contribution calculation
+    // describe("contribution amount calculation", () => {
+    //     const paylines = [1, 12, 25];
+    //     const testData = [];
+    //     const { exchangeRate, currencies } = currencyData;
+    //     for (const currency of currencies) {
+    //         for (const stakeLevel of currency.stakeLevels) {
+    //             for (const payline of paylines) {
+    //                 testData.push([
+    //                     { ...currency, payline, stakeLevel },
+    //                     math.round(
+    //                         stakeLevel *
+    //                             payline *
+    //                             currency.multiplier *
+    //                             exchangeRate[currency.code] *
+    //                             gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio,
+    //                         4
+    //                     ),
+    //                 ]);
+    //             }
+    //         }
+    //     }
 
-        it.each(testData)("%j base contribution amount should be %d", async (currency, expectedContributionAmount) => {
+    //     it.each(testData)("%j base contribution amount should be %d", async (currency, expectedContributionAmount) => {
+    //         // arrange
+    //         const consumer = initConsumer();
+    //         const bet = {
+    //             pool: currency.stakeLevel,
+    //             totalAmount: currency.stakeLevel * currency.payline,
+    //             rate: exchangeRate[currency.code] * currency.multiplier,
+    //             roundId: gameData.roundId,
+    //         };
+    //         const baseStakeLevel = gameData.gameConfigs.slotsConfig.stakeLevels[currency.stakeLevels.indexOf(currency.stakeLevel)].stake;
+    //         spyOn(consumer, "getBasePool").and.returnValue(baseStakeLevel);
+    //         jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
+    //             amount: expectedContributionAmount,
+    //         });
+    //         const runningPoolFilter = {
+    //             gameId: gameDefinition.id,
+    //             pool: baseStakeLevel,
+    //             winnerName: { $exists: false },
+    //             createdAt: { $lte: gameData.roundId },
+    //         };
+    //         const poolAdjustment = {
+    //             amount: expectedContributionAmount,
+    //             byBots: 0,
+    //             byMembers: expectedContributionAmount,
+    //         };
+
+    //         // act
+    //         await consumer.contribute({ session: { multiplier: currency.multiplier } }, bet);
+
+    //         // assert
+    //         expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
+    //             runningPoolFilter,
+    //             {
+    //                 gameId: gameDefinition.id,
+    //                 $inc: poolAdjustment,
+    //             },
+    //             sort
+    //         );
+    //     });
+    // });
+    describe("calculatePoolAdjustment", () => {
+        it("always return approriate format", () => {
             // arrange
-            const consumer = initConsumer();
-            const bet = {
-                pool: currency.stakeLevel,
-                totalAmount: currency.stakeLevel * currency.payline,
-                rate: exchangeRate[currency.code] * currency.multiplier,
-                roundId: gameData.roundId,
-            };
-            const baseStakeLevel = gameData.gameConfigs.slotsConfig.stakeLevels[currency.stakeLevels.indexOf(currency.stakeLevel)].stake;
-            spyOn(consumer, "getBasePool").and.returnValue(baseStakeLevel);
-            jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
-                amount: expectedContributionAmount,
+            const poolConfig = { bot: 0.01, contribute: 0.1, init: 5000 };
+
+            // act
+            const adjustment = consumer.calculatePoolAdjustment({ contributedByMember: false, poolConfig, baseTotalAmount: 5 });
+
+            // assert
+            expect(adjustment).not.toBeNull();
+            expect(adjustment.amount).toBeNumber();
+            expect(adjustment.byBots).toBeNumber();
+            expect(adjustment.byMembers).toBeNumber();
+        });
+
+        describe("when contributedByMember is true", () => {
+            const poolConfig = { bot: 0.01, contribute: 0.1, init: 5000 };
+
+            it("should return byBots equal 0", () => {
+                // arrange
+
+                // act
+                const adjustment = consumer.calculatePoolAdjustment({ contributedByMember: true, poolConfig, baseTotalAmount: 5 });
+                // assert
+                expect(adjustment.byBots).toBe(0);
             });
+
+            it("should return correct byMembers", () => {
+                // arrange
+                const expected = 5 * poolConfig.contribute;
+
+                // act
+                const adjustment = consumer.calculatePoolAdjustment({ contributedByMember: true, poolConfig, baseTotalAmount: 5 });
+
+                // assert
+                expect(adjustment.byMembers).toBe(expected);
+            });
+        });
+
+        describe("when contributedByMember is false", () => {
+            const poolConfig = { bot: 0.01, contribute: 0.1, init: 5000 };
+
+            it("should return correct byBots ", () => {
+                // arrange
+                const expected = 5 * poolConfig.bot;
+
+                // act
+                const adjustment = consumer.calculatePoolAdjustment({ contributedByMember: false, poolConfig, baseTotalAmount: 5 });
+                // assert
+                expect(adjustment.byBots).toBe(expected);
+            });
+
+            it("should return byMembers equal 0", () => {
+                // arrange
+
+                // act
+                const adjustment = consumer.calculatePoolAdjustment({ contributedByMember: false, poolConfig, baseTotalAmount: 5 });
+
+                // assert
+                expect(adjustment.byMembers).toBe(0);
+            });
+        });
+    });
+
+    describe("contributeToPool", () => {
+        const sort = {
+            new: true,
+            lean: true,
+            fields: { _id: false, amount: true },
+            sort: {
+                createdAt: -1,
+            },
+        };
+
+        const poolConfigs = { bot: 0.01, contribute: 0.1, init: 5000 };
+        const betContribution = {
+            baseTotalAmount: 5,
+            contributedByMember: false,
+            roundId: gameData.roundId,
+            pool: poolConfigs,
+        };
+
+        it("should call calculatePoolAdjustment with approriate params", async () => {
+            // arrange
+            spyOn(consumer, "calculatePoolAdjustment");
+            jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
+                amount: 12,
+            });
+
+            // act
+            await consumer.contributeToPool(betContribution);
+
+            // assert
+            expect(consumer.calculatePoolAdjustment).toBeCalledWith({
+                baseTotalAmount: betContribution.baseTotalAmount,
+                contributedByMember: betContribution.contributedByMember,
+                poolConfig: betContribution.pool,
+            });
+        });
+
+        it("should update approriate pool adjustment", async () => {
+            // arrange
+            const jackpotPrize = "minor";
             const runningPoolFilter = {
                 gameId: gameDefinition.id,
-                pool: baseStakeLevel,
+                prize: jackpotPrize,
                 winnerName: { $exists: false },
                 createdAt: { $lte: gameData.roundId },
             };
+
             const poolAdjustment = {
-                amount: expectedContributionAmount,
+                amount: 50,
                 byBots: 0,
-                byMembers: expectedContributionAmount,
+                byMembers: 0.5,
             };
+            jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
+                amount: 12,
+            });
+
+            spyOn(consumer, "calculatePoolAdjustment").and.returnValue(poolAdjustment);
 
             // act
-            await consumer.contribute({ session: { multiplier: currency.multiplier } }, bet);
+            await consumer.contributeToPool({ ...betContribution, prize: jackpotPrize });
 
             // assert
             expect(jackpotsRepository.findOneAndUpdate).toBeCalledWith(
@@ -149,6 +258,23 @@ describe("contribute", () => {
                 },
                 sort
             );
+        });
+
+        it("should publish latest jackpot amount", async () => {
+            // arrange
+            const jackpotPrize = "grand";
+            const latestJackpot = 12;
+            jackpotsRepository.findOneAndUpdate.mockReturnValueOnce({
+                amount: latestJackpot,
+            });
+
+            spyOn(consumer, "calculatePoolAdjustment").and.returnValue({});
+
+            // act
+            await consumer.contributeToPool({ ...betContribution, prize: jackpotPrize });
+
+            // assert
+            expect(jackpotPublisher.publishLatestPool).toBeCalledWith({ pool: jackpotPrize, amount: latestJackpot });
         });
     });
 });
@@ -338,59 +464,6 @@ describe("getLatestRoundId", () => {
     });
 });
 
-describe("getBasePool", () => {
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
-
-    it("when not have session should return null", async () => {
-        // arrange
-        const consumer = initConsumer();
-        const player = {};
-        const stake = 1;
-
-        // act
-        const basePool = consumer.getBasePool(player, stake);
-
-        // assert
-        expect(basePool).toBe(null);
-    });
-
-    it("when not have base stake levels should return null", async () => {
-        // arrange
-        const gd = stubGameData();
-        gd.gameConfigs.slotsConfig = null;
-        const consumer = new JackpotConsumer(gameDefinition, gd, jackpotPublisher, logService, jackpotsRepository, currencyGroupGamesRepository);
-
-        const player = { session: {} };
-        const stake = 1;
-        const expectedValue = null;
-
-        // act
-        const basePool = consumer.getBasePool(player, stake);
-
-        // assert
-        expect(basePool).toBe(expectedValue);
-    });
-
-    it("when not have currency stake levels should return null", async () => {
-        // arrange
-        const cg = stubMongoose(mongoose.Model);
-        cg.findOne().lean().exec.mockReturnValue(null);
-        const consumer = new JackpotConsumer(gameDefinition, gameData, jackpotPublisher, logService, jackpotsRepository, cg);
-
-        const player = { session: {} };
-        const stake = 1;
-        const expectedValue = null;
-
-        // act
-        const basePool = consumer.getBasePool(player, stake);
-
-        // assert
-        expect(basePool).toBe(expectedValue);
-    });
-});
-
 function initConsumer() {
     return new JackpotConsumer(gameDefinition, gameData, jackpotPublisher, logService, jackpotsRepository, currencyGroupGamesRepository);
 }
@@ -404,11 +477,17 @@ function stubGameData() {
         minbet: 1,
         maxbet: 1000,
         slotsConfig: {
-            stakeLevels: [{ stake: 1000 }, { stake: 5000 }, { stake: 10000 }],
+            betLevels: [0.1, 1, 5],
             jackpot: {
-                playerContributionRatio: 0.025,
-                botContributionRatio: 0.005,
+                enabled: true,
+                excludeTestCurrency: false,
                 winningRatio: 0.98,
+                pools: {
+                    minor: { init: 5000, contribute: 0.1, bot: 0.01 },
+                    major: { init: 25000, contribute: 0.15, bot: 0.015 },
+                    grand: { init: 50000, contribute: 0.25, bot: 0.025 },
+                },
+                allowedCurrency: "INH",
             },
         },
     };
@@ -417,7 +496,7 @@ function stubGameData() {
         code: [1],
     };
 
-    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }] }];
+    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", betLevels: [0.1, 1, 5] }];
 
     return gameData;
 }

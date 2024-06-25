@@ -23,40 +23,31 @@ export default class JackpotConsumer {
         this.currencyGroupGamesRepository = currencyGroupGamesRepository;
     }
 
-    async contribute(player, { pool, totalAmount, roundId, rate }) {
+    async contribute(player, { totalAmount, roundId, rate }) {
         const contributedByMember = !!player.session;
-        const basePool = contributedByMember ? this.getBasePool(player, pool) : pool;
-        if (basePool == null) {
-            this.logService.logCritical(
-                `Couldn't find any base jackpot pool associated with: ${JSON.stringify({
-                    hasSession: !!player.session,
-                    currencyGroupId: player.session?.currencyGroupId,
-                    stake: pool,
-                })}`
-            );
-            return;
-        }
+        const { pools } = this.gameData.gameConfigs.slotsConfig.jackpot;
 
         const baseTotalAmount = totalAmount * rate;
-        const contributionRatio = contributedByMember
-            ? this.gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio
-            : this.gameData.gameConfigs.slotsConfig.jackpot.botContributionRatio;
-        const contributionAmount = math.round(baseTotalAmount * contributionRatio, 4);
+        const jackpotPrizes = Object.keys(pools);
+
+        for (const prize of jackpotPrizes) {
+            await this.contributeToPool({ baseTotalAmount, contributedByMember, prize, roundId, pool: pools[prize] });
+        }
+    }
+
+    async contributeToPool({ baseTotalAmount, contributedByMember, prize, roundId, pool }) {
+        const poolAdjustment = this.calculatePoolAdjustment({ contributedByMember, poolConfig: pool, baseTotalAmount });
 
         const runningPoolFilter = {
             gameId: this.definition.id,
-            pool: basePool,
+            prize: prize,
             winnerName: { $exists: false },
             createdAt: { $lte: roundId },
         };
         const nearestPoolOrder = {
             createdAt: -1,
         };
-        const poolAdjustment = {
-            amount: contributionAmount,
-            byBots: contributedByMember ? 0 : contributionAmount,
-            byMembers: contributedByMember ? contributionAmount : 0,
-        };
+
         const latestJackpotProjection = { _id: false, amount: true };
         const latestJackpotPool = await this.jackpotsRepository.findOneAndUpdate(
             runningPoolFilter,
@@ -72,11 +63,27 @@ export default class JackpotConsumer {
             }
         );
 
-        this.jackpotPublisher.publishLatestPool({ pool: basePool, amount: latestJackpotPool.amount });
+        this.jackpotPublisher.publishLatestPool({ pool: prize, amount: latestJackpotPool.amount });
     }
 
+    calculatePoolAdjustment({ contributedByMember, poolConfig, baseTotalAmount }) {
+        const contributionRatio = contributedByMember ? poolConfig.contribute : poolConfig.bot;
+        const contributionAmount = math.round(baseTotalAmount * contributionRatio, 4);
+
+        const poolAdjustment = {
+            amount: contributionAmount,
+            byBots: contributedByMember ? 0 : contributionAmount,
+            byMembers: contributedByMember ? contributionAmount : 0,
+        };
+
+        return poolAdjustment;
+    }
+
+    //TODO add jackpot game to define which pool being hit
     async hit(player, { pool, roundId, exchangeRateId, rate, operatorId, currency }) {
         const hitByMember = !!player.session;
+
+        //TODO remove basePool
         const basePool = hitByMember ? this.getBasePool(player, pool) : pool;
         if (basePool == null) {
             this.logService.logCritical(
@@ -145,6 +152,7 @@ export default class JackpotConsumer {
     }
 
     async initialize() {
+        // TODO init by pool, not by stake level
         const stakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
         const roundId = this.gameData.roundId;
 
@@ -200,20 +208,5 @@ export default class JackpotConsumer {
             .exec();
 
         return pool ? pool.createdAt : 0;
-    }
-
-    getBasePool(player, stake) {
-        const { session } = player;
-        if (!session) {
-            return null;
-        }
-
-        const stakeLevels = MultipleCurrencyHelper.getStakeLevels(this.gameData, player);
-
-        const poolIndex = stakeLevels.map((s) => s.stake).indexOf(stake);
-
-        const baseStakeLevels = this.gameData.gameConfigs.slotsConfig?.stakeLevels;
-
-        return poolIndex !== -1 && baseStakeLevels ? baseStakeLevels[poolIndex].stake : null;
     }
 }
