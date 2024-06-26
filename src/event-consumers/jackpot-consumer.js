@@ -1,7 +1,6 @@
 import math from "lodash/math";
 import mongoose from "mongoose";
 import { JackpotPublisher } from "./../event-publishers";
-import { MultipleCurrencyHelper } from "./../helpers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
@@ -81,26 +80,11 @@ export default class JackpotConsumer {
 
     async hit(player, { prize, roundId, exchangeRateId, rate, operatorId, currency }) {
         const winningRatio = this.gameData.gameConfigs.slotsConfig.jackpot.winningRatio;
-        const runningPoolFilter = {
-            gameId: this.definition.id,
-            prize,
-            winnerName: { $exists: false },
-            createdAt: { $lt: roundId },
-        };
+        const runningPoolFilter = this.getRunningPoolFilter(prize, roundId);
         const nearestRunningPoolOrder = {
             createdAt: -1,
         };
-        const winnerAdjustment = {
-            winningRatio,
-            winnerName: player.profile.name,
-            winnerId: player.session?.playerId,
-            hitAt: roundId,
-            hitTime: new Date(),
-            exchangeRateId,
-            rate,
-            currency,
-            operatorId,
-        };
+        const winnerAdjustment = this.getWinnerAdjustment({ winningRatio, player, roundId, exchangeRateId, rate, currency, operatorId });
         const winnerProjection = {
             _id: false,
             pool: true,
@@ -135,10 +119,38 @@ export default class JackpotConsumer {
         return winningJackpot;
     }
 
+    getWinnerAdjustment({ winningRatio, player, roundId, exchangeRateId, rate, currency, operatorId }) {
+        return {
+            winningRatio,
+            winnerName: player.profile.name,
+            winnerId: player.session?.playerId,
+            hitAt: roundId,
+            hitTime: new Date(),
+            exchangeRateId,
+            rate,
+            currency,
+            operatorId,
+        };
+    }
+
+    getRunningPoolFilter(prize, roundId) {
+        return {
+            gameId: this.definition.id,
+            prize,
+            winnerName: { $exists: false },
+            createdAt: { $lt: roundId },
+        };
+    }
+
     async initialize() {
         const { pools } = this.gameData.gameConfigs.slotsConfig.jackpot;
-        const roundId = this.gameData.roundId;
 
+        if (pools === null || pools === undefined) {
+            this.logService.logCritical(`NOT FOUND jackpot pools configurations of ${this.gameData.gameConfigs.name}`);
+            return;
+        }
+
+        const roundId = this.gameData.roundId;
         const prizes = Object.keys(pools);
 
         await Promise.all(
@@ -153,25 +165,24 @@ export default class JackpotConsumer {
 
                 if (numberOfExistingPools === 0) {
                     await this.initializeNewPool(prize, roundId);
+                    return;
                 }
 
-                if (numberOfExistingPools > 1) {
-                    this.logService.logCritical(`Found ${numberOfExistingPools} running jackpot pool for stake level ${stakeLevel.stake}`);
-                }
+                this.logService.logCritical(`Found ${numberOfExistingPools} running jackpot pool for prize ${prize}`);
             })
         );
     }
 
     async initializeNewPool(prize, roundId) {
-        const { jackpot } = this.gameData.gameConfigs.slotsConfig;
-        const initAmount = jackpot[prize].init;
+        const { pools } = this.gameData.gameConfigs.slotsConfig.jackpot;
+        const initAmount = pools[prize].init;
 
         this.logService.log(`Init new jackpot prize ${prize} at round ${roundId}`);
 
         await this.jackpotsRepository.create({
             gameId: this.definition.id,
             gameName: this.definition.name,
-            prize: pool,
+            prize: prize,
             initAmount,
             amount: initAmount,
             createdAt: roundId,
