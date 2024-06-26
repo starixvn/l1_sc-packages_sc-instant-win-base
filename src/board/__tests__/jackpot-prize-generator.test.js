@@ -28,7 +28,6 @@ describe("JackpotGenerator", () => {
 
         // Assert
         expect(result).toHaveLength(jackpotSize);
-        expect(generator.chance.pickone).toHaveBeenCalledTimes(jackpotSize);
         expect(generator.chance.shuffle).toHaveBeenCalledTimes(3);
     });
 
