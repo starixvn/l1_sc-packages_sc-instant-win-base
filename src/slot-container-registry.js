@@ -36,6 +36,7 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
             boardGenerator: asClass(Board.BoardGenerator).singleton(),
             bonusBoardGenerator: asClass(Board.BonusBoardGenerator).singleton(),
             paylineCalculator: asClass(Board.PaylineCalculator).singleton(),
+            jackpotPrizeGenerator: asClass(Board.JackpotPrizeGenerator).singleton(),
         });
     }
 
