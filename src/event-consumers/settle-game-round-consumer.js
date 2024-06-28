@@ -100,8 +100,18 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await this.processFreeSpins(player, bet, finish.settlementResult);
             const prizes = await this.settleJackpot(player, roundId, bet, settlementResult);
 
+            this.updateBetTrack(player, finish);
+
             if (prizes !== null) {
-                finish.settlementResult.jackpot = { winningAmount: 0, winningLine: settlementResult.jackpotPayline };
+                finish.settlementResult.jackpot = { winningAmount: 0, winningLine: settlementResult.jackpotPayline, picked: false, prizes };
+                this.gameData.ingame[player.profile.name].jackpot = finish.settlementResult.jackpot
+                    ? {
+                          winningLine: finish.settlementResult.jackpotPayline,
+                          picked: false,
+                          prizes,
+                      }
+                    : null;
+
                 await this.userBetResultPublisher.publishToUser(
                     bet.uid,
                     this.collectJackpotResult({ result, settlementResult, roundId: finish.roundId })
@@ -135,8 +145,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         bet.bonusChests = this.bonusBoardGenerator.generate(bet.bet, bonusConfig.min, bonusConfig.max, bet.paylines.length);
 
         await bet.save();
-
-        this.updateBetTrack(player, finish);
 
         return {
             roundId,
@@ -188,7 +196,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     updateBetTrack(player, finish) {
-        this.gameData.ingame[player.profile.name].bonusChests = finish.bonusChests;
+        this.gameData.ingame[player.profile.name].bonusChests = finish.bonusChests ?? null;
         this.gameData.ingame[player.profile.name].finish = finish;
         this.gameData.ingame[player.profile.name].player = {
             UID: player.UID,
@@ -198,6 +206,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async processJackpot(player, roundId, bet, winningLine) {
+        //TODO should update winningAmount and paid to bet and bet track
+        //finish.settlementResult.jackpot = { winningAmount: 0, winningLine: settlementResult.jackpotPayline, picked: true };
+
         const baseWinningAmount = (
             await this.jackpotConsumer.hit(player, {
                 pool: bet.bet,
