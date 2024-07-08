@@ -141,6 +141,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         } else {
             await this.processBonus(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         }
+
+        if (this.jackpotValidator.canContributeJackpotPools(player, bet.freeSpin)) {
+            await this.jackpotConsumer.contribute(player, { totalAmount: bet.totalAmount, roundId, rate: bet.rate });
+        }
     }
 
     async generateRoundResult(player, roundId, bet) {
