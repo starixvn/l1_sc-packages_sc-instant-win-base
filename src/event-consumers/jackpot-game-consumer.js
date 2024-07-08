@@ -1,5 +1,4 @@
 import Chance from "chance";
-import moment from "moment";
 
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
@@ -24,7 +23,9 @@ export default class BonusConsumer {
         this.chance = new Chance();
     }
 
+    //TODO update SlotNoticeHelper.invalidBonus to jackpot invalid
     async consume(player, payload) {
+        //TODO be careful for duplicated event
         const { chest } = payload;
 
         if (!this.validate(player, chest)) {
@@ -40,12 +41,24 @@ export default class BonusConsumer {
             }
         );
 
+        if (!bet) {
+            this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+            return;
+        }
+
         const { jackpot } = this.gameData.ingame[player.profile.name];
         jackpot.picked = true;
+        const prize = jackpot.prizes[chest];
 
-        const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(player, finish.roundId, bet, jackpot.winningLine);
+        const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(
+            player,
+            finish.roundId,
+            bet,
+            jackpot.winningLine,
+            prize
+        );
 
-        //TODO update bet
+        await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId, prize, winningAmount, winningLine });
     }
 
     //TODO auto settle all jackpot when service restart
@@ -54,9 +67,9 @@ export default class BonusConsumer {
     }
 
     validate(player, chest) {
-        const { jackpot } = this.gameData.ingame[player.profile.name] ?? { jackpot: { paid: true, prizes: [] } };
+        const { jackpot } = this.gameData.ingame[player.profile.name] ?? { jackpot: { picked: true, prizes: [] } };
 
-        if (jackpot.paid || this.isInvalidChest(chest, jackpot.prizes)) {
+        if (jackpot.picked || this.isInvalidChest(chest, jackpot.prizes)) {
             this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
             return false;
         }

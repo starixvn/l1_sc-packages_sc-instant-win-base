@@ -98,7 +98,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         if (bet) {
             const finish = await this.generateRoundResult(player, roundId, bet);
             await this.processFreeSpins(player, bet, finish.settlementResult);
-            const prizes = await this.settleJackpot(player, roundId, bet, settlementResult);
+            const prizes = await this.settleJackpot(player, settlementResult);
 
             this.updateBetTrack(player, finish);
 
@@ -132,6 +132,17 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
     }
 
+    async settleWithJackpotWin({ roundId, prize, winningAmount, winningLine }) {
+        const bet = await this.queryBets(roundId);
+        bet.settlementResult.jackpot = { winningAmount, winningLine, picked: true, prize };
+
+        if (bet.settlementResult.bonus?.odds === 0) {
+            await this.settleBets(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
+        } else {
+            await this.processBonus(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
+        }
+    }
+
     async generateRoundResult(player, roundId, bet) {
         const { bonus: bonusConfig, icons: odds } = this.gameData.gameConfigs.slotsConfig;
         const result = this.generateResult(bet.name);
@@ -154,7 +165,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
     }
 
-    async settleJackpot(player, roundId, bet, settlementResult) {
+    async settleJackpot(player, settlementResult) {
         if (settlementResult.jackpotPayline > -1 && this.jackpotValidator.canHitJackpot(player)) {
             const jackpotPrizes = this.jackpotPrizeGenerator.generate();
 
@@ -205,13 +216,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
     }
 
-    async processJackpot(player, roundId, bet, winningLine) {
-        //TODO should update winningAmount and paid to bet and bet track
-        //finish.settlementResult.jackpot = { winningAmount: 0, winningLine: settlementResult.jackpotPayline, picked: true };
-
+    async processJackpot(player, roundId, bet, winningLine, prize) {
         const baseWinningAmount = (
             await this.jackpotConsumer.hit(player, {
-                pool: bet.bet,
+                prize,
                 roundId,
                 exchangeRateId: bet.exchangeRateId,
                 operatorId: bet.operatorId,
@@ -219,6 +227,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 rate: bet.rate,
             })
         ).amount;
+
         const winningAmount = math.round(baseWinningAmount / bet.rate, 4);
 
         const hitJackpotResult = await this.hitJackpot(player, {
@@ -402,7 +411,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return {
             jackpot: {
                 roundId,
-                bonus: prizes.length,
+                bonus: prizes.length, //TODO change to prizes
                 result,
             },
         };
