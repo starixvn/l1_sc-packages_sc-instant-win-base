@@ -4,8 +4,9 @@ import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
+import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 
-export default class BonusConsumer {
+export default class JackpotGameConsumer {
     /**
      * @param {SlotGameDefinition} definition
      * @param {SlotGameData} gameData
@@ -24,8 +25,8 @@ export default class BonusConsumer {
     }
 
     //TODO update SlotNoticeHelper.invalidBonus to jackpot invalid
+    //TODO be careful for duplicated event
     async consume(player, payload) {
-        //TODO be careful for duplicated event
         const { chest } = payload;
 
         if (!this.validate(player, chest)) {
@@ -50,15 +51,9 @@ export default class BonusConsumer {
         jackpot.picked = true;
         const prize = jackpot.prizes[chest];
 
-        const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(
-            player,
-            finish.roundId,
-            bet,
-            jackpot.winningLine,
-            prize
-        );
+        const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(player, bet.id, bet, jackpot.winningLine, prize);
 
-        await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId, prize, winningAmount, winningLine });
+        await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId: bet.id, prize, winningAmount, winningLine });
     }
 
     //TODO auto settle all jackpot when service restart
