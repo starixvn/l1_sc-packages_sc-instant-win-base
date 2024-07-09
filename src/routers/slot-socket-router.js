@@ -1,6 +1,6 @@
 import { Core } from "sc-game-base";
 
-import { BonusConsumer, InGameConsumer, PlaceBetConsumer } from "./../event-consumers";
+import { BonusConsumer, InGameConsumer, PlaceBetConsumer, JackpotGameConsumer } from "./../event-consumers";
 import { HallOfFameQuery, SlotHistoryQuery } from "./../query-apis";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
@@ -20,6 +20,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
      * @param {HallOfFameQuery} dependencies.hallOfFameQuery
      * @param {logger} ldependencies.logService
      * @param {PlayGamePermissionValidator} dependencies.playGamePermissionValidator
+     * @param {InGameConsumer} dependencies.jackpotGameConsumer
      */
     constructor({
         definition,
@@ -34,6 +35,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
         hallOfFameQuery,
         logService,
         playGamePermissionValidator,
+        jackpotGameConsumer,
     }) {
         super({
             definition,
@@ -50,6 +52,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
 
         this.bonusConsumer = bonusConsumer;
         this.hallOfFameQuery = hallOfFameQuery;
+        this.jackpotGameConsumer = jackpotGameConsumer;
     }
 
     /**
@@ -101,6 +104,18 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
             }
 
             await this.bonusConsumer.consume(this.gameData.realPlayers[this.socketClient.id], payload);
+        } catch (error) {
+            this.logService.logError(error);
+        }
+    }
+
+    async handleJackpotGame(payload) {
+        try {
+            if (!this.verify()) {
+                return;
+            }
+
+            await this.jackpotGameConsumer.consume(this.gameData.realPlayers[this.socketClient.id], payload);
         } catch (error) {
             this.logService.logError(error);
         }
