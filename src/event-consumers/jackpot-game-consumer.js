@@ -14,7 +14,7 @@ export default class JackpotGameConsumer {
      * @param {SettleGameRoundConsumer} settleGameRoundConsumer
      * @param {mongoose.Model} dependencies.roundsRepository
      */
-    constructor(definition, gameData, jackpotPublisher, settleGameRoundConsumer, roundsRepository) {
+    constructor({ definition, gameData, jackpotPublisher, settleGameRoundConsumer, roundsRepository }) {
         this.definition = definition;
         this.gameData = gameData;
         this.jackpotPublisher = jackpotPublisher;

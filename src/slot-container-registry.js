@@ -12,6 +12,7 @@ import { SlotHttpRouter, SlotSocketRouter } from "./routers";
 import SlotGameData from "./slot-game-data";
 import SlotGameDefinition from "./slot-game-definition";
 import JackpotValidator from "./validators/jackpot-validator";
+import { jackpotGameConsumer } from "./event-consumers/__tests__/stubs";
 
 export default class SlotContainerRegistry extends Table.TableContainerRegistry {
     /**
@@ -89,6 +90,7 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
             userDisconnectConsumer: asClass(EventConsumers.OutGameConsumer).singleton(),
             placeBetConsumer: asClass(EventConsumers.PlaceBetConsumer).singleton(),
             settleGameRoundConsumer: asClass(EventConsumers.SettleGameRoundConsumer).singleton().proxy(),
+            jackpotGameConsumer: asClass(EventConsumers.JackpotGameConsumer).singleton().proxy(),
         });
     }
 

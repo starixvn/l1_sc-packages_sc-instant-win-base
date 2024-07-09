@@ -8,6 +8,7 @@ import JackpotConsumer from "./jackpot-consumer";
 import OutGameConsumer from "./out-game-consumer";
 import PlaceBetConsumer from "./place-bet-consumer";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
+import JackpotGameConsumer from "./jackpot-game-consumer";
 
 export {
     BoardCheatingConsumer,
@@ -20,4 +21,5 @@ export {
     PlaceBetConsumer,
     SettleGameRoundConsumer,
     InGameConsumer,
+    JackpotGameConsumer,
 };
