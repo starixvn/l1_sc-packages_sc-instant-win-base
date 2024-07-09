@@ -57,9 +57,7 @@ export default class JackpotGameConsumer {
     }
 
     //TODO auto settle all jackpot when service restart
-    async processExpired() {
-        //TODO how to check jp is expired?
-    }
+    async processExpired() {}
 
     validate(player, chest) {
         const { jackpot } = this.gameData.ingame[player.profile.name] ?? { jackpot: { picked: true, prizes: [] } };
@@ -72,7 +70,7 @@ export default class JackpotGameConsumer {
         return true;
     }
 
-    isInvalidChest(prizes) {
+    isInvalidChest(chest, prizes) {
         return typeof chest !== "number" || chest < 0 || chest >= prizes.length;
     }
 }

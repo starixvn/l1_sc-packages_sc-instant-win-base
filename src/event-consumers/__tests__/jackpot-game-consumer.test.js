@@ -16,20 +16,24 @@ const publisher = stub(JackpotPublisher);
 const roundRepository = stubMongoose(mongoose.Model);
 
 describe("JackpotGameConsumer", () => {
+    const mockPlayer = { session: { playerId: "player1" }, UID: "uid1", profile: { name: "player1" } };
+
+    let consumer;
+
+    beforeEach(() => {
+        const gameData = stubGameData();
+        consumer = new JackpotGameConsumer(gameDefinition, gameData, publisher, settleConsumer, roundRepository);
+    });
+
     afterEach(() => {
         jest.clearAllMocks();
     });
 
     describe("consume", () => {
-        let consumer;
-        const mockPlayer = { session: { playerId: "player1" }, UID: "uid1", profile: { name: "player1" } };
         const mockPayload = { chest: 1 };
         const mockJackpot = { picked: false, prizes: [10, 20, 100], winningLine: 5 };
 
         beforeEach(() => {
-            const gameData = stubGameData();
-            consumer = new JackpotGameConsumer(gameDefinition, gameData, publisher, settleConsumer, roundRepository);
-
             consumer.gameData.ingame["player1"] = {
                 jackpot: mockJackpot,
             };
@@ -148,6 +152,132 @@ describe("JackpotGameConsumer", () => {
                     });
                 });
             });
+        });
+    });
+
+    describe("isInvalidChest", () => {
+        it("should return true if chest is not a number", () => {
+            // Arrange
+            const chest = "not-a-number";
+            const prizes = [100, 200, 300];
+
+            // Act
+            const result = consumer.isInvalidChest(chest, prizes);
+
+            // Assert
+            expect(result).toBe(true);
+        });
+
+        it("should return true if chest is a negative number", () => {
+            // Arrange
+            const chest = -1;
+            const prizes = [100, 200, 300];
+
+            // Act
+            const result = consumer.isInvalidChest(chest, prizes);
+
+            // Assert
+            expect(result).toBe(true);
+        });
+
+        it("should return true if chest is greater than or equal to the length of prizes", () => {
+            // Arrange
+            const chest = 3;
+            const prizes = [100, 200, 300];
+
+            // Act
+            const result = consumer.isInvalidChest(chest, prizes);
+
+            // Assert
+            expect(result).toBe(true);
+        });
+
+        it("should return false if chest is a valid number within the range of prizes", () => {
+            // Arrange
+            const chest = 1;
+            const prizes = [100, 200, 300];
+
+            // Act
+            const result = consumer.isInvalidChest(chest, prizes);
+
+            // Assert
+            expect(result).toBe(false);
+        });
+
+        it("should return false if chest is 0 and prizes is not empty", () => {
+            // Arrange
+            const chest = 0;
+            const prizes = [100, 200, 300];
+
+            // Act
+            const result = consumer.isInvalidChest(chest, prizes);
+
+            // Assert
+            expect(result).toBe(false);
+        });
+    });
+
+    describe("validate", () => {
+        const mockJackpot = { picked: false, prizes: [10, 20, 100], winningLine: 5 };
+
+        beforeEach(() => {
+            consumer.gameData.ingame["player1"] = {
+                jackpot: mockJackpot,
+            };
+        });
+
+        it("should return false and publish notice if jackpot is already picked", () => {
+            // Arrange
+            consumer.gameData.ingame["player1"].jackpot.picked = true;
+            jest.spyOn(publisher, "publishToUser");
+
+            // Act
+            const result = consumer.validate(mockPlayer, 1);
+
+            // Assert
+            expect(result).toBe(false);
+            expect(publisher.publishToUser).toHaveBeenCalledWith("uid1", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+        });
+
+        it("should return false and publish notice if chest is invalid", () => {
+            // Arrange
+            const invalidChest = 3; // Out of bounds
+            jest.spyOn(publisher, "publishToUser");
+
+            // Act
+            const result = consumer.validate(mockPlayer, invalidChest);
+
+            // Assert
+            expect(result).toBe(false);
+            expect(publisher.publishToUser).toHaveBeenCalledWith("uid1", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+        });
+
+        it("should return true if jackpot is not picked and chest is valid", () => {
+            // Arrange
+            const validChest = 1;
+            consumer.gameData.ingame["player1"].jackpot.picked = false;
+            jest.spyOn(publisher, "publishToUser");
+
+            // Act
+            const result = consumer.validate(mockPlayer, validChest);
+
+            // Assert
+            expect(result).toBe(true);
+            expect(publisher.publishToUser).not.toHaveBeenCalled();
+        });
+
+        it("should handle players not in game data", () => {
+            // Arrange
+            const newPlayer = { UID: "uid2", profile: { name: "newPlayer" } };
+            const chest = 1;
+            jest.spyOn(publisher, "publishToUser");
+
+            // Act
+            const result = consumer.validate(newPlayer, chest);
+
+            // Assert
+            expect(result).toBe(false);
+            expect(publisher.publishToUser).toHaveBeenCalledWith("uid2", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
         });
     });
 });
