@@ -9,6 +9,7 @@ import OutGameConsumer from "./out-game-consumer";
 import PlaceBetConsumer from "./place-bet-consumer";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
 import JackpotGameConsumer from "./jackpot-game-consumer";
+import GenerateResultConsumer from "./generate-result-consumer";
 
 export {
     BoardCheatingConsumer,
@@ -22,4 +23,5 @@ export {
     SettleGameRoundConsumer,
     InGameConsumer,
     JackpotGameConsumer,
+    GenerateResultConsumer,
 };

@@ -10,6 +10,7 @@ import BoardCheatingConsumer from "./board-cheating-consumer";
 import FreeSpinsConsumer from "./free-spins-consumer";
 import HallOfFameConsumer from "./hall-of-fame-consumer";
 import JackpotConsumer from "./jackpot-consumer";
+import GenerateResultConsumer from "./generate-result-consumer";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     /**
@@ -23,14 +24,13 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
      * @param {FreeSpinsConsumer} dependencies.freeSpinsConsumer
      * @param {HallOfFameConsumer} dependencies.hallOfFameConsumer
      * @param {JackpotConsumer} dependencies.jackpotConsumer
-     * @param {BoardGenerator} boardGenerator
-     * @param {BonusBoardGenerator} bonusBoardGenerator
-     * @param {PaylineCalculator} paylineCalculator
+     * @param {BonusBoardGenerator} dependencies.bonusBoardGenerator
      * @param {endGameApi} endGame
      * @param {hitJackpotApi} hitJackpot
      * @param {mongoose.Model} dependencies.roundsRepository
      * @param {mongoose.Model} dependencies.betsRepository
-     * @param {JackpotPrizeGenerator} boardGenerator
+     * @param {JackpotPrizeGenerator} dependencies.jackpotPrizeGenerator
+     * @param {GenerateResultConsumer} dependencies.generateResultConsumer
      */
 
     constructor({
@@ -39,13 +39,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         roundResultPublisher,
         userBetResultPublisher,
         jackpotPublisher,
-        boardCheatingConsumer,
         freeSpinsConsumer,
         hallOfFameConsumer,
         jackpotConsumer,
-        boardGenerator,
         bonusBoardGenerator,
-        paylineCalculator,
         endGame,
         hitJackpot,
         roundsRepository,
@@ -53,6 +50,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         logService,
         jackpotValidator,
         jackpotPrizeGenerator,
+        generateResultConsumer,
     }) {
         super({
             definition,
@@ -64,18 +62,17 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             betsRepository,
         });
 
+        //TODO move all jackpot into once
         this.jackpotPublisher = jackpotPublisher;
-        this.boardCheatingConsumer = boardCheatingConsumer;
         this.freeSpinsConumer = freeSpinsConsumer;
         this.hallOfFameConsumer = hallOfFameConsumer;
         this.jackpotConsumer = jackpotConsumer;
-        this.boardGenerator = boardGenerator;
         this.bonusBoardGenerator = bonusBoardGenerator;
-        this.paylineCalculator = paylineCalculator;
         this.hitJackpot = hitJackpot;
         this.logService = logService;
         this.jackpotValidator = jackpotValidator;
         this.jackpotPrizeGenerator = jackpotPrizeGenerator;
+        this.generateResultConsumer = generateResultConsumer;
     }
 
     async autoSettleRound(player, roundId) {
@@ -103,39 +100,36 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             this.updateBetTrack(player, finish);
 
             if (prizes !== null) {
-                finish.settlementResult.jackpot = { winningAmount: 0, winningLine: settlementResult.jackpotPayline, picked: false, prizes };
-                this.gameData.ingame[player.profile.name].jackpot = finish.settlementResult.jackpot
-                    ? {
-                          winningLine: finish.settlementResult.jackpotPayline,
-                          picked: false,
-                          prizes,
-                      }
-                    : null;
-
-                await this.userBetResultPublisher.publishToUser(
-                    bet.uid,
-                    this.collectJackpotResult({ result, settlementResult, roundId: finish.roundId })
-                );
-
+                await this.publishJackpotPrize(finish, prizes, player, bet);
                 return;
             }
 
-            if (finish.settlementResult.bonus?.odds === 0) {
-                await this.settleBets(player, finish, bet);
-            } else {
-                await this.processBonus(player, finish, bet);
-            }
-
-            if (this.jackpotValidator.canContributeJackpotPools(player, bet.freeSpin)) {
-                await this.jackpotConsumer.contribute(player, { totalAmount: bet.totalAmount, roundId, rate: bet.rate });
-            }
+            await this.settleAfterJackpot(bet, roundId);
         }
+    }
+
+    async publishJackpotPrize(finish, prizes, player, bet) {
+        const jackpot = { winningAmount: 0, winningLine: finish.settlementResult.jackpotPayline, picked: false, prizes };
+
+        this.gameData.ingame[player.profile.name].jackpot = jackpot
+            ? {
+                  winningLine: jackpot.winningLine,
+                  picked: false,
+                  prizes,
+              }
+            : null;
+
+        await this.userBetResultPublisher.publishToUser(bet.uid, this.collectJackpotResult({ result, settlementResult, roundId: finish.roundId }));
     }
 
     async settleWithJackpotWin({ roundId, prize, winningAmount, winningLine }) {
         const bet = await this.queryBets(roundId);
         bet.settlementResult.jackpot = { winningAmount, winningLine, picked: true, prize };
 
+        await this.settleAfterJackpot(bet, roundId);
+    }
+
+    async settleAfterJackpot(bet, roundId) {
         if (bet.settlementResult.bonus?.odds === 0) {
             await this.settleBets(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         } else {
@@ -149,9 +143,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async generateRoundResult(player, roundId, bet) {
         const { bonus: bonusConfig, icons: odds } = this.gameData.gameConfigs.slotsConfig;
-        const result = this.generateResult(bet.name);
-        const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
-        settlementResult.winningPaylines = this.settleWinningPaylines(settlementResult);
+        const { result, settlementResult } = this.generateResultConsumer.generateSettlementResult(bet, odds);
 
         bet.odds = odds;
         bet.result = result;
