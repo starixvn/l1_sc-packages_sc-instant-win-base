@@ -44,4 +44,8 @@ export default class GenerateResultConsumer {
             ? settlementResult.paylines.filter((payline) => payline.odds > 0 && payline.payline !== settlementResult.jackpotPayline)
             : settlementResult.paylines.filter((payline) => payline.odds > 0);
     }
+
+    generateBonus(bet, bonusConfig) {
+        this.bonusBoardGenerator.generate(bet.bet, bonusConfig.min, bonusConfig.max, bet.paylines.length);
+    }
 }

@@ -2,8 +2,17 @@ import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
 import { JackpotPublisher } from "../../event-publishers";
-import { SettleGameRoundConsumer, JackpotGameConsumer, FreeSpinsConsumer, HallOfFameConsumer, JackpotConsumer, BoardCheatingConsumer } from "../";
+import {
+    SettleGameRoundConsumer,
+    JackpotGameConsumer,
+    FreeSpinsConsumer,
+    HallOfFameConsumer,
+    JackpotConsumer,
+    BoardCheatingConsumer,
+    GenerateResultConsumer,
+} from "../";
 import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "../../board";
+import JackpotValidator from "../../validators/jackpot-validator";
 
 const settleConsumer = stub(SettleGameRoundConsumer);
 const jackpotPublisher = stub(JackpotPublisher);
@@ -17,15 +26,17 @@ const jackpotConsumer = stub(JackpotConsumer);
 const boardGenerator = stub(BoardGenerator);
 const bonusBoardGenerator = stub(BonusBoardGenerator);
 const paylineCalculator = stub(PaylineCalculator);
+const jackpotValidator = stub(JackpotValidator);
+const generateResultConsumer = stub(GenerateResultConsumer);
 
 /** @type {mongoose.Model}*/
-const roundRepository = stubMongoose(mongoose.Model);
+const roundsRepository = stubMongoose(mongoose.Model);
 
 /** @type {mongoose.Model}*/
 const betsRepository = stubMongoose(mongoose.Model);
 
 export {
-    roundRepository,
+    roundsRepository,
     betsRepository,
     settleConsumer,
     jackpotPublisher,
@@ -39,4 +50,6 @@ export {
     boardGenerator,
     bonusBoardGenerator,
     paylineCalculator,
+    jackpotValidator,
+    generateResultConsumer,
 };

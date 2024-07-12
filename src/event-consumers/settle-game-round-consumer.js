@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Core } from "sc-game-base";
 
 import math from "lodash/math";
-import { BoardGenerator, BonusBoardGenerator, JackpotPrizeGenerator, PaylineCalculator } from "./../board";
+import { JackpotPrizeGenerator } from "./../board";
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
@@ -24,7 +24,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
      * @param {FreeSpinsConsumer} dependencies.freeSpinsConsumer
      * @param {HallOfFameConsumer} dependencies.hallOfFameConsumer
      * @param {JackpotConsumer} dependencies.jackpotConsumer
-     * @param {BonusBoardGenerator} dependencies.bonusBoardGenerator
      * @param {endGameApi} endGame
      * @param {hitJackpotApi} hitJackpot
      * @param {mongoose.Model} dependencies.roundsRepository
@@ -42,7 +41,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         freeSpinsConsumer,
         hallOfFameConsumer,
         jackpotConsumer,
-        bonusBoardGenerator,
         endGame,
         hitJackpot,
         roundsRepository,
@@ -67,7 +65,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         this.freeSpinsConumer = freeSpinsConsumer;
         this.hallOfFameConsumer = hallOfFameConsumer;
         this.jackpotConsumer = jackpotConsumer;
-        this.bonusBoardGenerator = bonusBoardGenerator;
         this.hitJackpot = hitJackpot;
         this.logService = logService;
         this.jackpotValidator = jackpotValidator;
@@ -109,17 +106,17 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async publishJackpotPrize(finish, prizes, player, bet) {
-        const jackpot = { winningAmount: 0, winningLine: finish.settlementResult.jackpotPayline, picked: false, prizes };
+        this.gameData.ingame[player.profile.name].jackpot = {
+            winningAmount: 0,
+            winningLine: finish.settlementResult.jackpotPayline,
+            picked: false,
+            prizes,
+        };
 
-        this.gameData.ingame[player.profile.name].jackpot = jackpot
-            ? {
-                  winningLine: jackpot.winningLine,
-                  picked: false,
-                  prizes,
-              }
-            : null;
-
-        await this.userBetResultPublisher.publishToUser(bet.uid, this.collectJackpotResult({ result, settlementResult, roundId: finish.roundId }));
+        await this.userBetResultPublisher.publishToUser(
+            bet.uid,
+            this.collectJackpotResult({ result: finish.result, settlementResult: finish.settlementResult, roundId: finish.roundId, prizes })
+        );
     }
 
     async settleWithJackpotWin({ roundId, prize, winningAmount, winningLine }) {
@@ -148,8 +145,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         bet.odds = odds;
         bet.result = result;
         bet.settlementResult = settlementResult;
-
-        bet.bonusChests = this.bonusBoardGenerator.generate(bet.bet, bonusConfig.min, bonusConfig.max, bet.paylines.length);
+        bet.bonusChests = this.generateResultConsumer.generateBonus(bet, bonusConfig);
 
         await bet.save();
 
@@ -169,19 +165,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
 
         return null;
-    }
-
-    settleWinningPaylines(settlementResult) {
-        return settlementResult.jackpot
-            ? settlementResult.paylines.filter((payline) => payline.odds > 0 && payline.payline !== settlementResult.jackpotPayline)
-            : settlementResult.paylines.filter((payline) => payline.odds > 0);
-    }
-
-    generateResult(playerName) {
-        const { mode } = this.gameData.gameConfigs.slotsConfig;
-        const board = this.boardGenerator.generate(mode);
-
-        return this.boardCheatingConsumer.consume(playerName, board);
     }
 
     async processFreeSpins(player, betTicket, settlementResult) {
