@@ -1,762 +1,368 @@
-import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 import { Core } from "sc-game-base";
-import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
-
-import { BoardCheatingConsumer, FreeSpinsConsumer, HallOfFameConsumer, JackpotConsumer, SettleGameRoundConsumer } from "..";
+import { SettleGameRoundConsumer } from "..";
 import odds from "../../../tests/odds";
-import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "../../board";
-import { JackpotPublisher } from "../../event-publishers";
+
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
-import JackpotValidator from "../../validators/jackpot-validator";
+
+import {
+    roundsRepository,
+    betsRepository,
+    roundResultPublisher,
+    userBetResultPublisher,
+    jackpotPublisher,
+    boardCheatingConsumer,
+    freeSpinsConsumer,
+    hallOfFameConsumer,
+    jackpotConsumer,
+    boardGenerator,
+    bonusBoardGenerator,
+    paylineCalculator,
+    jackpotValidator,
+    generateResultConsumer,
+} from "./stubs";
 
 beforeEach(() => {
     jest.clearAllMocks();
 });
 
 describe("SettleGameRoundConsumer", () => {
-    it("instance should inherit Core.SettleGameRoundConsumer", () => {
-        // act
-        const consumer = new SettleGameRoundConsumer(initDependencies());
-
-        // assert
-        expect(consumer instanceof Core.BaseEventConsumers.SettleGameRoundConsumer);
-    });
-});
-
-describe("autoSettleRound", () => {
-    it("always call queryBets and settleBets", async () => {
-        // arrange
-        const consumer = new SettleGameRoundConsumer(initDependencies());
-        const player = stubPlayer();
-        consumer.gameData.ingame[player.profile.name] = { finish: stubFinish(), bonusChests: [] };
-        spyOn(consumer, "queryBets");
-        spyOn(consumer, "settleBets");
-
-        // act
-        await consumer.autoSettleRound(player, 1);
-
-        // assert
-        expect(consumer.queryBets).toBeCalledWith(1);
-        expect(consumer.settleBets).toBeCalled();
-    });
-
-    it("should settleBets with picked bonus", async () => {
-        // arrange
-        const consumer = new SettleGameRoundConsumer(initDependencies());
-        const player = stubPlayer();
-        const bonusChests = [
-            { amount: 1, picked: false },
-            { amount: 2, picked: true },
-        ];
-        const finish = stubFinish();
-        consumer.gameData.ingame[player.profile.name] = { finish, bonusChests };
-        spyOn(consumer, "queryBets").and.returnValue({ amount: 5 });
-        spyOn(consumer, "settleBets");
-
-        // act
-        await consumer.autoSettleRound(player, 1);
-
-        // assert
-        expect(consumer.settleBets).toBeCalledWith(player, finish, { amount: 5 }, [{ amount: 2, picked: true }]);
-    });
-
-    it("when not finish should not call settleBets", async () => {
-        // arrange
-        const consumer = new SettleGameRoundConsumer(initDependencies());
-        const player = { profile: { name: "player1" } };
-        consumer.gameData.ingame["player1"] = { finish: false };
-        spyOn(consumer, "settleBets");
-
-        // act
-        await consumer.autoSettleRound(player, 1);
-
-        // assert
-        expect(consumer.settleBets).not.toBeCalled();
-    });
-});
-
-describe("settleRound", () => {
-    it("always call queryBets", async () => {
-        // arrange
-        const consumer = new SettleGameRoundConsumer(initDependencies());
-        const player = stubPlayer();
-        consumer.gameData.ingame[player.profile.name] = { finish: stubFinish(), bonusChests: [] };
-        spyOn(consumer, "queryBets");
-        spyOn(consumer, "settleBets");
-
-        // act
-        await consumer.settleRound(player, 1);
-
-        // assert
-        expect(consumer.queryBets).toBeCalledWith(1);
-    });
-
-    it("should settleBets when have bet and no bonus", async () => {
-        // arrange
-        const consumer = new SettleGameRoundConsumer(initDependencies());
-        const player = stubPlayer();
-        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, rate: 1 };
-        const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
-        consumer.boardGenerator.generate.mockReturnValueOnce(board);
-        consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
-        spyOn(consumer, "queryBets").and.returnValue(bet);
-        spyOn(consumer, "settleBets");
-
-        // act
-        await consumer.settleRound(player, 1);
-
-        // assert
-        expect(consumer.settleBets).toBeCalled();
-    });
-
-    it("when have bet and bonus should processBonus", async () => {
-        // arrange
-        const consumer = new SettleGameRoundConsumer(initDependencies());
-        const player = stubPlayer();
-        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, rate: 1 };
-        const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
-        consumer.boardGenerator.generate.mockReturnValueOnce(board);
-        consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
-        spyOn(consumer, "queryBets").and.returnValue(bet);
-        spyOn(consumer, "generateRoundResult").and.returnValue({ settlementResult: { bonus: { odds: 2 } } });
-        spyOn(consumer, "processBonus");
-
-        // act
-        await consumer.settleRound(player, 1);
-
-        // assert
-        expect(consumer.processBonus).toBeCalled();
-    });
-
-    it("when enable jackpot and  not freeSpin and player has enable jackpot should call jackpotConsumer.contribute", async () => {
-        // arrange
-        const consumer = new SettleGameRoundConsumer(initDependencies());
-        const player = stubPlayer();
-        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, rate: 1 };
-        const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
-        consumer.boardGenerator.generate.mockReturnValueOnce(board);
-        consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
-        consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
-        spyOn(consumer, "queryBets").and.returnValue(bet);
-        spyOn(consumer, "settleBets");
-        consumer.jackpotValidator.canContributeJackpotPools.mockReturnValueOnce(true);
-
-        // act
-        await consumer.settleRound(player, 1);
-
-        // assert
-        expect(consumer.jackpotConsumer.contribute).toBeCalled();
-    });
-
-    it("when user cant contribute jackpot should not call jackpotConsumer.contribute", async () => {
-        // arrange
-        const consumer = new SettleGameRoundConsumer(initDependencies());
-        const player = stubPlayer();
-        const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, freeSpin: false, rate: 1 };
-        const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
-        consumer.boardGenerator.generate.mockReturnValueOnce(board);
-        consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
-        consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
-        spyOn(consumer, "queryBets").and.returnValue(bet);
-        consumer.jackpotValidator.canContributeJackpotPools.mockReturnValueOnce(false);
-        spyOn(consumer, "settleBets");
-
-        // act
-        await consumer.settleRound(player, 1);
-
-        // assert
-        expect(consumer.jackpotConsumer.contribute).not.toBeCalled();
-    });
-});
-
-describe("settle-game-round-consumer", () => {
-    describe("collectBonusResult", () => {
-        it("should return correct value", () => {
+    describe("autoSettleRound", () => {
+        it("always call queryBets and settleBets", async () => {
             // arrange
             const consumer = new SettleGameRoundConsumer(initDependencies());
-            const result = 3;
-            const settlementResult = { bonus: { odds: 2 } };
-            const roundId = 1;
-            const expectedValue = {
-                bonuses: {
-                    roundId: 1,
-                    bonus: 2,
-                    result: 3,
-                },
-            };
+            const player = stubPlayer();
+            consumer.gameData.ingame[player.profile.name] = { finish: stubFinish(), bonusChests: [] };
+            spyOn(consumer, "queryBets");
+            spyOn(consumer, "settleBets");
 
             // act
-            const actualValue = consumer.collectBonusResult({ result, settlementResult, roundId });
+            await consumer.autoSettleRound(player, 1);
 
             // assert
-            expect(actualValue).toStrictEqual(expectedValue);
-        });
-    });
-
-    describe("collectRoundSettlementResult", () => {
-        // arrange
-        const dependencies = initDependencies();
-        dependencies.boardGenerator.definition = { specialSymbols: { bonus: 1, freeSpins: 2, jackpot: 3 } };
-        const consumer = new SettleGameRoundConsumer(dependencies);
-        const winningPaylines = [
-            {
-                payline: 1,
-                symbol: 2,
-                count: 2,
-            },
-        ];
-
-        const bonus = { odds: 2 };
-        const freeSpins = { odds: 3 };
-
-        it("when have jackpot should return correct value", () => {
-            // arrange
-            const jackpot = { jackpotId: 1 };
-            const expectedValue = {
-                winningLines: [
-                    {
-                        payline: 1,
-                        symbol: 2,
-                        count: 2,
-                        positions: [0, 3, 6, 9, 12],
-                    },
-                ],
-                bonus: { symbol: 1, count: 2 },
-                freeSpins: { symbol: 2, count: 3 },
-                jackpot: { jackpotId: 1, symbol: 3, positions: undefined },
-            };
-
-            // act
-            const actualValue = consumer.collectRoundSettlementResult({ winningPaylines, bonus, freeSpins, jackpot });
-
-            // assert
-            expect(actualValue).toStrictEqual(expectedValue);
+            expect(consumer.queryBets).toBeCalledWith(1);
+            expect(consumer.settleBets).toBeCalled();
         });
 
-        it("when not have jackpot should return correct value", () => {
-            // arrange
-            const jackpot = null;
-            const expectedValue = {
-                winningLines: [
-                    {
-                        payline: 1,
-                        symbol: 2,
-                        count: 2,
-                        positions: [0, 3, 6, 9, 12],
-                    },
-                ],
-                bonus: { symbol: 1, count: 2 },
-                freeSpins: { symbol: 2, count: 3 },
-                jackpot: null,
-            };
-
-            // act
-            const actualValue = consumer.collectRoundSettlementResult({ winningPaylines, bonus, freeSpins, jackpot });
-
-            // assert
-            expect(actualValue).toStrictEqual(expectedValue);
-        });
-    });
-
-    describe("collectRoundResult", () => {
-        it("should return correct value", () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.freeSpinsConsumer.getTotalAvaiableFreeSpins.mockReturnValueOnce(8);
-
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.collectRoundSettlementResult = jest.fn();
-            consumer.collectRoundSettlementResult.mockReturnValueOnce(5);
-            const roundId = 1;
-            const betByFreeSpin = 2;
-            const result = 3;
-            const settlementResult = 4;
-            const betWin = 6;
-            const bigWin = 7;
-            const player = {};
-            const expectedValue = {
-                finish: {
-                    roundId: 1,
-                    betByFreeSpin: 2,
-                    result: 3,
-                    settlementResult: 5,
-                    betWin: 6,
-                    bigWin: 7,
-                    totalOfFreeSpins: 8,
-                },
-            };
-
-            // act
-            const actualValue = consumer.collectRoundResult({ player, result, settlementResult, roundId, betWin, bigWin, betByFreeSpin });
-
-            // assert
-            expect(actualValue).toStrictEqual(expectedValue);
-        });
-    });
-
-    describe("calculateBonusAmount", () => {
-        const testCases = [
-            { bonusChests: [{ amount: 10 }], expectedValue: 10 },
-            { bonusChests: undefined, expectedValue: 0 },
-        ];
-        it.each(testCases)("should return correct value", (testCase) => {
+        it("should settleBets with picked bonus", async () => {
             // arrange
             const consumer = new SettleGameRoundConsumer(initDependencies());
+            const player = stubPlayer();
+            const bonusChests = [
+                { amount: 1, picked: false },
+                { amount: 2, picked: true },
+            ];
+            const finish = stubFinish();
+            consumer.gameData.ingame[player.profile.name] = { finish, bonusChests };
+            spyOn(consumer, "queryBets").and.returnValue({ amount: 5 });
+            spyOn(consumer, "settleBets");
 
             // act
-            const actualValue = consumer.calculateBonusAmount(testCase.bonusChests);
+            await consumer.autoSettleRound(player, 1);
 
             // assert
-            expect(actualValue).toStrictEqual(testCase.expectedValue);
-        });
-    });
-
-    describe("calculatePaylineResult", () => {
-        it("when big win should return correct value", () => {
-            // arrange
-            const dependencies = initDependencies();
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            const paylines = [{ odds: 2 }];
-            const bet = {
-                bet: 10,
-                totalAmount: 3,
-            };
-            const expectedValue = {
-                totalBetAmount: 3,
-                totalWin: 20,
-                netWin: 17,
-                totalLost: 0,
-                winningLines: [],
-                bigWin: true,
-            };
-
-            // act
-            const actualValue = consumer.calculatePaylineResult(paylines, bet);
-
-            // assert
-            expect(actualValue).toStrictEqual(expectedValue);
+            expect(consumer.settleBets).toBeCalledWith(player, finish, { amount: 5 }, [{ amount: 2, picked: true }]);
         });
 
-        it("when lost should return correct value", () => {
+        it("when not finish should not call settleBets", async () => {
             // arrange
-            const dependencies = initDependencies();
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            const paylines = [{ odds: 2 }];
-            const bet = {
-                bet: 10,
-                totalAmount: 30,
-            };
-            const bonus = 0;
-            const expectedValue = {
-                totalBetAmount: 30,
-                totalWin: 20,
-                netWin: -10,
-                totalLost: 10,
-                winningLines: [],
-                bigWin: false,
-            };
-
-            // act
-            const actualValue = consumer.calculatePaylineResult(paylines, bet, bonus);
-
-            // assert
-            expect(actualValue).toStrictEqual(expectedValue);
-        });
-    });
-
-    describe("queryBets", () => {
-        it("should return value from roundsRepository", () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.roundsRepository = {
-                findOne: () => {
-                    return { exec: () => 1 };
-                },
-            };
-            const consumer = new SettleGameRoundConsumer(dependencies);
-
-            // act
-            const actualValue = consumer.queryBets(4);
-
-            // assert
-            expect(actualValue).toStrictEqual(1);
-        });
-    });
-
-    describe("formatEndGameInfo", () => {
-        it("when not freeSpin should return correct value", () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = { id: 5 };
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            const bet = { playerId: 2, siteId: 3, freeBet: false };
-            const roundId = 1;
-            const time = 4;
-            const betResult = { totalBetAmount: 10 };
-            const expectedValue = {
-                gameInfo: {
-                    gameId: 5,
-                    gameRoundId: 1,
-                    siteId: 3,
-                    time: 4,
-                    operatorId: undefined,
-                    playerId: 2,
-                },
-                settlementInfo: { redPlay: 10, freeBet: false },
-            };
-
-            // act
-            const actualValue = consumer.formatEndGameInfo(bet, roundId, time, betResult);
-
-            // assert
-            expect(actualValue).toStrictEqual(expectedValue);
-        });
-
-        it("when freeSpin should return correct value", () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = { id: 5 };
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            const bet = { playerId: 2, siteId: 3, freeBet: true, freeSpin: true };
-            const roundId = 1;
-            const time = 4;
-            const betResult = { totalBetAmount: 10 };
-            const expectedValue = {
-                gameInfo: {
-                    gameId: 5,
-                    gameRoundId: 1,
-                    siteId: 3,
-                    time: 4,
-                    operatorId: undefined,
-                    playerId: 2,
-                },
-                settlementInfo: { redPlay: 0, freeBet: true },
-            };
-
-            // act
-            const actualValue = consumer.formatEndGameInfo(bet, roundId, time, betResult);
-
-            // assert
-            expect(actualValue).toStrictEqual(expectedValue);
-        });
-    });
-
-    describe("settleBets", () => {
-        it("when error should logError", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.callEndGame = async () => {
-                throw new Exception();
-            };
-            const player = {};
-            const result = {};
-            const settlementResult = {};
-            const roundId = {};
-            const bet = {};
-
-            // act
-            await consumer.settleBets(player, { result, settlementResult, roundId }, bet);
-
-            // assert
-            expect(dependencies.logService.logError).toBeCalled();
-        });
-
-        it("when not have bet should not call consumer.callEndGame", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.callEndGame = jest.fn();
-            const player = {};
-            const result = {};
-            const settlementResult = {};
-            const roundId = {};
-            const bet = null;
-
-            // act
-            await consumer.settleBets(player, { result, settlementResult, roundId }, bet);
-
-            // assert
-            expect(consumer.callEndGame).not.toBeCalled();
-        });
-
-        it("when have bet should call consumer.callEndGame", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.gameData.ingame = { player1: {} };
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.callEndGame = jest.fn();
-            consumer.calculateBonusAmount = jest.fn();
-            consumer.calculatePaylineResult = jest.fn();
-            consumer.collectRoundResult = jest.fn();
-            consumer.calculatePaylineResult.mockReturnValueOnce({ totalWin: 10 });
+            const consumer = new SettleGameRoundConsumer(initDependencies());
             const player = { profile: { name: "player1" } };
-            const result = {};
-            const settlementResult = {};
-            const roundId = {};
-            const bet = { result: [], save: () => {} };
-            const bonusChests = [];
+            consumer.gameData.ingame["player1"] = { finish: false };
+            spyOn(consumer, "settleBets");
 
             // act
-            await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
+            await consumer.autoSettleRound(player, 1);
 
             // assert
-            expect(consumer.callEndGame).toBeCalled();
-        });
-
-        it("when have bigWin should call hallOfFameConsumer.add", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.gameData.ingame = { player1: {} };
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.callEndGame = jest.fn();
-            consumer.calculateBonusAmount = jest.fn();
-            consumer.calculatePaylineResult = jest.fn();
-            consumer.collectRoundResult = jest.fn();
-            consumer.calculatePaylineResult.mockReturnValueOnce({ totalWin: 10, bigWin: true });
-            const player = { profile: { name: "player1" } };
-            const result = {};
-            const settlementResult = {};
-            const roundId = {};
-            const bet = { result: [{ id: 1 }], save: () => {}, paylines: [] };
-            const bonusChests = [];
-
-            // act
-            await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
-
-            // assert
-            expect(consumer.hallOfFameConsumer.add).toBeCalled();
+            expect(consumer.settleBets).not.toBeCalled();
         });
     });
 
-    describe("processJackpot", () => {
-        it("when have error should call jackpotPublisher.publishFailedJackpot", async () => {
+    describe("settleRound", () => {
+        it("always call queryBets", async () => {
             // arrange
-            const dependencies = initDependencies();
-            dependencies.jackpotConsumer.hit.mockReturnValueOnce({ amount: 10 });
-            dependencies.definition = {};
-
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.hitJackpot = jest.fn();
-            consumer.hitJackpot.mockReturnValueOnce({ isOk: false, response: { message: "error" } });
-            const player = {};
-            const roundId = {};
-            const betAmount = null;
-            const winningLine = {};
+            const consumer = new SettleGameRoundConsumer(initDependencies());
+            const player = stubPlayer();
+            consumer.gameData.ingame[player.profile.name] = { finish: stubFinish(), bonusChests: [] };
+            spyOn(consumer, "queryBets");
+            spyOn(consumer, "settleBets");
 
             // act
-            await consumer.processJackpot(player, roundId, { betAmount, rate: 1 }, winningLine);
+            await consumer.settleRound(player, 1);
 
             // assert
-            expect(consumer.jackpotPublisher.publishFailedJackpot).toBeCalled();
+            expect(consumer.queryBets).toBeCalledWith(1);
         });
 
-        it("when not have error should not call jackpotPublisher.publishFailedJackpot", async () => {
+        it("should settleBets when have bet and no bonus", async () => {
             // arrange
-            const dependencies = initDependencies();
-            dependencies.jackpotConsumer.hit.mockReturnValueOnce({ amount: 10 });
-            dependencies.definition = {};
-
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.hitJackpot = jest.fn();
-            consumer.hitJackpot.mockReturnValueOnce({ isOk: true, response: {} });
-            const player = {};
-            const roundId = {};
-            const betAmount = null;
-            const winningLine = {};
+            const consumer = new SettleGameRoundConsumer(initDependencies());
+            const player = stubPlayer();
+            const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, rate: 1 };
+            const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
+            consumer.boardGenerator.generate.mockReturnValueOnce(board);
+            consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
+            spyOn(consumer, "queryBets").and.returnValue(bet);
+            spyOn(consumer, "settleBets");
 
             // act
-            await consumer.processJackpot(player, roundId, { betAmount, rate: 1 }, winningLine);
+            await consumer.settleRound(player, 1);
 
             // assert
-            expect(consumer.jackpotPublisher.publishFailedJackpot).not.toBeCalled();
-        });
-    });
-
-    describe("processFreeSpins", () => {
-        it("when freeSpins.odd > 0 should call freeSpinsConumer.gainFreeSpin", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = {};
-
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.hitJackpot = jest.fn();
-            consumer.hitJackpot.mockReturnValueOnce({ isOk: false, response: { message: "error" } });
-            const player = {};
-            const betTicket = {};
-            const settlementResult = { freeSpins: { odds: 2 } };
-
-            // act
-            await consumer.processFreeSpins(player, betTicket, settlementResult);
-
-            // assert
-            expect(consumer.freeSpinsConumer.gainFreeSpin).toBeCalled();
+            expect(consumer.settleBets).toBeCalled();
         });
 
-        const testCases = [{ settlementResult: { freeSpins: { odds: 0 } } }, { settlementResult: { freeSpins: undefined } }];
-        it.each(testCases)("when not have freeSpins or odd <= 0 should not call freeSpinsConumer.gainFreeSpin", async (testCase) => {
+        it("when have bet and bonus should processBonus", async () => {
             // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = {};
-
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.hitJackpot = jest.fn();
-            consumer.hitJackpot.mockReturnValueOnce({ isOk: false, response: { message: "error" } });
-            const player = {};
-            const betTicket = {};
-            const settlementResult = testCase.settlementResult;
+            const consumer = new SettleGameRoundConsumer(initDependencies());
+            const player = stubPlayer();
+            const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, rate: 1 };
+            const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
+            consumer.boardGenerator.generate.mockReturnValueOnce(board);
+            consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
+            spyOn(consumer, "queryBets").and.returnValue(bet);
+            spyOn(consumer, "generateRoundResult").and.returnValue({ settlementResult: { bonus: { odds: 2 } } });
+            spyOn(consumer, "processBonus");
 
             // act
-            await consumer.processFreeSpins(player, betTicket, settlementResult);
+            await consumer.settleRound(player, 1);
 
             // assert
-            expect(consumer.freeSpinsConumer.gainFreeSpin).not.toBeCalled();
+            expect(consumer.processBonus).toBeCalled();
         });
-    });
 
-    describe("processBonus", () => {
-        it("should call userBetResultPublisher.publishToUser", async () => {
+        it("when enable jackpot and  not freeSpin and player has enable jackpot should call jackpotConsumer.contribute", async () => {
             // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = {};
-            dependencies.gameData.ingame = { player1: {} };
-
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.collectBonusResult = jest.fn();
-            const player = { profile: { name: "player1" } };
-            const finish = {};
-            const bet = { save: jest.fn(), paylines: [] };
+            const consumer = new SettleGameRoundConsumer(initDependencies());
+            const player = stubPlayer();
+            const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, rate: 1 };
+            const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
+            consumer.boardGenerator.generate.mockReturnValueOnce(board);
+            consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
+            consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+            spyOn(consumer, "queryBets").and.returnValue(bet);
+            spyOn(consumer, "settleBets");
+            consumer.jackpotValidator.canContributeJackpotPools.mockReturnValueOnce(true);
 
             // act
-            await consumer.processBonus(player, finish, bet);
+            await consumer.settleRound(player, 1);
 
             // assert
-            expect(consumer.userBetResultPublisher.publishToUser).toBeCalled();
+            expect(consumer.jackpotConsumer.contribute).toBeCalled();
+        });
+
+        it("when user cant contribute jackpot should not call jackpotConsumer.contribute", async () => {
+            // arrange
+            const consumer = new SettleGameRoundConsumer(initDependencies());
+            const player = stubPlayer();
+            const bet = { bet: 1, paylines: [1, 2, 3], name: player.profile.name, freeSpin: false, rate: 1 };
+            const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
+            consumer.boardGenerator.generate.mockReturnValueOnce(board);
+            consumer.boardCheatingConsumer.consume.mockReturnValueOnce(board);
+            consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+            spyOn(consumer, "queryBets").and.returnValue(bet);
+            consumer.jackpotValidator.canContributeJackpotPools.mockReturnValueOnce(false);
+            spyOn(consumer, "settleBets");
+
+            // act
+            await consumer.settleRound(player, 1);
+
+            // assert
+            expect(consumer.jackpotConsumer.contribute).not.toBeCalled();
         });
     });
 
-    describe("generateRoundResult", () => {
-        let testCases = [{ jackpotPayline: -1 }, { jackpotPayline: 1 }];
-        it.each(testCases)("when user cant hit jackpot should return 0", async (testCase) => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
-
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            spyOn(consumer.paylineCalculator, "calculate").and.returnValue({ paylines: [], jackpotPayline: testCase.jackpotPayline });
-            consumer.jackpotValidator.canHitJackpot.mockReturnValueOnce(false);
-            const player = { session: { currencyName: "UUS" } };
-            const roundId = 1;
-            const bet = {};
-
-            // act
-            const actualValue = await consumer.generateRoundResult(player, roundId, bet);
-
-            // assert
-            expect(actualValue.jackpotWin).toBe(0);
-        });
-
-        testCases = [
-            { jackpot: { winningAmount: 10 }, expectedValue: 10 },
-            { jackpot: null, expectedValue: 0 },
-        ];
-        it.each(testCases)("when user can hit jackpot should return correct jackpotWin", async (testCase) => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.definition = {};
-            dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
-
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            spyOn(consumer.paylineCalculator, "calculate").and.returnValue({ paylines: [], jackpotPayline: 1 });
-            consumer.jackpotValidator.canHitJackpot.mockReturnValueOnce(true);
-            spyOn(consumer, "processJackpot").and.returnValue(testCase.jackpot);
-            const player = { session: { currencyName: "UUS" } };
-            const roundId = 1;
-            const bet = {};
-
-            // act
-            const actualValue = await consumer.generateRoundResult(player, roundId, bet);
-
-            // assert
-            expect(actualValue.jackpotWin).toBe(testCase.expectedValue);
-        });
-    });
-
-    describe("settleWinningPaylines", () => {
-        describe("settlementResult.jackpot has value", () => {
-            it("Result shouldnt include the jackpot payline", () => {
-                //Arrange
+    describe("settle-game-round-consumer", () => {
+        describe("settleBets", () => {
+            it("when error should logError", async () => {
+                // arrange
                 const dependencies = initDependencies();
-                dependencies.definition = {};
-                dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
                 const consumer = new SettleGameRoundConsumer(dependencies);
-                const settlementResult = {
-                    paylines: [
-                        { payline: 0, odds: 2 },
-                        { payline: 1, odds: 1000 },
-                    ],
-                    jackpotPayline: 1,
+                consumer.callEndGame = async () => {
+                    throw new Exception();
                 };
+                const player = {};
+                const result = {};
+                const settlementResult = {};
+                const roundId = {};
+                const bet = {};
 
-                //Act
-                const result = consumer.settleWinningPaylines(settlementResult);
+                // act
+                await consumer.settleBets(player, { result, settlementResult, roundId }, bet);
 
-                //Assert
-                expect(result).not.toContain(settlementResult.jackpotPayline);
+                // assert
+                expect(dependencies.logService.logError).toBeCalled();
+            });
+
+            it("when not have bet should not call consumer.callEndGame", async () => {
+                // arrange
+                const dependencies = initDependencies();
+                const consumer = new SettleGameRoundConsumer(dependencies);
+                consumer.callEndGame = jest.fn();
+                const player = {};
+                const result = {};
+                const settlementResult = {};
+                const roundId = {};
+                const bet = null;
+
+                // act
+                await consumer.settleBets(player, { result, settlementResult, roundId }, bet);
+
+                // assert
+                expect(consumer.callEndGame).not.toBeCalled();
+            });
+
+            it("when have bet should call consumer.callEndGame", async () => {
+                // arrange
+                const dependencies = initDependencies();
+                dependencies.gameData.ingame = { player1: {} };
+                const consumer = new SettleGameRoundConsumer(dependencies);
+                consumer.callEndGame = jest.fn();
+                consumer.calculateBonusAmount = jest.fn();
+                consumer.calculatePaylineResult = jest.fn();
+                consumer.collectRoundResult = jest.fn();
+                consumer.calculatePaylineResult.mockReturnValueOnce({ totalWin: 10 });
+                const player = { profile: { name: "player1" } };
+                const result = {};
+                const settlementResult = {};
+                const roundId = {};
+                const bet = { result: [], save: () => {} };
+                const bonusChests = [];
+
+                // act
+                await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
+
+                // assert
+                expect(consumer.callEndGame).toBeCalled();
+            });
+
+            it("when have bigWin should call hallOfFameConsumer.add", async () => {
+                // arrange
+                const dependencies = initDependencies();
+                dependencies.gameData.ingame = { player1: {} };
+                const consumer = new SettleGameRoundConsumer(dependencies);
+                consumer.callEndGame = jest.fn();
+                consumer.calculateBonusAmount = jest.fn();
+                consumer.calculatePaylineResult = jest.fn();
+                consumer.collectRoundResult = jest.fn();
+                consumer.calculatePaylineResult.mockReturnValueOnce({ totalWin: 10, bigWin: true });
+                const player = { profile: { name: "player1" } };
+                const result = {};
+                const settlementResult = {};
+                const roundId = {};
+                const bet = { result: [{ id: 1 }], save: () => {}, paylines: [] };
+                const bonusChests = [];
+
+                // act
+                await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
+
+                // assert
+                expect(consumer.hallOfFameConsumer.add).toBeCalled();
             });
         });
 
-        describe("settlementResult.jackpot is null", () => {
-            it("Result should include all winning paylines", () => {
-                //Arrange
+        describe("processJackpot", () => {
+            it("when have error should call jackpotPublisher.publishFailedJackpot", async () => {
+                // arrange
                 const dependencies = initDependencies();
+                dependencies.jackpotConsumer.hit.mockReturnValueOnce({ amount: 10 });
                 dependencies.definition = {};
-                dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+
                 const consumer = new SettleGameRoundConsumer(dependencies);
-                const settlementResult = {
-                    paylines: [
-                        { payline: 0, odds: 2 },
-                        { payline: 1, odds: 1000 },
-                    ],
-                    jackpotPayline: null,
-                };
+                consumer.hitJackpot = jest.fn();
+                consumer.hitJackpot.mockReturnValueOnce({ isOk: false, response: { message: "error" } });
+                const player = {};
+                const roundId = {};
+                const betAmount = null;
+                const winningLine = {};
 
-                //Act
-                const result = consumer.settleWinningPaylines(settlementResult);
+                // act
+                await consumer.processJackpot(player, roundId, { betAmount, rate: 1 }, winningLine);
 
-                //Assert
-                expect(result).toEqual(settlementResult.paylines);
+                // assert
+                expect(consumer.jackpotPublisher.publishFailedJackpot).toBeCalled();
+            });
+
+            it("when not have error should not call jackpotPublisher.publishFailedJackpot", async () => {
+                // arrange
+                const dependencies = initDependencies();
+                dependencies.jackpotConsumer.hit.mockReturnValueOnce({ amount: 10 });
+                dependencies.definition = {};
+
+                const consumer = new SettleGameRoundConsumer(dependencies);
+                consumer.hitJackpot = jest.fn();
+                consumer.hitJackpot.mockReturnValueOnce({ isOk: true, response: {} });
+                const player = {};
+                const roundId = {};
+                const betAmount = null;
+                const winningLine = {};
+
+                // act
+                await consumer.processJackpot(player, roundId, { betAmount, rate: 1 }, winningLine);
+
+                // assert
+                expect(consumer.jackpotPublisher.publishFailedJackpot).not.toBeCalled();
             });
         });
+        //     let testCases = [{ jackpotPayline: -1 }, { jackpotPayline: 1 }];
+        //     it.each(testCases)("when user cant hit jackpot should return 0", async (testCase) => {
+        //         // arrange
+        //         const dependencies = initDependencies();
+        //         dependencies.definition = {};
+        //         dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+
+        //         const consumer = new SettleGameRoundConsumer(dependencies);
+        //         spyOn(consumer.paylineCalculator, "calculate").and.returnValue({ paylines: [], jackpotPayline: testCase.jackpotPayline });
+        //         consumer.jackpotValidator.canHitJackpot.mockReturnValueOnce(false);
+        //         const player = { session: { currencyName: "UUS" } };
+        //         const roundId = 1;
+        //         const bet = {};
+
+        //         // act
+        //         const actualValue = await consumer.generateRoundResult(player, roundId, bet);
+
+        //         // assert
+        //         expect(actualValue.jackpotWin).toBe(0);
+        //     });
+
+        //     testCases = [
+        //         { jackpot: { winningAmount: 10 }, expectedValue: 10 },
+        //         { jackpot: null, expectedValue: 0 },
+        //     ];
+        //     it.each(testCases)("when user can hit jackpot should return correct jackpotWin", async (testCase) => {
+        //         // arrange
+        //         const dependencies = initDependencies();
+        //         dependencies.definition = {};
+        //         dependencies.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
+
+        //         const consumer = new SettleGameRoundConsumer(dependencies);
+        //         spyOn(consumer.paylineCalculator, "calculate").and.returnValue({ paylines: [], jackpotPayline: 1 });
+        //         consumer.jackpotValidator.canHitJackpot.mockReturnValueOnce(true);
+        //         spyOn(consumer, "processJackpot").and.returnValue(testCase.jackpot);
+        //         const player = { session: { currencyName: "UUS" } };
+        //         const roundId = 1;
+        //         const bet = {};
+
+        //         // act
+        //         const actualValue = await consumer.generateRoundResult(player, roundId, bet);
+
+        //         // assert
+        //         expect(actualValue.jackpotWin).toBe(testCase.expectedValue);
+        //     });
+        // });
     });
 });
 
 function initDependencies() {
-    /** @type {mongoose.Model}*/
-    const roundsRepository = stubMongoose(mongoose.Model);
-
-    /** @type {mongoose.Model}*/
-    const betsRepository = stubMongoose(mongoose.Model);
-
     const gameDefinition = stubGameDefinition();
     const gameData = stubGameData();
-    const roundResultPublisher = stub(RoundResultPublisher);
-    const userBetResultPublisher = stub(UserBetResultPublisher);
-    const jackpotPublisher = stub(JackpotPublisher);
-    const boardCheatingConsumer = stub(BoardCheatingConsumer);
-    const freeSpinsConsumer = stub(FreeSpinsConsumer);
-    const hallOfFameConsumer = stub(HallOfFameConsumer);
-    const jackpotConsumer = stub(JackpotConsumer);
-    const boardGenerator = stub(BoardGenerator);
-    const bonusBoardGenerator = stub(BonusBoardGenerator);
-    const paylineCalculator = new PaylineCalculator();
+
     const logService = { logError: jest.fn() };
     const endGame = jest.fn();
     const hitJackpot = jest.fn();
-    const jackpotValidator = stub(JackpotValidator);
+
     return {
         gameDefinition,
         gameData,
@@ -776,6 +382,7 @@ function initDependencies() {
         betsRepository,
         logService,
         jackpotValidator,
+        generateResultConsumer,
     };
 }
 

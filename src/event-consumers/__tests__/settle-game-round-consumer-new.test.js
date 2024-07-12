@@ -1,10 +1,10 @@
-import mongoose from "mongoose";
 import { Core } from "sc-game-base";
 import { SettleGameRoundConsumer } from "..";
 import odds from "../../../tests/odds";
 
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
+import defaultDefinition from "../../board/default-definition";
 
 import {
     roundsRepository,
@@ -201,6 +201,339 @@ describe("SettleGameRoundConsumer", () => {
                 roundId: finish.roundId,
                 prizes,
             });
+        });
+    });
+
+    describe("calculatePaylineResult", () => {
+        it("when big win should return correct value", () => {
+            // arrange
+            const dependencies = initDependencies();
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const paylines = [{ odds: 2 }];
+            const bet = {
+                bet: 10,
+                totalAmount: 3,
+            };
+            const expectedValue = {
+                totalBetAmount: 3,
+                totalWin: 20,
+                netWin: 17,
+                totalLost: 0,
+                winningLines: [],
+                bigWin: true,
+            };
+
+            // act
+            const actualValue = consumer.calculatePaylineResult(paylines, bet);
+
+            // assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+
+        it("when lost should return correct value", () => {
+            // arrange
+            const dependencies = initDependencies();
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const paylines = [{ odds: 2 }];
+            const bet = {
+                bet: 10,
+                totalAmount: 30,
+            };
+            const bonus = 0;
+            const expectedValue = {
+                totalBetAmount: 30,
+                totalWin: 20,
+                netWin: -10,
+                totalLost: 10,
+                winningLines: [],
+                bigWin: false,
+            };
+
+            // act
+            const actualValue = consumer.calculatePaylineResult(paylines, bet, bonus);
+
+            // assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+    });
+
+    describe("queryBets", () => {
+        it("should return value from roundsRepository", () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.roundsRepository = {
+                findOne: () => {
+                    return { exec: () => 1 };
+                },
+            };
+            const consumer = new SettleGameRoundConsumer(dependencies);
+
+            // act
+            const actualValue = consumer.queryBets(4);
+
+            // assert
+            expect(actualValue).toStrictEqual(1);
+        });
+    });
+
+    describe("formatEndGameInfo", () => {
+        it("when not freeSpin should return correct value", () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.definition = { id: 5 };
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const bet = { playerId: 2, siteId: 3, freeBet: false };
+            const roundId = 1;
+            const time = 4;
+            const betResult = { totalBetAmount: 10 };
+            const expectedValue = {
+                gameInfo: {
+                    gameId: 5,
+                    gameRoundId: 1,
+                    siteId: 3,
+                    time: 4,
+                    operatorId: undefined,
+                    playerId: 2,
+                },
+                settlementInfo: { redPlay: 10, freeBet: false },
+            };
+
+            // act
+            const actualValue = consumer.formatEndGameInfo(bet, roundId, time, betResult);
+
+            // assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+
+        it("when freeSpin should return correct value", () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.definition = { id: 5 };
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const bet = { playerId: 2, siteId: 3, freeBet: true, freeSpin: true };
+            const roundId = 1;
+            const time = 4;
+            const betResult = { totalBetAmount: 10 };
+            const expectedValue = {
+                gameInfo: {
+                    gameId: 5,
+                    gameRoundId: 1,
+                    siteId: 3,
+                    time: 4,
+                    operatorId: undefined,
+                    playerId: 2,
+                },
+                settlementInfo: { redPlay: 0, freeBet: true },
+            };
+
+            // act
+            const actualValue = consumer.formatEndGameInfo(bet, roundId, time, betResult);
+
+            // assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+    });
+
+    describe("calculateBonusAmount", () => {
+        const testCases = [
+            { bonusChests: [{ amount: 10 }], expectedValue: 10 },
+            { bonusChests: undefined, expectedValue: 0 },
+        ];
+        it.each(testCases)("should return correct value", (testCase) => {
+            // arrange
+            const consumer = new SettleGameRoundConsumer(initDependencies());
+
+            // act
+            const actualValue = consumer.calculateBonusAmount(testCase.bonusChests);
+
+            // assert
+            expect(actualValue).toStrictEqual(testCase.expectedValue);
+        });
+    });
+
+    describe("processFreeSpins", () => {
+        it("when freeSpins.odd > 0 should call freeSpinsConumer.gainFreeSpin", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.definition = {};
+
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            consumer.hitJackpot = jest.fn();
+            consumer.hitJackpot.mockReturnValueOnce({ isOk: false, response: { message: "error" } });
+            const player = {};
+            const betTicket = {};
+            const settlementResult = { freeSpins: { odds: 2 } };
+
+            // act
+            await consumer.processFreeSpins(player, betTicket, settlementResult);
+
+            // assert
+            expect(consumer.freeSpinsConumer.gainFreeSpin).toBeCalled();
+        });
+
+        const testCases = [{ settlementResult: { freeSpins: { odds: 0 } } }, { settlementResult: { freeSpins: undefined } }];
+        it.each(testCases)("when not have freeSpins or odd <= 0 should not call freeSpinsConumer.gainFreeSpin", async (testCase) => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.definition = {};
+
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            consumer.hitJackpot = jest.fn();
+            consumer.hitJackpot.mockReturnValueOnce({ isOk: false, response: { message: "error" } });
+            const player = {};
+            const betTicket = {};
+            const settlementResult = testCase.settlementResult;
+
+            // act
+            await consumer.processFreeSpins(player, betTicket, settlementResult);
+
+            // assert
+            expect(consumer.freeSpinsConumer.gainFreeSpin).not.toBeCalled();
+        });
+    });
+
+    describe("processBonus", () => {
+        it("should call userBetResultPublisher.publishToUser", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.definition = {};
+            dependencies.gameData.ingame = { player1: {} };
+
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            consumer.collectBonusResult = jest.fn();
+            const player = { profile: { name: "player1" } };
+            const finish = {};
+            const bet = { save: jest.fn(), paylines: [] };
+
+            // act
+            await consumer.processBonus(player, finish, bet);
+
+            // assert
+            expect(consumer.userBetResultPublisher.publishToUser).toBeCalled();
+        });
+    });
+
+    describe("collectBonusResult", () => {
+        it("should return correct value", () => {
+            // arrange
+            const consumer = new SettleGameRoundConsumer(initDependencies());
+            const result = 3;
+            const settlementResult = { bonus: { odds: 2 } };
+            const roundId = 1;
+            const expectedValue = {
+                bonuses: {
+                    roundId: 1,
+                    bonus: 2,
+                    result: 3,
+                },
+            };
+
+            // act
+            const actualValue = consumer.collectBonusResult({ result, settlementResult, roundId });
+
+            // assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+    });
+
+    describe("collectRoundSettlementResult", () => {
+        // arrange
+        const dependencies = initDependencies();
+        dependencies.generateResultConsumer.boardDefinition = defaultDefinition;
+        const consumer = new SettleGameRoundConsumer(dependencies);
+        const winningPaylines = [
+            {
+                payline: 1,
+                symbol: 2,
+                count: 2,
+            },
+        ];
+
+        const bonus = { odds: 2 };
+        const freeSpins = { odds: 3 };
+
+        it("when have jackpot should return correct value", () => {
+            // arrange
+            const jackpot = { jackpotId: 1 };
+            const expectedValue = {
+                winningLines: [
+                    {
+                        payline: 1,
+                        symbol: 2,
+                        count: 2,
+                        positions: [0, 3, 6, 9, 12],
+                    },
+                ],
+                bonus: { symbol: 8, count: 2 },
+                freeSpins: { symbol: 7, count: 3 },
+                jackpot: { jackpotId: 1, symbol: 10, positions: undefined },
+            };
+
+            // act
+            const actualValue = consumer.collectRoundSettlementResult({ winningPaylines, bonus, freeSpins, jackpot });
+
+            // assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+
+        it("when not have jackpot should return correct value", () => {
+            // arrange
+            const jackpot = null;
+            const expectedValue = {
+                winningLines: [
+                    {
+                        payline: 1,
+                        symbol: 2,
+                        count: 2,
+                        positions: [0, 3, 6, 9, 12],
+                    },
+                ],
+                bonus: { symbol: 8, count: 2 },
+                freeSpins: { symbol: 7, count: 3 },
+                jackpot: null,
+            };
+
+            // act
+            const actualValue = consumer.collectRoundSettlementResult({ winningPaylines, bonus, freeSpins, jackpot });
+
+            // assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+    });
+
+    describe("collectRoundResult", () => {
+        it("should return correct value", () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.freeSpinsConsumer.getTotalAvaiableFreeSpins.mockReturnValueOnce(8);
+
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            consumer.collectRoundSettlementResult = jest.fn();
+            consumer.collectRoundSettlementResult.mockReturnValueOnce(5);
+            const roundId = 1;
+            const betByFreeSpin = 2;
+            const result = 3;
+            const settlementResult = 4;
+            const betWin = 6;
+            const bigWin = 7;
+            const player = {};
+            const expectedValue = {
+                finish: {
+                    roundId: 1,
+                    betByFreeSpin: 2,
+                    result: 3,
+                    settlementResult: 5,
+                    betWin: 6,
+                    bigWin: 7,
+                    totalOfFreeSpins: 8,
+                },
+            };
+
+            // act
+            const actualValue = consumer.collectRoundResult({ player, result, settlementResult, roundId, betWin, bigWin, betByFreeSpin });
+
+            // assert
+            expect(actualValue).toStrictEqual(expectedValue);
         });
     });
 });

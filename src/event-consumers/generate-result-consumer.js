@@ -1,5 +1,6 @@
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
+import defaultDefinition from "./../board/default-definition";
 
 import { BoardGenerator, BonusBoardGenerator, JackpotPrizeGenerator, PaylineCalculator } from "./../board";
 import BoardCheatingConsumer from "./board-cheating-consumer";
@@ -15,13 +16,14 @@ export default class GenerateResultConsumer {
      * @param {BoardCheatingConsumer} dependencies.boardCheatingConsumer
      */
 
-    constructor({ definition, gameData, boardGenerator, bonusBoardGenerator, paylineCalculator, boardCheatingConsumer }) {
+    constructor({ definition, gameData, boardGenerator, bonusBoardGenerator, paylineCalculator, boardCheatingConsumer, boardDefinition }) {
         this.definition = definition;
         this.gameData = gameData;
         this.boardCheatingConsumer = boardCheatingConsumer;
         this.boardGenerator = boardGenerator;
         this.bonusBoardGenerator = bonusBoardGenerator;
         this.paylineCalculator = paylineCalculator;
+        this.boardDefinition = boardDefinition ?? defaultDefinition;
     }
 
     generateSettlementResult(bet, odds) {

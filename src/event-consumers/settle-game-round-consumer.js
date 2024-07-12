@@ -341,27 +341,28 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     collectRoundSettlementResult({ winningPaylines, bonus, freeSpins, jackpot }) {
+        const boardDefinition = this.generateResultConsumer.boardDefinition;
         const winningLines = winningPaylines.map((winningPayline) => {
             return {
                 payline: winningPayline.payline,
                 symbol: winningPayline.symbol,
                 count: winningPayline.count,
-                positions: this.paylineCalculator.definition.paylines[winningPayline.payline],
+                positions: boardDefinition.paylines[winningPayline.payline],
             };
         });
         const winningBonus = {
-            symbol: this.boardGenerator.definition.specialSymbols.bonus,
+            symbol: boardDefinition.specialSymbols.bonus,
             count: bonus.odds,
         };
         const winningFreeSpins = {
-            symbol: this.boardGenerator.definition.specialSymbols.freeSpins,
+            symbol: boardDefinition.specialSymbols.freeSpins,
             count: freeSpins.odds,
         };
         const winningJackpot = jackpot
             ? {
                   ...jackpot,
-                  symbol: this.boardGenerator.definition.specialSymbols.jackpot,
-                  positions: this.paylineCalculator.definition.paylines[jackpot.winningLine],
+                  symbol: boardDefinition.specialSymbols.jackpot,
+                  positions: boardDefinition.paylines[jackpot.winningLine],
               }
             : null;
 
