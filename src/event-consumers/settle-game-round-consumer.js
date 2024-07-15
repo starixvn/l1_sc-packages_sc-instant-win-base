@@ -92,11 +92,11 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         if (bet) {
             const finish = await this.generateRoundResult(player, roundId, bet);
             await this.processFreeSpins(player, bet, finish.settlementResult);
-            const prizes = await this.settleJackpot(player, settlementResult);
+            const prizes = await this.settleJackpot(player, finish.settlementResult);
 
             this.updateBetTrack(player, finish);
 
-            if (prizes !== null) {
+            if (prizes?.length > 0) {
                 await this.publishJackpotPrize(finish, prizes, player, bet);
                 return;
             }

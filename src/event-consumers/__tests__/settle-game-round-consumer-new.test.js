@@ -668,6 +668,170 @@ describe("SettleGameRoundConsumer", () => {
             expect(consumer.hallOfFameConsumer.add).toBeCalled();
         });
     });
+
+    describe("settleRound", () => {
+        let consumer;
+        let queryBetsMock;
+        let generateRoundResultMock;
+        let processFreeSpinsMock;
+        let settleJackpotMock;
+        let updateBetTrackMock;
+        let publishJackpotPrizeMock;
+        let settleAfterJackpotMock;
+
+        beforeEach(() => {
+            consumer = new SettleGameRoundConsumer(initDependencies());
+
+            queryBetsMock = jest.spyOn(consumer, "queryBets");
+            generateRoundResultMock = jest.spyOn(consumer, "generateRoundResult");
+
+            processFreeSpinsMock = jest.spyOn(consumer, "processFreeSpins");
+            processFreeSpinsMock.mockReturnValueOnce({});
+
+            settleJackpotMock = jest.spyOn(consumer, "settleJackpot");
+
+            updateBetTrackMock = jest.spyOn(consumer, "updateBetTrack");
+            updateBetTrackMock.mockReturnValueOnce({});
+
+            publishJackpotPrizeMock = jest.spyOn(consumer, "publishJackpotPrize");
+            publishJackpotPrizeMock.mockReturnValueOnce({});
+
+            settleAfterJackpotMock = jest.spyOn(consumer, "settleAfterJackpot");
+            settleAfterJackpotMock.mockReturnValueOnce({});
+        });
+
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+        it("always call queryBets", async () => {
+            // arrange
+            const player = "player1";
+            const roundId = "round123";
+            queryBetsMock.mockReturnValueOnce(null);
+            generateResultConsumer.generateSettlementResult.mockReturnValueOnce({ result: {}, settlementResult: {} });
+
+            queryBetsMock.mockReturnValueOnce({ id: roundId });
+
+            // act
+            await consumer.settleRound(player, roundId);
+
+            // assert
+            expect(queryBetsMock).toBeCalledWith(roundId);
+        });
+
+        describe("when no bet is found", () => {
+            it("should not proceed", async () => {
+                // Arrange
+                const player = "player1";
+                const roundId = "round123";
+                queryBetsMock.mockReturnValueOnce(null);
+
+                // Act
+                await consumer.settleRound(player, roundId);
+
+                // Assert
+                expect(generateRoundResultMock).not.toHaveBeenCalled();
+                expect(processFreeSpinsMock).not.toHaveBeenCalled();
+                expect(settleJackpotMock).not.toHaveBeenCalled();
+                expect(updateBetTrackMock).not.toHaveBeenCalled();
+                expect(publishJackpotPrizeMock).not.toHaveBeenCalled();
+                expect(settleAfterJackpotMock).not.toHaveBeenCalled();
+            });
+        });
+
+        describe("when bet is found", () => {
+            const player = "player1";
+            const roundId = "round123";
+            const bet = { id: "bet1" };
+
+            beforeEach(() => {
+                queryBetsMock.mockReturnValueOnce(bet);
+            });
+
+            it("should call generateRoundResult", async () => {
+                // Arrange
+                const finish = { settlementResult: "settlementResult" };
+                generateRoundResultMock.mockReturnValueOnce(finish);
+
+                // Act
+                await consumer.settleRound(player, roundId);
+
+                // Assert
+                expect(queryBetsMock).toHaveBeenCalledWith(roundId);
+                expect(generateRoundResultMock).toHaveBeenCalledWith(player, roundId, bet);
+            });
+
+            it("should call processFreeSpins with correct arguments", async () => {
+                // Arrange
+                const finish = { settlementResult: "settlementResult" };
+                generateRoundResultMock.mockReturnValueOnce(finish);
+
+                // Act
+                await consumer.settleRound(player, roundId);
+
+                // Assert
+                expect(processFreeSpinsMock).toHaveBeenCalledWith(player, bet, finish.settlementResult);
+            });
+
+            it("should call settleJackpot with correct arguments", async () => {
+                // Arrange
+                const finish = { settlementResult: "settlementResult" };
+                generateRoundResultMock.mockReturnValueOnce(finish);
+
+                // Act
+                await consumer.settleRound(player, roundId);
+
+                // Assert
+                expect(settleJackpotMock).toHaveBeenCalledWith(player, finish.settlementResult);
+            });
+
+            it("should call updateBetTrack with correct arguments", async () => {
+                // Arrange
+                const finish = { settlementResult: "settlementResult" };
+                generateRoundResultMock.mockReturnValueOnce(finish);
+
+                // Act
+                await consumer.settleRound(player, roundId);
+
+                // Assert
+                expect(updateBetTrackMock).toHaveBeenCalledWith(player, finish);
+            });
+
+            describe("when prizes are found", () => {
+                it("should call publishJackpotPrize", async () => {
+                    // Arrange
+                    const finish = { settlementResult: "settlementResult" };
+                    const prizes = [{ prize: "prize1" }];
+                    generateRoundResultMock.mockReturnValueOnce(finish);
+                    settleJackpotMock.mockReturnValueOnce(prizes);
+
+                    // Act
+                    await consumer.settleRound(player, roundId);
+
+                    // Assert
+                    expect(publishJackpotPrizeMock).toHaveBeenCalledWith(finish, prizes, player, bet);
+                    expect(settleAfterJackpotMock).not.toHaveBeenCalled();
+                });
+            });
+
+            describe("when NO prizes are found", () => {
+                it("should call settleAfterJackpot", async () => {
+                    // Arrange
+
+                    const finish = { settlementResult: "settlementResult" };
+                    queryBetsMock.mockReturnValueOnce(bet);
+                    generateRoundResultMock.mockReturnValueOnce(finish);
+                    settleJackpotMock.mockReturnValueOnce([]);
+
+                    // Act
+                    await consumer.settleRound(player, roundId);
+
+                    // Assert
+                    expect(settleAfterJackpotMock).toHaveBeenCalledWith(bet, roundId);
+                });
+            });
+        });
+    });
 });
 
 function initDependencies() {
