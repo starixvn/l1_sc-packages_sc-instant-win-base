@@ -46,7 +46,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         roundsRepository,
         betsRepository,
         logService,
-        jackpotValidator,
         jackpotPrizeGenerator,
         generateResultConsumer,
     }) {
@@ -60,14 +59,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             betsRepository,
         });
 
-        //TODO move all jackpot into once
         this.jackpotPublisher = jackpotPublisher;
         this.freeSpinsConumer = freeSpinsConsumer;
         this.hallOfFameConsumer = hallOfFameConsumer;
         this.jackpotConsumer = jackpotConsumer;
         this.hitJackpot = hitJackpot;
         this.logService = logService;
-        this.jackpotValidator = jackpotValidator;
         this.jackpotPrizeGenerator = jackpotPrizeGenerator;
         this.generateResultConsumer = generateResultConsumer;
     }
@@ -133,9 +130,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await this.processBonus(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         }
 
-        if (this.jackpotValidator.canContributeJackpotPools(player, bet.freeSpin)) {
-            await this.jackpotConsumer.contribute(player, { totalAmount: bet.totalAmount, roundId, rate: bet.rate });
-        }
+        await this.jackpotConsumer.contribute(player, { totalAmount: bet.totalAmount, roundId, rate: bet.rate });
     }
 
     async generateRoundResult(player, roundId, bet) {
@@ -158,8 +153,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async settleJackpot(player, settlementResult) {
-        if (settlementResult.jackpotPayline > -1 && this.jackpotValidator.canHitJackpot(player)) {
-            const jackpotPrizes = this.jackpotPrizeGenerator.generate();
+        if (settlementResult.jackpotPayline > -1) {
+            const jackpotPrizes = this.jackpotPrizeGenerator.generate(player);
 
             return jackpotPrizes;
         }

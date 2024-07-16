@@ -1,23 +1,28 @@
 import Chance from "chance";
 
 import SlotGameDefinition from "./../slot-game-definition";
+import JackpotValidator from "../validators/jackpot-validator";
 
 export default class JackpotPrizeGenerator {
     /**
      * @param {SlotGameDefinition} definition
      * @param {SlotGameData} gameData
+     * @param {JackpotValidator} jackpotValidator
      */
-
-    //TODO use prize weights configuration to generate
-    constructor(definition, gameData) {
+    constructor(definition, gameData, jackpotValidator) {
         this.definition = definition;
         this.gameData = gameData;
         this.size = definition.jackpotSize ?? 6;
+        this.jackpotValidator = jackpotValidator;
 
         this.chance = new Chance();
     }
 
-    generate() {
+    generate(player) {
+        if (!this.jackpotValidator.canHitJackpot(player)) {
+            return [];
+        }
+
         const { pools } = this.gameData.gameConfigs.slotsConfig.jackpot;
         const prizes = Object.keys(pools);
         const prizeWeights = this.generateWeights(prizes);
@@ -38,6 +43,7 @@ export default class JackpotPrizeGenerator {
         return jackpotBoard;
     }
 
+    //TODO use prize weights configuration from admin to generate
     generateWeights(prizes) {
         const weights = {};
 

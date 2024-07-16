@@ -1,5 +1,5 @@
-import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
+import { stub, stubMongoose } from "jest-micro-auto-stub";
 import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
 import { JackpotPublisher } from "../../event-publishers";
 import {

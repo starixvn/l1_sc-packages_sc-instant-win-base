@@ -1,14 +1,17 @@
 import JackpotPrizeGenerator from "../jackpot-prize-generator";
+import { jackpotValidator } from "../../event-consumers/__tests__/stubs";
 
 describe("JackpotGenerator", () => {
     let gameData;
     let jackpotSize;
     let generator;
 
+    const player = "player1";
+
     beforeEach(() => {
         gameData = createStubGameData();
         jackpotSize = 6;
-        generator = new JackpotPrizeGenerator({ jackpotSize }, gameData);
+        generator = new JackpotPrizeGenerator({ jackpotSize }, gameData, jackpotValidator);
 
         jest.spyOn(generator.chance, "pickone");
         jest.spyOn(generator.chance, "shuffle");
@@ -18,44 +21,74 @@ describe("JackpotGenerator", () => {
         jest.restoreAllMocks();
     });
 
-    test("should generate a board with the correct size", () => {
+    it("always validate player can hit jackpot", () => {
         // Arrange
-        generator.chance.pickone.mockReturnValueOnce("prizeA").mockReturnValueOnce("prizeB").mockReturnValueOnce("prizeC");
-        generator.chance.shuffle.mockImplementation((arr) => arr);
+        jest.spyOn(generator.jackpotValidator, "canHitJackpot");
 
         // Act
-        const result = generator.generate();
+        generator.generate(player);
 
         // Assert
-        expect(result).toHaveLength(jackpotSize);
-        expect(generator.chance.shuffle).toHaveBeenCalledTimes(3);
+        expect(generator.jackpotValidator.canHitJackpot).toHaveBeenCalledWith(player);
     });
 
-    test("should generate a board with valid prizes", () => {
-        // Arrange
-        const prizes = ["minor", "major", "grand"];
-        generator.chance.pickone.mockImplementation(() => prizes[Math.floor(Math.random() * prizes.length)]);
-        generator.chance.shuffle.mockImplementation((arr) => arr);
+    describe("when player can NOT hit jackpot", () => {
+        it("should return empty board", () => {
+            // Arrange
+            jackpotValidator.canHitJackpot.mockReturnValueOnce(false);
 
-        // Act
-        const result = generator.generate();
+            // Act
+            const result = generator.generate(player);
 
-        // Assert
-        result.forEach((jackpot) => {
-            expect(prizes).toContain(jackpot.prize);
+            // Assert
+            expect(result).toBeArrayOfSize(0);
         });
     });
 
-    test("should shuffle the board three times", () => {
-        // Arrange
-        generator.chance.pickone.mockReturnValue("prizeA");
-        generator.chance.shuffle.mockImplementation((arr) => arr.reverse());
+    describe("when player can hit jackpot", () => {
+        beforeEach(() => {
+            jackpotValidator.canHitJackpot.mockReturnValueOnce(true);
+        });
 
-        // Act
-        generator.generate();
+        it("should generate a board with the correct size", () => {
+            // Arrange
+            generator.chance.pickone.mockReturnValueOnce("prizeA").mockReturnValueOnce("prizeB").mockReturnValueOnce("prizeC");
+            generator.chance.shuffle.mockImplementation((arr) => arr);
 
-        // Assert
-        expect(generator.chance.shuffle).toHaveBeenCalledTimes(3);
+            // Act
+            const result = generator.generate(player);
+
+            // Assert
+            expect(result).toHaveLength(jackpotSize);
+            expect(generator.chance.shuffle).toHaveBeenCalledTimes(3);
+        });
+
+        it("should generate a board with valid prizes", () => {
+            // Arrange
+            const prizes = ["minor", "major", "grand"];
+            generator.chance.pickone.mockImplementation(() => prizes[Math.floor(Math.random() * prizes.length)]);
+            generator.chance.shuffle.mockImplementation((arr) => arr);
+
+            // Act
+            const result = generator.generate();
+
+            // Assert
+            result.forEach((jackpot) => {
+                expect(prizes).toContain(jackpot.prize);
+            });
+        });
+
+        it("should shuffle the board three times", () => {
+            // Arrange
+            generator.chance.pickone.mockReturnValue("prizeA");
+            generator.chance.shuffle.mockImplementation((arr) => arr.reverse());
+
+            // Act
+            generator.generate();
+
+            // Assert
+            expect(generator.chance.shuffle).toHaveBeenCalledTimes(3);
+        });
     });
 });
 
