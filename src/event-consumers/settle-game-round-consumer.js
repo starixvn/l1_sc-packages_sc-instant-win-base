@@ -20,7 +20,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
      * @param {Core.BaseEventPublisher.RoundResultPublisher} dependencies.roundResultPublisher
      * @param {Core.BaseEventPublisher.UserBetResultPublisher} dependencies.userBetResultPublisher
      * @param {JackpotPublisher} dependencies.jackpotPublisher
-     * @param {BoardCheatingConsumer} dependencies.boardCheatingConsumer
      * @param {FreeSpinsConsumer} dependencies.freeSpinsConsumer
      * @param {HallOfFameConsumer} dependencies.hallOfFameConsumer
      * @param {JackpotConsumer} dependencies.jackpotConsumer
@@ -70,17 +69,22 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     }
 
     async autoSettleRound(player, roundId) {
-        if (this.gameData.ingame[player.profile.name].finish) {
-            const bet = await this.queryBets(roundId);
-            const { bonusChests, finish } = this.gameData.ingame[player.profile.name];
-
-            await this.settleBets(
-                player,
-                finish,
-                bet,
-                bonusChests.filter((chest) => chest.picked)
-            );
+        if (!this.gameData.ingame[player.profile.name].finish) {
+            return;
         }
+
+        const bet = await this.queryBets(roundId);
+        //TODO process jackpot
+
+        //TODO process bonus
+        const { bonusChests, finish } = this.gameData.ingame[player.profile.name];
+
+        await this.settleBets(
+            player,
+            finish,
+            bet,
+            bonusChests.filter((chest) => chest.picked)
+        );
     }
 
     async settleRound(player, roundId) {

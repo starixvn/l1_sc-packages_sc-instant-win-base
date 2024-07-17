@@ -1,11 +1,11 @@
 import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 import { logger } from "sc-common/logger";
-import { JackpotPublisher } from "../../event-publishers";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
 import JackpotConsumer from "../jackpot-consumer";
 import currencyData from "./currency-data.json";
+import { jackpotValidator, jackpotPublisher } from "../__tests__/stubs";
 
 const gameData = stubGameData();
 const gameDefinition = stubGameDefinition();
@@ -13,10 +13,6 @@ const gameDefinition = stubGameDefinition();
 /** @type {mongoose.Model}*/
 const jackpotsRepository = stubMongoose(mongoose.Model);
 
-/** @type {mongoose.Model}*/
-const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
-
-const jackpotPublisher = stub(JackpotPublisher);
 const logService = stub(logger);
 
 describe("JackpotConsumer", () => {
@@ -36,28 +32,65 @@ describe("JackpotConsumer", () => {
         const player = {};
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate: 1 };
 
-        it("should call contribute with approriate prize and base amount", async () => {
-            // arrange
-            spyOn(consumer, "contributeToPool");
-            const poolConfigs = { bot: 0.01, contribute: 0.1, init: 5000 };
-            const expectedParams = { baseTotalAmount: 5, contributedByMember: false, prize: "minor", roundId: gameData.roundId, pool: poolConfigs };
+        describe("when player can contribute", () => {
+            beforeEach(() => {
+                jackpotValidator.canContributeJackpotPools.mockReturnValueOnce(true);
+            });
 
-            // act
-            await consumer.contribute(player, bet);
+            it("should call contribute with approriate prize and base amount", async () => {
+                // arrange
+                spyOn(consumer, "contributeToPool");
+                const poolConfigs = { bot: 0.01, contribute: 0.1, init: 5000 };
+                const expectedParams = {
+                    baseTotalAmount: 5,
+                    contributedByMember: false,
+                    prize: "minor",
+                    roundId: gameData.roundId,
+                    pool: poolConfigs,
+                };
 
-            // assert
-            expect(consumer.contributeToPool).toBeCalledWith(expectedParams);
+                // act
+                await consumer.contribute(player, bet);
+
+                // assert
+                expect(consumer.contributeToPool).toBeCalledWith(expectedParams);
+            });
+
+            it("should call contribute for all prizes", async () => {
+                // arrange
+                spyOn(consumer, "contributeToPool");
+
+                // act
+                await consumer.contribute(player, bet);
+
+                // assert
+                expect(consumer.contributeToPool).toBeCalledTimes(3);
+            });
         });
 
-        it("should call contribute for all prizes", async () => {
-            // arrange
-            spyOn(consumer, "contributeToPool");
+        describe("when player can NOT contribute", () => {
+            beforeEach(() => {
+                jackpotValidator.canContributeJackpotPools.mockReturnValueOnce(false);
+            });
 
-            // act
-            await consumer.contribute(player, bet);
+            it("should NOT contribute to pool", async () => {
+                // arrange
+                spyOn(consumer, "contributeToPool");
+                const poolConfigs = { bot: 0.01, contribute: 0.1, init: 5000 };
+                const expectedParams = {
+                    baseTotalAmount: 5,
+                    contributedByMember: false,
+                    prize: "minor",
+                    roundId: gameData.roundId,
+                    pool: poolConfigs,
+                };
 
-            // assert
-            expect(consumer.contributeToPool).toBeCalledTimes(3);
+                // act
+                await consumer.contribute(player, bet);
+
+                // assert
+                expect(consumer.contributeToPool).not.toHaveBeenCalled();
+            });
         });
     });
 
@@ -439,7 +472,7 @@ describe("JackpotConsumer", () => {
 });
 
 function initConsumer() {
-    return new JackpotConsumer(gameDefinition, gameData, jackpotPublisher, logService, jackpotsRepository, currencyGroupGamesRepository);
+    return new JackpotConsumer(gameDefinition, gameData, jackpotPublisher, logService, jackpotsRepository, jackpotValidator);
 }
 
 function stubGameData() {

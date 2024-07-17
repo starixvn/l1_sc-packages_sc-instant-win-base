@@ -1,19 +1,13 @@
-import { stub, stubMongoose } from "jest-micro-auto-stub";
-import mongoose from "mongoose";
 import JackpotGameConsumer from "../jackpot-game-consumer";
-import { JackpotPublisher } from "../../event-publishers";
 import SlotNoticeHelper from "../../helpers/slot-notice-helper";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
 
-import SettleGameRoundConsumer from "../settle-game-round-consumer";
+import moment from "moment";
+
+import { settleConsumer, jackpotPublisher, roundsRepository } from "../__tests__/stubs";
 
 const gameDefinition = stubGameDefinition();
-const settleConsumer = stub(SettleGameRoundConsumer);
-const publisher = stub(JackpotPublisher);
-
-/** @type {mongoose.Model}*/
-const roundRepository = stubMongoose(mongoose.Model);
 
 describe("JackpotGameConsumer", () => {
     const mockPlayer = { session: { playerId: "player1" }, UID: "uid1", profile: { name: "player1" } };
@@ -22,7 +16,13 @@ describe("JackpotGameConsumer", () => {
 
     beforeEach(() => {
         const gameData = stubGameData();
-        consumer = new JackpotGameConsumer(gameDefinition, gameData, publisher, settleConsumer, roundRepository);
+        consumer = new JackpotGameConsumer({
+            definition: gameDefinition,
+            gameData,
+            jackpotPublisher,
+            settleGameRoundConsumer: settleConsumer,
+            roundsRepository,
+        });
     });
 
     afterEach(() => {
@@ -31,11 +31,11 @@ describe("JackpotGameConsumer", () => {
 
     describe("consume", () => {
         const mockPayload = { chest: 1 };
-        const mockJackpot = { picked: false, prizes: [10, 20, 100], winningLine: 5 };
+        const mockJackpot = { picked: false, prizes: ["minor", "major", "grand"], winningLine: 5 };
 
         beforeEach(() => {
             consumer.gameData.ingame["player1"] = {
-                jackpot: mockJackpot,
+                jackpot: { ...mockJackpot },
             };
         });
 
@@ -43,11 +43,13 @@ describe("JackpotGameConsumer", () => {
             it("should not proceed", async () => {
                 // Arrange
                 jest.spyOn(consumer, "validate").mockReturnValue(false);
+                jest.spyOn(consumer, "pickJackpotAndUpdateBet");
 
                 // Act
                 await consumer.consume(mockPlayer, mockPayload);
 
                 // Assert
+                expect(consumer.pickJackpotAndUpdateBet).not.toHaveBeenCalled();
                 expect(consumer.roundsRepository.findOneAndUpdate).not.toHaveBeenCalled();
             });
         });
@@ -57,29 +59,23 @@ describe("JackpotGameConsumer", () => {
                 jest.spyOn(consumer, "validate").mockReturnValue(true);
             });
 
-            it("always find and update bet with jackpot picked as TRUE", async () => {
+            it("always pick jackpot and update bet", async () => {
                 // Arrange
                 jest.spyOn(consumer.roundsRepository, "findOneAndUpdate");
+                jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockReturnValueOnce({ bet: null, prize: null });
 
                 // Act
                 await consumer.consume(mockPlayer, mockPayload);
 
                 // Assert
-                expect(consumer.roundsRepository.findOneAndUpdate).toHaveBeenCalledTimes(1);
-                expect(consumer.roundsRepository.findOneAndUpdate).toHaveBeenCalledWith(
-                    { playerId: mockPlayer.session.playerId, paid: false, jackpot: { picked: false } },
-                    { $set: { jackpot: { picked: true } } },
-                    {
-                        new: true,
-                        lean: true,
-                    }
-                );
+                expect(consumer.pickJackpotAndUpdateBet).toHaveBeenCalledTimes(1);
+                expect(consumer.pickJackpotAndUpdateBet).toHaveBeenCalledWith({ player: mockPlayer, chest: mockPayload.chest });
             });
 
             describe("when bet is not found", () => {
-                it("should publish invalid bonus notice", async () => {
+                it("should publish jackpot failed", async () => {
                     // Arrange
-                    consumer.roundsRepository.findOneAndUpdate.mockResolvedValue(null);
+                    jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockReturnValueOnce({ bet: null, prize: null });
                     jest.spyOn(consumer.jackpotPublisher, "publishToUser");
 
                     // Act
@@ -91,30 +87,36 @@ describe("JackpotGameConsumer", () => {
                         notice: { errorCode: SlotNoticeHelper.invalidBonus },
                     });
                 });
-            });
 
-            describe("when bet is found", () => {
-                const mockWinningAmount = 1000;
-                const mockWinningLine = 5;
-                const mockBet = { playerId: "", id: 123, totalAmount: 2.5 };
-
-                beforeEach(() => {
-                    consumer.roundsRepository.findOneAndUpdate.mockResolvedValue(mockBet);
-
-                    consumer.settleGameRoundConsumer.processJackpot.mockResolvedValue({
-                        winningAmount: mockWinningAmount,
-                        winningLine: mockWinningLine,
-                    });
-                });
-
-                it("should update gameData with jackpot picked as TRUE", async () => {
+                it("should not settle jackpot", async () => {
                     // Arrange
+                    jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockReturnValueOnce({ bet: null, prize: null });
+                    jest.spyOn(consumer.jackpotPublisher, "publishToUser");
 
                     // Act
                     await consumer.consume(mockPlayer, mockPayload);
 
                     // Assert
-                    expect(consumer.gameData.ingame["player1"].jackpot.picked).toBe(true);
+                    expect(consumer.settleGameRoundConsumer.processJackpot).not.toHaveBeenCalled();
+                    expect(consumer.settleGameRoundConsumer.settleWithJackpotWin).not.toHaveBeenCalled();
+                });
+            });
+
+            describe("when bet is found", () => {
+                const mockWinningAmount = 1000;
+                const mockWinningLine = 5;
+                const mockBet = {
+                    bet: { playerId: "", id: 123, totalAmount: 2.5, settlementResult: { jackpot: { winningLine: 5, picked: true } } },
+                    prize: "minor",
+                };
+
+                beforeEach(() => {
+                    jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockResolvedValue(mockBet);
+
+                    consumer.settleGameRoundConsumer.processJackpot.mockResolvedValue({
+                        winningAmount: mockWinningAmount,
+                        winningLine: mockWinningLine,
+                    });
                 });
 
                 it("should process jackpot with picked prize", async () => {
@@ -124,13 +126,12 @@ describe("JackpotGameConsumer", () => {
                     await consumer.consume(mockPlayer, mockPayload);
 
                     // Assert
-                    expect(consumer.gameData.ingame["player1"].jackpot.picked).toBe(true);
                     expect(consumer.settleGameRoundConsumer.processJackpot).toHaveBeenCalledWith(
                         mockPlayer,
-                        mockBet.id,
-                        mockBet,
-                        mockJackpot.winningLine,
-                        20
+                        mockBet.bet.id,
+                        mockBet.bet,
+                        mockBet.bet.settlementResult.jackpot.winningLine,
+                        "minor"
                     );
                 });
 
@@ -143,14 +144,134 @@ describe("JackpotGameConsumer", () => {
                     await consumer.consume(mockPlayer, mockPayload);
 
                     // Assert
-                    expect(consumer.gameData.ingame["player1"].jackpot.picked).toBe(true);
                     expect(settleWithJackpotWinSpy).toHaveBeenCalledWith({
-                        roundId: mockBet.id,
-                        prize: 20,
+                        roundId: mockBet.bet.id,
+                        prize: "minor",
                         winningAmount: mockWinningAmount,
                         winningLine: mockWinningLine,
                     });
                 });
+            });
+        });
+    });
+
+    describe("pickJackpotAndUpdateBet", () => {
+        const mockJackpot = { picked: false, prizes: ["minor", "major", "grand"], winningLine: 5 };
+        let chanceMock;
+
+        beforeEach(() => {
+            consumer.gameData.ingame["player1"] = { jackpot: { ...mockJackpot } };
+
+            chanceMock = {
+                integer: jest.fn(),
+            };
+            consumer.chance = chanceMock;
+        });
+
+        afterEach(() => {
+            jest.clearAllMocks();
+        });
+
+        describe("when chest value provided", () => {
+            const player = { profile: { name: "player1" }, session: { playerId: "playerId1" } };
+            const chest = 1;
+            const bet = { id: "bet1" };
+
+            it("should use provided chest value and return the correct prize", async () => {
+                // Arrange
+                roundsRepository.findOneAndUpdate.mockReturnValueOnce(bet);
+
+                // Act
+                const result = await consumer.pickJackpotAndUpdateBet({ player, chest });
+
+                // Assert
+                expect(result).toEqual({ bet, prize: "major" });
+            });
+
+            it("should update the bet with jackpot picked set to true", async () => {
+                // Arrange
+                roundsRepository.findOneAndUpdate.mockReturnValueOnce(bet);
+
+                // Act
+                await consumer.pickJackpotAndUpdateBet({ player, chest });
+
+                // Assert
+                expect(roundsRepository.findOneAndUpdate).toHaveBeenCalledWith(
+                    { playerId: "playerId1", paid: false, jackpot: { picked: false } },
+                    { $set: { jackpot: { picked: true } } },
+                    { new: true, lean: true }
+                );
+            });
+
+            it("should set jackpot picked to true in game data", async () => {
+                // Arrange
+                roundsRepository.findOneAndUpdate.mockReturnValueOnce(bet);
+
+                // Act
+                await consumer.pickJackpotAndUpdateBet({ player, chest });
+
+                // Assert
+                expect(consumer.gameData.ingame["player1"].jackpot.picked).toBe(true);
+            });
+        });
+
+        describe("when chest value NOT provided", () => {
+            const player = { profile: { name: "player1" }, session: { playerId: "playerId1" } };
+            const bet = { id: "bet1" };
+
+            it("should generate chest value if not provided", async () => {
+                // Arrange
+                const chest = undefined;
+                roundsRepository.findOneAndUpdate.mockReturnValueOnce(bet);
+                chanceMock.integer.mockReturnValue(2);
+
+                // Act
+                await consumer.pickJackpotAndUpdateBet({ player, chest });
+
+                // Assert
+                expect(chanceMock.integer).toHaveBeenCalledWith({ min: 0, max: 2 });
+            });
+
+            it("should return the correct prize when chest is generated", async () => {
+                // Arrange
+                const chest = undefined;
+                roundsRepository.findOneAndUpdate.mockReturnValueOnce(bet);
+                chanceMock.integer.mockReturnValue(2);
+
+                // Act
+                const result = await consumer.pickJackpotAndUpdateBet({ player, chest });
+
+                // Assert
+                expect(result).toEqual({ bet, prize: "grand" });
+            });
+        });
+
+        describe("when NO bet is found", () => {
+            const player = { profile: { name: "player1" }, session: { playerId: "playerId1" } };
+            const chest = 1;
+
+            beforeEach(() => {});
+
+            it("should return null", async () => {
+                // Arrange
+                roundsRepository.findOneAndUpdate.mockReturnValueOnce(null);
+
+                // Act
+                const result = await consumer.pickJackpotAndUpdateBet({ player, chest });
+
+                // Assert
+                expect(result).toStrictEqual({ bet: null, prize: null });
+            });
+
+            it("should NOT set jackpot picked to true in game data", async () => {
+                // Arrange
+                roundsRepository.findOneAndUpdate.mockReturnValueOnce(null);
+
+                // Act
+                await consumer.pickJackpotAndUpdateBet({ player, chest });
+
+                // Assert
+                expect(consumer.gameData.ingame["player1"].jackpot.picked).toBe(false);
             });
         });
     });
@@ -218,66 +339,167 @@ describe("JackpotGameConsumer", () => {
     });
 
     describe("validate", () => {
-        const mockJackpot = { picked: false, prizes: [10, 20, 100], winningLine: 5 };
+        const mockJackpot = { picked: false, prizes: ["minor", "major", "grand"], winningLine: 5 };
 
         beforeEach(() => {
             consumer.gameData.ingame["player1"] = {
-                jackpot: mockJackpot,
+                jackpot: { ...mockJackpot },
             };
         });
 
         it("should return false and publish notice if jackpot is already picked", () => {
             // Arrange
             consumer.gameData.ingame["player1"].jackpot.picked = true;
-            jest.spyOn(publisher, "publishToUser");
+            jest.spyOn(jackpotPublisher, "publishToUser");
 
             // Act
             const result = consumer.validate(mockPlayer, 1);
 
             // Assert
             expect(result).toBe(false);
-            expect(publisher.publishToUser).toHaveBeenCalledWith("uid1", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+            expect(jackpotPublisher.publishToUser).toHaveBeenCalledWith("uid1", {
+                endBet: -1,
+                notice: { errorCode: SlotNoticeHelper.invalidBonus },
+            });
         });
 
         it("should return false and publish notice if chest is invalid", () => {
             // Arrange
             const invalidChest = 3; // Out of bounds
-            jest.spyOn(publisher, "publishToUser");
+            jest.spyOn(jackpotPublisher, "publishToUser");
 
             // Act
             const result = consumer.validate(mockPlayer, invalidChest);
 
             // Assert
             expect(result).toBe(false);
-            expect(publisher.publishToUser).toHaveBeenCalledWith("uid1", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+            expect(jackpotPublisher.publishToUser).toHaveBeenCalledWith("uid1", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
         });
 
-        it("should return true if jackpot is not picked and chest is valid", () => {
+        it("should return true if jackpot is NOT picked and chest is valid", () => {
             // Arrange
             const validChest = 1;
             consumer.gameData.ingame["player1"].jackpot.picked = false;
-            jest.spyOn(publisher, "publishToUser");
+            jest.spyOn(jackpotPublisher, "publishToUser");
 
             // Act
             const result = consumer.validate(mockPlayer, validChest);
 
             // Assert
             expect(result).toBe(true);
-            expect(publisher.publishToUser).not.toHaveBeenCalled();
+            expect(jackpotPublisher.publishToUser).not.toHaveBeenCalled();
         });
 
         it("should handle players not in game data", () => {
             // Arrange
             const newPlayer = { UID: "uid2", profile: { name: "newPlayer" } };
             const chest = 1;
-            jest.spyOn(publisher, "publishToUser");
+            jest.spyOn(jackpotPublisher, "publishToUser");
 
             // Act
             const result = consumer.validate(newPlayer, chest);
 
             // Assert
             expect(result).toBe(false);
-            expect(publisher.publishToUser).toHaveBeenCalledWith("uid2", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+            expect(jackpotPublisher.publishToUser).toHaveBeenCalledWith("uid2", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+        });
+    });
+
+    describe("processExpired", () => {
+        const ingame = {
+            bet1: {
+                player: { profile: { name: "bet1" } },
+                finish: {
+                    time: moment.utc().subtract(100, "seconds").toDate(),
+                    jackpot: { winningLine: 3, picked: false, prizes: ["minor", "major", "grand"] },
+                },
+            },
+            bet2: {
+                player: { profile: { name: "bet2" } },
+                finish: {
+                    time: moment.utc().add(2000, "seconds").toDate(),
+                    jackpot: { winningLine: 2, picked: false, prizes: ["minor", "major", "grand"] },
+                },
+            },
+            bet3: {
+                player: { profile: { name: "bet3" } },
+                finish: {
+                    time: moment.utc().subtract(50, "seconds").toDate(),
+                    jackpot: { winningLine: 2, picked: false, prizes: ["minor", "major", "grand"] },
+                },
+            },
+        };
+
+        beforeEach(() => {
+            consumer.gameData.ingame = { ...ingame };
+        });
+
+        it("should call processJackpot for each expired bet", async () => {
+            // Arrange
+            jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockReturnValue({
+                bet: { settlementResult: { jackpot: { winningLine: 3 } } },
+                prize: "minor",
+            });
+
+            settleConsumer.processJackpot.mockReturnValue({ winningAmount: 100, winningLine: 3 });
+
+            // Act
+            await consumer.processExpired();
+
+            // Assert
+            expect(settleConsumer.processJackpot).toHaveBeenCalledTimes(2);
+        });
+
+        it("should call settleWithJackpotWin the correct number of times", async () => {
+            // Arrange
+            jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockReturnValue({
+                bet: { settlementResult: { jackpot: { winningLine: 3 } } },
+                prize: "minor",
+            });
+            settleConsumer.processJackpot.mockReturnValue({ winningAmount: 100, winningLine: 3 });
+
+            // Act
+            await consumer.processExpired();
+
+            // Assert
+            expect(settleConsumer.settleWithJackpotWin).toHaveBeenCalledTimes(2);
+        });
+
+        it("should call processJackpot with correct parameters", async () => {
+            // Arrange
+            const mockBet = { bet: { id: 123, settlementResult: { jackpot: { winningLine: 3 } } }, prize: "minor" };
+            jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockReturnValue(mockBet);
+            settleConsumer.processJackpot.mockReturnValue({ winningAmount: 100, winningLine: 3 });
+
+            // Act
+            await consumer.processExpired();
+
+            // Assert
+            expect(settleConsumer.processJackpot).toHaveBeenCalledWith(
+                { profile: { name: "bet1" } },
+                mockBet.bet.id,
+                mockBet.bet,
+                mockBet.bet.settlementResult.jackpot.winningLine,
+                mockBet.prize
+            );
+        });
+
+        it("should call settleWithJackpotWin with correct parameters", async () => {
+            // Arrange
+            const mockBet = { bet: { id: 123, settlementResult: { jackpot: { winningLine: 3 } } }, prize: "minor" };
+            jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockReturnValue(mockBet);
+            settleConsumer.processJackpot.mockReturnValue({ winningAmount: 100, winningLine: 3 });
+
+            // Act
+            await consumer.processExpired();
+
+            // Assert
+            expect(settleConsumer.settleWithJackpotWin).toHaveBeenCalledWith({
+                roundId: mockBet.bet.id,
+                prize: mockBet.prize,
+                winningAmount: 100,
+                winningLine: mockBet.bet.settlementResult.jackpot.winningLine,
+            });
         });
     });
 });
@@ -301,5 +523,6 @@ function stubGameData() {
 function stubGameDefinition() {
     return new SlotGameDefinition({
         choices: [1, 2, 3, 4, 5],
+        jackpotLiveSeconds: 15,
     });
 }

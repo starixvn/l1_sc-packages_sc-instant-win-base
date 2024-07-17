@@ -1,4 +1,5 @@
 import Chance from "chance";
+import moment from "moment";
 
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
@@ -33,6 +34,32 @@ export default class JackpotGameConsumer {
             return;
         }
 
+        const { bet, prize } = await this.pickJackpotAndUpdateBet({ player, chest });
+
+        if (!bet) {
+            this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+            return;
+        }
+
+        const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(
+            player,
+            bet.id,
+            bet,
+            bet.settlementResult.jackpot.winningLine,
+            prize
+        );
+
+        await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId: bet.id, prize, winningAmount, winningLine });
+    }
+
+    //TODO combine processJackpot and settleWithJackpotWin into ONE
+    async pickJackpotAndUpdateBet({ player, chest }) {
+        const { jackpot } = this.gameData.ingame[player.profile.name];
+
+        if (!chest) {
+            chest = this.chance.integer({ min: 0, max: jackpot.prizes.length - 1 });
+        }
+
         const bet = await this.roundsRepository.findOneAndUpdate(
             { playerId: player.session.playerId, paid: false, jackpot: { picked: false } },
             { $set: { jackpot: { picked: true } } },
@@ -42,22 +69,42 @@ export default class JackpotGameConsumer {
             }
         );
 
-        if (!bet) {
-            this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
-            return;
+        if (bet) {
+            this.gameData.ingame[player.profile.name].jackpot.picked = true;
+
+            return { bet, prize: jackpot.prizes[chest] };
         }
 
-        const { jackpot } = this.gameData.ingame[player.profile.name];
-        jackpot.picked = true;
-        const prize = jackpot.prizes[chest];
-
-        const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(player, bet.id, bet, jackpot.winningLine, prize);
-
-        await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId: bet.id, prize, winningAmount, winningLine });
+        return { bet: null, prize: null };
     }
 
-    //TODO auto settle all jackpot when service restart
-    async processExpired() {}
+    async processExpired() {
+        const expiryTime = moment.utc().subtract(this.definition.jackpotLiveSeconds, "seconds").toDate();
+        const runningBets = Object.values(this.gameData.ingame).filter(
+            (currentBet) => currentBet.finish?.time < expiryTime && this.isHavingJackpot(currentBet)
+        );
+
+        for (const ingameBet of runningBets) {
+            const { player } = ingameBet;
+            const { bet, prize } = await this.pickJackpotAndUpdateBet({ player });
+
+            const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(
+                player,
+                bet.id,
+                bet,
+                bet.settlementResult.jackpot.winningLine,
+                prize
+            );
+
+            await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId: bet.id, prize, winningAmount, winningLine });
+        }
+    }
+
+    isHavingJackpot(bet) {
+        const { jackpot } = bet.finish;
+
+        return jackpot ? jackpot.winningLine > 0 && !jackpot.picked : false;
+    }
 
     validate(player, chest) {
         const { jackpot } = this.gameData.ingame[player.profile.name] ?? { jackpot: { picked: true, prizes: [] } };

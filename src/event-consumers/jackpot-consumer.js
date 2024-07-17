@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
+import JackpotValidator from "../validators/jackpot-validator";
 
 export default class JackpotConsumer {
     /**
@@ -11,18 +12,22 @@ export default class JackpotConsumer {
      * @param {JackpotPublisher} jackpotPublisher
      * @param {logger} logService
      * @param {mongoose.Model} jackpotsRepository
-     * @param {mongoose.Model} currencyGroupGamesRepository
+     * @param {JackpotValidator} jackpotValidator
      */
-    constructor(definition, gameData, jackpotPublisher, logService, jackpotsRepository, currencyGroupGamesRepository) {
+    constructor(definition, gameData, jackpotPublisher, logService, jackpotsRepository, jackpotValidator) {
         this.definition = definition;
         this.gameData = gameData;
         this.jackpotPublisher = jackpotPublisher;
         this.logService = logService;
         this.jackpotsRepository = jackpotsRepository;
-        this.currencyGroupGamesRepository = currencyGroupGamesRepository;
+        this.jackpotValidator = jackpotValidator;
     }
 
-    async contribute(player, { totalAmount, roundId, rate }) {
+    async contribute(player, { totalAmount, roundId, rate, freeSpin }) {
+        if (!this.jackpotValidator.canContributeJackpotPools(player, freeSpin)) {
+            return;
+        }
+
         const contributedByMember = !!player.session;
         const { pools } = this.gameData.gameConfigs.slotsConfig.jackpot;
 
