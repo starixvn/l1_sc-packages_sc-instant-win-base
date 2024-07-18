@@ -4,6 +4,7 @@ import { Core } from "sc-game-base";
 import SlotGameData from "./../slot-game-data";
 import BonusConsumer from "./bonus-consumer";
 import FreeSpinsConsumer from "./free-spins-consumer";
+import JackpotGameConsumer from "./jackpot-game-consumer";
 
 export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconnectConsumer {
     /**
@@ -12,14 +13,16 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
      * @param {BonusConsumer} bonusConsumer
      * @param {FreeSpinsConsumer} freeSpinsConsumer
      * @param {mongoose.Model} gameNotificationsRepository
+     * @param {JackpotGameConsumer} jackpotGameConsumer
      */
-    constructor(gameId, gameData, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository) {
+    constructor(gameId, gameData, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository, jackpotGameConsumer) {
         super(gameData);
 
         this.gameId = gameId;
         this.bonusConsumer = bonusConsumer;
         this.freeSpinsConsumer = freeSpinsConsumer;
         this.gameNotificationsRepository = gameNotificationsRepository;
+        this.jackpotGameConsumer = jackpotGameConsumer;
     }
 
     /**
@@ -29,6 +32,7 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
         const realPlayer = this.gameData.realPlayers[socketClient.id];
 
         if (realPlayer) {
+            await this.jackpotGameConsumer.autoPickJackpot(realPlayer);
             await this.bonusConsumer.autoOpenRemainingChests(realPlayer);
             await this.upsertFreeSpinNotification(realPlayer);
         }

@@ -86,18 +86,22 @@ export default class JackpotGameConsumer {
 
         for (const ingameBet of runningBets) {
             const { player } = ingameBet;
-            const { bet, prize } = await this.pickJackpotAndUpdateBet({ player });
-
-            const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(
-                player,
-                bet.id,
-                bet,
-                bet.settlementResult.jackpot.winningLine,
-                prize
-            );
-
-            await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId: bet.id, prize, winningAmount, winningLine });
+            await this.autoPickJackpot(player);
         }
+    }
+
+    async autoPickJackpot(player) {
+        const { bet, prize } = await this.pickJackpotAndUpdateBet({ player });
+
+        const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(
+            player,
+            bet.id,
+            bet,
+            bet.settlementResult.jackpot.winningLine,
+            prize
+        );
+
+        await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId: bet.id, prize, winningAmount, winningLine });
     }
 
     isHavingJackpot(bet) {
