@@ -6,7 +6,6 @@ import { JackpotPrizeGenerator } from "./../board";
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
-import BoardCheatingConsumer from "./board-cheating-consumer";
 import FreeSpinsConsumer from "./free-spins-consumer";
 import HallOfFameConsumer from "./hall-of-fame-consumer";
 import JackpotConsumer from "./jackpot-consumer";
@@ -74,9 +73,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
 
         const bet = await this.queryBets(roundId);
-        //TODO process jackpot
 
-        //TODO process bonus
         const { bonusChests, finish } = this.gameData.ingame[player.profile.name];
 
         await this.settleBets(
@@ -95,10 +92,17 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             await this.processFreeSpins(player, bet, finish.settlementResult);
             const prizes = await this.settleJackpot(player, finish.settlementResult);
 
+            finish.settlementResult.jackpot = {
+                winningAmount: 0,
+                winningLine: finish.settlementResult.jackpotPayline,
+                picked: false,
+                prizes,
+            };
+
             this.updateBetTrack(player, finish);
 
             if (prizes?.length > 0) {
-                await this.publishJackpotPrize(finish, prizes, player, bet);
+                await this.publishJackpotPrize({ finish, prizes, bet });
                 return;
             }
 
@@ -106,14 +110,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
     }
 
-    async publishJackpotPrize(finish, prizes, player, bet) {
-        this.gameData.ingame[player.profile.name].jackpot = {
-            winningAmount: 0,
-            winningLine: finish.settlementResult.jackpotPayline,
-            picked: false,
-            prizes,
-        };
-
+    async publishJackpotPrize({ finish, prizes, bet }) {
         await this.userBetResultPublisher.publishToUser(
             bet.uid,
             this.collectJackpotResult({ result: finish.result, settlementResult: finish.settlementResult, roundId: finish.roundId, prizes })
@@ -386,7 +383,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
     }
 
-    //TODO change to prizes
     collectJackpotResult({ result, roundId, prizes }) {
         return {
             jackpot: {

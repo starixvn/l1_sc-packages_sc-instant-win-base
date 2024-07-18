@@ -180,7 +180,6 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
     }
 
     mapToIngameData(bets) {
-        //TODO map jackpot pick
         return bets.reduce((ingame, bet) => {
             const { bonusChests, result, settlementResult, id: roundId, time, uid: UID, name, jackpot, playerId, currency, operatorId } = bet;
 
@@ -203,7 +202,6 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
                     time,
                     result,
                     settlementResult,
-                    jackpotWin: jackpot?.winningAmount ?? 0,
                 },
                 betQueue: [],
             };
