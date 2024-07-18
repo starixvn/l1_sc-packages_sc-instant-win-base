@@ -71,11 +71,13 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
     }
 
     resetAllBotData() {
+        //TODO get from bet levels
         const stakeLevelsConfigs = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
 
         this.totalNumberOfTickets = 0;
         this.odds = this.gameData.gameConfigs.slotsConfig?.icons ?? {};
         this.bigWinRatio = this.gameData.gameConfigs.slotsConfig?.bigWinRatio ?? 3;
+
         this.stakeLevelsTracks = stakeLevelsConfigs.map((config) => {
             return {
                 stake: config.stake,
@@ -104,6 +106,7 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
 
         if (jackpot.enabled) {
+            //TODO need to play jackpot game
             if (betResult.jackpotPayline >= 0) {
                 await this.jackpotConsumer.hit(bot, { pool: amount, roundId, exchangeRateId: this.gameData.exchangeRates.exId, rate: this.botRate });
             }

@@ -1,0 +1,41 @@
+{
+    "gameConfigs": {
+        "betLevels": [0.1, 0.2, 1, 1.25, 1.5, 2, 3, 5],
+        "jackpot": {
+            "winningRatio": 0.98,
+            "pools": [
+                {
+                    "pool": "minor",
+                    "contribute": 0.1
+                },
+                {
+                    "pool": "major",
+                    "contribute": 0.15
+                },
+                {
+                    "pool": "grand",
+                    "contribute": 0.25
+                }
+            ]
+        }
+    },
+    "jackpotPools": [
+        {
+            "pool": "minor",
+            "amount": 10000
+        },
+        {
+            "pool": "major",
+            "amount": 100000
+        },
+        {
+            "pool": "grand",
+            "amount": 1000000
+        }
+    ],
+    "freeSpins": {
+        "total": 5,
+        "bet": 1,
+        "paylines": [1, 2, 5, 6]
+    }
+}

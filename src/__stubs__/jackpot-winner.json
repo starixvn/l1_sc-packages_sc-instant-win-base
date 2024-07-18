@@ -1,0 +1,28 @@
+{
+    "winners": [
+        {
+            "time": "2020/12/12 ...",
+            "name": "abc",
+            "bet": 10,
+            "winningAmount": 100000,
+            "pool": "minor"
+        },
+        {
+            "time": "2020/12/12 ...",
+            "name": "fff",
+            "bet": 10,
+            "winningAmount": 100000,
+            "pool": "major"
+        },
+        {
+            "time": "2020/12/12 ...",
+            "name": "ddd",
+            "bet": 10,
+            "winningAmount": 100000,
+            "pool": "grand"
+        }
+    ],
+    "page": 1,
+    "pageSize": 10,
+    "total": 100
+}

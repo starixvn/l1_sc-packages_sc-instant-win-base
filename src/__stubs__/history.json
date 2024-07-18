@@ -1,0 +1,38 @@
+{
+    "betLogs": [
+        {
+            "id": 123,
+            "name": "",
+            "playerId": "123",
+            "bet": 10,
+            "totalAmount": 30,
+            "paylines": [2, 3, 6],
+            "result": [1, 2, 4, 7, 1, 3, 0, 0, 4, 0, 7, 2, 0, 1, 0],
+            "settlementResult": {
+                "winningPaylines": [
+                    { "payline": 20, "symbol": "1", "count": 3, "odds": 5 },
+                    { "payline": 9, "symbol": "4", "count": 3, "odds": 12 }
+                ],
+                "bonus": {
+                    "count": 3,
+                    "odds": 3
+                },
+                "freeSpins": {
+                    "count": 1,
+                    "odds": 0
+                },
+                "jackpot": {
+                    "pool": "minor",
+                    "winningLine": 2,
+                    "winningAmount": 10000
+                }
+            },
+            "betWin": 0,
+            "time": "2020/10/25 ...",
+            "freeSpin": false
+        }
+    ],
+    "page": 1,
+    "pageSize": 8,
+    "total": 120
+}

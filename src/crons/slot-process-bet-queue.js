@@ -94,13 +94,18 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
         betInfo.totalAmount = math.round(betInfo.amount * betInfo.betChoice.length, 2);
 
-        const contributionRate = this.jackpotValidator.canContributeJackpotPools(player, payload.freeSpin)
-            ? slotsConfig.jackpot.playerContributionRatio
-            : 0;
-        betInfo.contributionRate = contributionRate;
+        betInfo.contributionRate = this.getContributionRate(slotsConfig, player, payload);
         betInfo.contributionAmount = math.round(contributionRate * betInfo.totalAmount, 4);
 
         return betInfo;
+    }
+
+    getContributionRate(slotsConfig, player, payload) {
+        const { pools } = slotsConfig.jackpot;
+        const totalContributionRate = pools.reduce((totalRate, pool) => totalRate + pool.contribute, 0);
+        const contributionRate = this.jackpotValidator.canContributeJackpotPools(player, payload.freeSpin) ? totalContributionRate : 0;
+
+        return contributionRate;
     }
 
     formatApiBetInfo(payload) {

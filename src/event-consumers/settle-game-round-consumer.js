@@ -386,11 +386,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
     }
 
+    //TODO change to prizes
     collectJackpotResult({ result, roundId, prizes }) {
         return {
             jackpot: {
                 roundId,
-                bonus: prizes.length, //TODO change to prizes
+                prizes: prizes.length,
                 result,
             },
         };
