@@ -142,7 +142,8 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
         if (!this.gameData.disabled) {
             this.gameData.remainingTime--;
-            this.bot && (await this.bot.run());
+            //TODO bot not available yet
+            //this.bot && (await this.bot.run());
         }
 
         if (this.gameData.remainingTime < 0) {
