@@ -113,7 +113,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     async publishJackpotPrize({ finish, prizes, bet }) {
         await this.userBetResultPublisher.publishToUser(
             bet.uid,
-            this.collectJackpotResult({ result: finish.result, settlementResult: finish.settlementResult, roundId: finish.roundId, prizes })
+            this.collectJackpotResult({ result: finish.result, roundId: finish.roundId, prizes })
         );
     }
 

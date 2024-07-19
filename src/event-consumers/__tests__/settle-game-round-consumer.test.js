@@ -435,6 +435,29 @@ describe("SettleGameRoundConsumer", () => {
         });
     });
 
+    describe("collectJackpotResult", () => {
+        it("should return data with approriate format", () => {
+            // arrange
+            const consumer = new SettleGameRoundConsumer(initDependencies());
+            const result = [1, 3, 5, 8, 9, 9];
+            const prizes = ["minor", "major", "grand"];
+            const roundId = 1;
+            const expectedValue = {
+                jackpot: {
+                    roundId: 1,
+                    prizes: 3,
+                    result: [1, 3, 5, 8, 9, 9],
+                },
+            };
+
+            // act
+            const actualValue = consumer.collectJackpotResult({ result, prizes, roundId });
+
+            // assert
+            expect(actualValue).toStrictEqual(expectedValue);
+        });
+    });
+
     describe("collectRoundSettlementResult", () => {
         // arrange
         const dependencies = initDependencies();
@@ -718,7 +741,7 @@ describe("SettleGameRoundConsumer", () => {
             expect(queryBetsMock).toBeCalledWith(roundId);
         });
 
-        describe("when no bet is found", () => {
+        describe("when NO bet is found", () => {
             it("should not proceed", async () => {
                 // Arrange
                 const player = "player1";
@@ -749,7 +772,7 @@ describe("SettleGameRoundConsumer", () => {
 
             it("should call generateRoundResult", async () => {
                 // Arrange
-                const finish = { settlementResult: "settlementResult" };
+                const finish = { settlementResult: {} };
                 generateRoundResultMock.mockReturnValueOnce(finish);
 
                 // Act
@@ -762,7 +785,7 @@ describe("SettleGameRoundConsumer", () => {
 
             it("should call processFreeSpins with correct arguments", async () => {
                 // Arrange
-                const finish = { settlementResult: "settlementResult" };
+                const finish = { settlementResult: {} };
                 generateRoundResultMock.mockReturnValueOnce(finish);
 
                 // Act
@@ -774,7 +797,7 @@ describe("SettleGameRoundConsumer", () => {
 
             it("should call settleJackpot with correct arguments", async () => {
                 // Arrange
-                const finish = { settlementResult: "settlementResult" };
+                const finish = { settlementResult: {} };
                 generateRoundResultMock.mockReturnValueOnce(finish);
 
                 // Act
@@ -786,7 +809,7 @@ describe("SettleGameRoundConsumer", () => {
 
             it("should call updateBetTrack with correct arguments", async () => {
                 // Arrange
-                const finish = { settlementResult: "settlementResult" };
+                const finish = { settlementResult: {} };
                 generateRoundResultMock.mockReturnValueOnce(finish);
 
                 // Act
@@ -799,8 +822,8 @@ describe("SettleGameRoundConsumer", () => {
             describe("when prizes are found", () => {
                 it("should call publishJackpotPrize", async () => {
                     // Arrange
-                    const finish = { settlementResult: "settlementResult" };
-                    const prizes = [{ prize: "prize1" }];
+                    const finish = { settlementResult: {} };
+                    const prizes = ["minor", "major", "grand"];
                     generateRoundResultMock.mockReturnValueOnce(finish);
                     settleJackpotMock.mockReturnValueOnce(prizes);
 
@@ -808,7 +831,7 @@ describe("SettleGameRoundConsumer", () => {
                     await consumer.settleRound(player, roundId);
 
                     // Assert
-                    expect(publishJackpotPrizeMock).toHaveBeenCalledWith(finish, prizes, player, bet);
+                    expect(publishJackpotPrizeMock).toHaveBeenCalledWith({ finish, prizes, bet });
                     expect(settleAfterJackpotMock).not.toHaveBeenCalled();
                 });
             });
@@ -816,7 +839,7 @@ describe("SettleGameRoundConsumer", () => {
             describe("when NO prizes are found", () => {
                 it("should call settleAfterJackpot", async () => {
                     // Arrange
-                    const finish = { settlementResult: "settlementResult" };
+                    const finish = { settlementResult: {} };
                     queryBetsMock.mockReturnValueOnce(bet);
                     generateRoundResultMock.mockReturnValueOnce(finish);
                     settleJackpotMock.mockReturnValueOnce([]);
@@ -934,10 +957,33 @@ function stubBonusChests(picked = false) {
 
 function stubFinish() {
     return {
-        roundId: 1,
+        roundId: 123,
+        result: [1, 2, 4, 7, 1, 3, 0, 0, 4, 0, 7, 2, 0, 1, 0],
         settlementResult: {
-            bonus: { count: 5, odds: 5 },
+            winningLines: [
+                {
+                    payline: 1,
+                    symbol: 0,
+                    count: 3,
+                    positions: [0, 3, 6, 9, 12],
+                },
+            ],
+            bonus: 3,
+            freeSpins: 8,
+            jackpot: { ...stubJackpot() },
         },
-        time: Date.now() - 3000 * 60,
+        betWin: 0,
+        bigWin: true,
+        totalOfFreeSpins: 12,
+    };
+}
+
+function stubJackpot() {
+    return {
+        winningLine: 2,
+        winningAmount: 100000,
+        pool: "minor",
+        positions: [0, 3, 6, 9, 12],
+        symbol: 10,
     };
 }
