@@ -54,8 +54,7 @@ export default class JackpotGameConsumer {
 
     //TODO combine processJackpot and settleWithJackpotWin into ONE
     async pickJackpotAndUpdateBet({ player, chest }) {
-        const { finish } = this.gameData.ingame[player.profile.name];
-        const { jackpot } = finish.settlementResult;
+        const jackpot = this.getJackpot(player);
 
         if (!chest) {
             chest = this.chance.integer({ min: 0, max: jackpot.prizes.length - 1 });
@@ -112,8 +111,7 @@ export default class JackpotGameConsumer {
     }
 
     validate(player, chest) {
-        const { finish } = this.gameData.ingame[player.profile.name] ?? {};
-        const { jackpot } = finish.settlement ?? { jackpot: { picked: true, prizes: [] } };
+        const jackpot = this.getJackpot(player);
 
         if (jackpot.picked || this.isInvalidChest(chest, jackpot.prizes)) {
             this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
@@ -121,6 +119,13 @@ export default class JackpotGameConsumer {
         }
 
         return true;
+    }
+
+    getJackpot(player) {
+        const { finish } = this.gameData.ingame[player.profile.name] ?? {};
+        const { jackpot } = finish?.settlementResult ?? { jackpot: { picked: true, prizes: [] } };
+
+        return jackpot;
     }
 
     isInvalidChest(chest, prizes) {

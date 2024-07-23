@@ -160,7 +160,7 @@ describe("JackpotGameConsumer", () => {
         let chanceMock;
 
         beforeEach(() => {
-            consumer.gameData.ingame["player1"] = { jackpot: { ...mockJackpot } };
+            consumer.gameData.ingame["player1"] = { finish: { settlementResult: { jackpot: { ...mockJackpot } } } };
 
             chanceMock = {
                 integer: jest.fn(),
@@ -211,7 +211,7 @@ describe("JackpotGameConsumer", () => {
                 await consumer.pickJackpotAndUpdateBet({ player, chest });
 
                 // Assert
-                expect(consumer.gameData.ingame["player1"].jackpot.picked).toBe(true);
+                expect(consumer.gameData.ingame["player1"].finish.settlementResult.jackpot.picked).toBe(true);
             });
         });
 
@@ -271,7 +271,7 @@ describe("JackpotGameConsumer", () => {
                 await consumer.pickJackpotAndUpdateBet({ player, chest });
 
                 // Assert
-                expect(consumer.gameData.ingame["player1"].jackpot.picked).toBe(false);
+                expect(consumer.gameData.ingame["player1"].finish.settlementResult.jackpot.picked).toBe(false);
             });
         });
     });
@@ -340,16 +340,17 @@ describe("JackpotGameConsumer", () => {
 
     describe("validate", () => {
         const mockJackpot = { picked: false, prizes: ["minor", "major", "grand"], winningLine: 5 };
+        const finish = { settlementResult: { jackpot: mockJackpot } };
 
         beforeEach(() => {
             consumer.gameData.ingame["player1"] = {
-                jackpot: { ...mockJackpot },
+                finish,
             };
         });
 
         it("should return false and publish notice if jackpot is already picked", () => {
             // Arrange
-            consumer.gameData.ingame["player1"].jackpot.picked = true;
+            consumer.gameData.ingame["player1"].finish.settlementResult.jackpot.picked = true;
             jest.spyOn(jackpotPublisher, "publishToUser");
 
             // Act
@@ -379,7 +380,7 @@ describe("JackpotGameConsumer", () => {
         it("should return true if jackpot is NOT picked and chest is valid", () => {
             // Arrange
             const validChest = 1;
-            consumer.gameData.ingame["player1"].jackpot.picked = false;
+            consumer.gameData.ingame["player1"].finish.settlementResult.jackpot.picked = false;
             jest.spyOn(jackpotPublisher, "publishToUser");
 
             // Act
