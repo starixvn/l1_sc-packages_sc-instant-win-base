@@ -14,21 +14,38 @@ export default class GenerateResultConsumer {
      * @param {BonusBoardGenerator} dependencies.bonusBoardGenerator
      * @param {PaylineCalculator} dependencies.paylineCalculator
      * @param {BoardCheatingConsumer} dependencies.boardCheatingConsumer
+     * @param {JackpotPrizeGenerator} dependencies.jackpotPrizeGenerator
      */
 
-    constructor({ definition, gameData, boardGenerator, bonusBoardGenerator, paylineCalculator, boardCheatingConsumer, boardDefinition }) {
+    constructor({
+        definition,
+        gameData,
+        boardGenerator,
+        bonusBoardGenerator,
+        paylineCalculator,
+        boardCheatingConsumer,
+        boardDefinition,
+        jackpotPrizeGenerator,
+    }) {
         this.definition = definition;
         this.gameData = gameData;
         this.boardCheatingConsumer = boardCheatingConsumer;
         this.boardGenerator = boardGenerator;
         this.bonusBoardGenerator = bonusBoardGenerator;
         this.paylineCalculator = paylineCalculator;
+        this.jackpotPrizeGenerator = jackpotPrizeGenerator;
         this.boardDefinition = boardDefinition ?? defaultDefinition;
     }
 
-    generateSettlementResult(bet, odds) {
+    generateSettlementResult(player, bet, odds) {
         const result = this.generateResult(bet.name);
         const settlementResult = this.paylineCalculator.calculate(result, bet.paylines, odds);
+        const prizes = this.settleJackpot(player, settlementResult);
+
+        if (prizes?.length > 0) {
+            settlementResult.jackpot = { prizes, picked: false, winningLine: settlementResult.jackpotPayline, winningAmount: 0 };
+        }
+
         settlementResult.winningPaylines = this.settleWinningPaylines(settlementResult);
 
         return { result, settlementResult };
@@ -49,5 +66,15 @@ export default class GenerateResultConsumer {
 
     generateBonus(bet, bonusConfig) {
         this.bonusBoardGenerator.generate(bet.bet, bonusConfig.min, bonusConfig.max, bet.paylines.length);
+    }
+
+    settleJackpot(player, settlementResult) {
+        if (settlementResult.jackpotPayline > -1) {
+            const jackpotPrizes = this.jackpotPrizeGenerator.generate(player);
+
+            return jackpotPrizes;
+        }
+
+        return null;
     }
 }

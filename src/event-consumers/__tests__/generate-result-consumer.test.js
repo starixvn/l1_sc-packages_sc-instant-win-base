@@ -1,4 +1,4 @@
-import { boardGenerator, boardCheatingConsumer, paylineCalculator, bonusBoardGenerator } from "./stubs";
+import { boardGenerator, boardCheatingConsumer, paylineCalculator, bonusBoardGenerator, jackpotPrizeGenerator } from "./stubs";
 import GenerateResultConsumer from "./../generate-result-consumer";
 
 describe("GenerateResultConsumer", () => {
@@ -25,6 +25,7 @@ describe("GenerateResultConsumer", () => {
             bonusBoardGenerator,
             paylineCalculator,
             boardCheatingConsumer,
+            jackpotPrizeGenerator,
         });
     });
 
@@ -125,28 +126,34 @@ describe("GenerateResultConsumer", () => {
             paylines: ["payline1", "payline2"],
         };
         const odds = 2;
-        const generatedBoard = { board: "board1" };
-        const consumedBoard = { consumedBoard: "consumedBoard1" };
+        const generatedBoard = [10, 5, 4, 10, 8, 7, 10, 5, 8, 10, 0, 8, 10, 5, 0];
+        const consumedBoard = [2, 1, 5, 10, 8, 7, 10, 5, 8, 10, 0, 0, 0, 5, 0];
+        const paylines = [
+            { payline: 1, symbol: "1", count: 3, odds: 5 },
+            { payline: 2, symbol: "10", count: 5, odds: 500 },
+            { payline: 3, symbol: "2", count: 3, odds: 5 },
+        ];
         const calculatedResult = {
-            paylines: [
-                { payline: "payline1", odds: 2 },
-                { payline: "payline2", odds: 0 },
-            ],
-            jackpot: false,
+            paylines,
+            freeSpins: { count: 1, odds: 0 },
+            bonus: { count: 0, odds: 0 },
+            jackpotPayline: -1,
         };
+
+        const player = { name: "player1" };
 
         beforeEach(() => {
             boardGenerator.generate.mockReturnValueOnce(generatedBoard);
             boardCheatingConsumer.consume.mockReturnValueOnce(consumedBoard);
-            paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
         });
 
         it("always generate result with player name", () => {
             // Arrange
             jest.spyOn(consumer, "generateResult");
+            paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
 
             // Act
-            consumer.generateSettlementResult(bet, odds);
+            consumer.generateSettlementResult(player, bet, odds);
 
             // Assert
             expect(consumer.generateResult).toHaveBeenCalledWith(bet.name);
@@ -154,9 +161,10 @@ describe("GenerateResultConsumer", () => {
 
         it("always calculate from generated result", () => {
             // Arrange
+            paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
 
             // Act
-            consumer.generateSettlementResult(bet, odds);
+            consumer.generateSettlementResult(player, bet, odds);
 
             // Assert
             expect(paylineCalculator.calculate).toHaveBeenCalledWith(consumedBoard, bet.paylines, odds);
@@ -165,9 +173,10 @@ describe("GenerateResultConsumer", () => {
         it("always settle winning from settlement result", () => {
             // Arrange
             jest.spyOn(consumer, "settleWinningPaylines");
+            paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
 
             // Act
-            consumer.generateSettlementResult(bet, odds);
+            consumer.generateSettlementResult(player, bet, odds);
 
             // Assert
             expect(consumer.settleWinningPaylines).toHaveBeenCalledWith(calculatedResult);
@@ -175,15 +184,77 @@ describe("GenerateResultConsumer", () => {
 
         it("should generate settlement result correctly", () => {
             // Arrange
+            paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
 
             // Act
-            const { result, settlementResult } = consumer.generateSettlementResult(bet, odds);
+            const { result, settlementResult } = consumer.generateSettlementResult(player, bet, odds);
 
             // Assert
             expect(result).toEqual(consumedBoard);
             expect(settlementResult).toEqual({
                 ...calculatedResult,
-                winningPaylines: [{ payline: "payline1", odds: 2 }],
+                winningPaylines: paylines,
+            });
+        });
+
+        describe("when have jackpot", () => {
+            it("should return result contain correct jackpot info ", () => {
+                // Arrange
+                const prizes = ["minor", "major", "grand"];
+                const resultWithJackpot = { ...calculatedResult };
+                resultWithJackpot.jackpotPayline = 2;
+                paylineCalculator.calculate.mockReturnValueOnce(resultWithJackpot);
+                jackpotPrizeGenerator.generate.mockReturnValueOnce(prizes);
+
+                // Act
+                const { settlementResult } = consumer.generateSettlementResult(player, bet, odds);
+
+                // Assert
+                expect(settlementResult.jackpot).toStrictEqual({
+                    picked: false,
+                    prizes,
+                    winningLine: resultWithJackpot.jackpotPayline,
+                    winningAmount: 0,
+                });
+            });
+
+            it("should exlcude jackpot payline from winningPaylines ", () => {
+                // Arrange
+                const prizes = ["minor", "major", "grand"];
+                const resultWithJackpot = { ...calculatedResult };
+                resultWithJackpot.jackpotPayline = 2;
+                paylineCalculator.calculate.mockReturnValueOnce(resultWithJackpot);
+                jackpotPrizeGenerator.generate.mockReturnValueOnce(prizes);
+
+                // Act
+                const { settlementResult } = consumer.generateSettlementResult(player, bet, odds);
+
+                // Assert
+                expect(settlementResult.winningPaylines.filter((payline) => payline.payline === resultWithJackpot.jackpotPayline)).toBeEmpty();
+            });
+        });
+
+        describe("when NOT have jackpot", () => {
+            it("should NOT return jackpot", () => {
+                // Arrange
+                paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
+
+                // Act
+                const { settlementResult } = consumer.generateSettlementResult(player, bet, odds);
+
+                // Assert
+                expect(settlementResult.jackpot).toBeUndefined();
+            });
+
+            it("should return all winning paylines", () => {
+                // Arrange
+                paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
+
+                // Act
+                const { settlementResult } = consumer.generateSettlementResult(player, bet, odds);
+
+                // Assert
+                expect(settlementResult.winningPaylines).toStrictEqual(paylines);
             });
         });
     });
