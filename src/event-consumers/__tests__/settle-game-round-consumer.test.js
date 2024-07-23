@@ -59,7 +59,7 @@ describe("SettleGameRoundConsumer", () => {
             await consumer.generateRoundResult(player, roundId, bet);
 
             // Assert
-            expect(generateResultConsumer.generateSettlementResult).toHaveBeenCalledWith(bet, odds);
+            expect(generateResultConsumer.generateSettlementResult).toHaveBeenCalledWith(player, bet, odds);
         });
 
         it("should update bet with result and settlementResult", async () => {
