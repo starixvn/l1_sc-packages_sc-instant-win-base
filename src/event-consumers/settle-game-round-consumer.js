@@ -89,20 +89,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         if (bet) {
             const finish = await this.generateRoundResult(player, roundId, bet);
-            await this.processFreeSpins(player, bet, finish.settlementResult);
-            const prizes = await this.settleJackpot(player, finish.settlementResult);
-
-            finish.settlementResult.jackpot = {
-                winningAmount: 0,
-                winningLine: finish.settlementResult.jackpotPayline,
-                picked: false,
-                prizes,
-            };
-
+            const { settlementResult } = finish;
+            await this.processFreeSpins(player, bet, settlementResult);
             this.updateBetTrack(player, finish);
 
-            if (prizes?.length > 0) {
-                await this.publishJackpotPrize({ finish, prizes, bet });
+            if (settlementResult.jackpot && settlementResult.jackpot.prizes?.length > 0) {
+                await this.publishJackpotPrize({ finish, prizes: settlementResult.jackpot.prizes, bet });
                 return;
             }
 
@@ -136,7 +128,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async generateRoundResult(player, roundId, bet) {
         const { bonus: bonusConfig, icons: odds } = this.gameData.gameConfigs.slotsConfig;
-        const { result, settlementResult } = this.generateResultConsumer.generateSettlementResult(bet, odds);
+        const { result, settlementResult } = this.generateResultConsumer.generateSettlementResult(player, bet, odds);
 
         bet.odds = odds;
         bet.result = result;
@@ -151,16 +143,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             settlementResult,
             time: bet.time,
         };
-    }
-
-    async settleJackpot(player, settlementResult) {
-        if (settlementResult.jackpotPayline > -1) {
-            const jackpotPrizes = this.jackpotPrizeGenerator.generate(player);
-
-            return jackpotPrizes;
-        }
-
-        return null;
     }
 
     async processFreeSpins(player, betTicket, settlementResult) {

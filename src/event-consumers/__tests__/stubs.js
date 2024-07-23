@@ -11,7 +11,7 @@ import {
     BoardCheatingConsumer,
     GenerateResultConsumer,
 } from "../";
-import { BoardGenerator, BonusBoardGenerator, PaylineCalculator } from "../../board";
+import { BoardGenerator, BonusBoardGenerator, PaylineCalculator, JackpotPrizeGenerator } from "../../board";
 import JackpotValidator from "../../validators/jackpot-validator";
 
 const settleConsumer = stub(SettleGameRoundConsumer);
@@ -28,6 +28,7 @@ const bonusBoardGenerator = stub(BonusBoardGenerator);
 const paylineCalculator = stub(PaylineCalculator);
 const jackpotValidator = stub(JackpotValidator);
 const generateResultConsumer = stub(GenerateResultConsumer);
+const jackpotPrizeGenerator = stub(JackpotPrizeGenerator);
 
 /** @type {mongoose.Model}*/
 const roundsRepository = stubMongoose(mongoose.Model);
@@ -52,4 +53,5 @@ export {
     paylineCalculator,
     jackpotValidator,
     generateResultConsumer,
+    jackpotPrizeGenerator,
 };

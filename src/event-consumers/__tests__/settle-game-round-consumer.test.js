@@ -154,7 +154,7 @@ describe("SettleGameRoundConsumer", () => {
             result: { board: "board1" },
             roundId: "round1",
         };
-        const prizes = [{ prize1: "prize1" }];
+        const prizes = ["minor", "major", "grand"];
         const player = { profile: { name: "player1" } };
         const bet = { uid: "user1" };
 
@@ -167,20 +167,12 @@ describe("SettleGameRoundConsumer", () => {
             // Arrange
 
             // Act
-            await consumer.publishJackpotPrize(finish, prizes, player, bet);
-
-            // Assert
-            expect(consumer.gameData.ingame["player1"].jackpot).toEqual({
-                winningLine: "payline1",
-                picked: false,
-                prizes,
-                winningAmount: 0,
-            });
+            await consumer.publishJackpotPrize({ finish, prizes, bet });
 
             expect(userBetResultPublisher.publishToUser).toHaveBeenCalledWith("user1", {
                 jackpot: {
                     result: finish.result,
-                    bonus: prizes.length,
+                    prizes: prizes.length,
                     roundId: "round1",
                 },
             });
@@ -191,12 +183,11 @@ describe("SettleGameRoundConsumer", () => {
             const collectJackpotResultSpy = jest.spyOn(consumer, "collectJackpotResult");
 
             // Act
-            await consumer.publishJackpotPrize(finish, prizes, player, bet);
+            await consumer.publishJackpotPrize({ finish, prizes, bet });
 
             // Assert
             expect(collectJackpotResultSpy).toHaveBeenCalledWith({
                 result: finish.result,
-                settlementResult: finish.settlementResult,
                 roundId: finish.roundId,
                 prizes,
             });
@@ -696,7 +687,6 @@ describe("SettleGameRoundConsumer", () => {
         let queryBetsMock;
         let generateRoundResultMock;
         let processFreeSpinsMock;
-        let settleJackpotMock;
         let updateBetTrackMock;
         let publishJackpotPrizeMock;
         let settleAfterJackpotMock;
@@ -709,8 +699,6 @@ describe("SettleGameRoundConsumer", () => {
 
             processFreeSpinsMock = jest.spyOn(consumer, "processFreeSpins");
             processFreeSpinsMock.mockReturnValueOnce({});
-
-            settleJackpotMock = jest.spyOn(consumer, "settleJackpot");
 
             updateBetTrackMock = jest.spyOn(consumer, "updateBetTrack");
             updateBetTrackMock.mockReturnValueOnce({});
@@ -754,7 +742,6 @@ describe("SettleGameRoundConsumer", () => {
                 // Assert
                 expect(generateRoundResultMock).not.toHaveBeenCalled();
                 expect(processFreeSpinsMock).not.toHaveBeenCalled();
-                expect(settleJackpotMock).not.toHaveBeenCalled();
                 expect(updateBetTrackMock).not.toHaveBeenCalled();
                 expect(publishJackpotPrizeMock).not.toHaveBeenCalled();
                 expect(settleAfterJackpotMock).not.toHaveBeenCalled();
@@ -762,7 +749,7 @@ describe("SettleGameRoundConsumer", () => {
         });
 
         describe("when bet is found", () => {
-            const player = "player1";
+            const player = { profile: { name: "player1" } };
             const roundId = "round123";
             const bet = { id: "bet1" };
 
@@ -795,18 +782,6 @@ describe("SettleGameRoundConsumer", () => {
                 expect(processFreeSpinsMock).toHaveBeenCalledWith(player, bet, finish.settlementResult);
             });
 
-            it("should call settleJackpot with correct arguments", async () => {
-                // Arrange
-                const finish = { settlementResult: {} };
-                generateRoundResultMock.mockReturnValueOnce(finish);
-
-                // Act
-                await consumer.settleRound(player, roundId);
-
-                // Assert
-                expect(settleJackpotMock).toHaveBeenCalledWith(player, finish.settlementResult);
-            });
-
             it("should call updateBetTrack with correct arguments", async () => {
                 // Arrange
                 const finish = { settlementResult: {} };
@@ -820,12 +795,18 @@ describe("SettleGameRoundConsumer", () => {
             });
 
             describe("when prizes are found", () => {
+                const prizes = ["minor", "major", "grand"];
+                const jackpot = {
+                    picked: false,
+                    prizes,
+                    winningLine: 5,
+                    winningAmount: 0,
+                };
+                const finish = { settlementResult: { jackpot } };
+
                 it("should call publishJackpotPrize", async () => {
                     // Arrange
-                    const finish = { settlementResult: {} };
-                    const prizes = ["minor", "major", "grand"];
                     generateRoundResultMock.mockReturnValueOnce(finish);
-                    settleJackpotMock.mockReturnValueOnce(prizes);
 
                     // Act
                     await consumer.settleRound(player, roundId);
@@ -833,6 +814,17 @@ describe("SettleGameRoundConsumer", () => {
                     // Assert
                     expect(publishJackpotPrizeMock).toHaveBeenCalledWith({ finish, prizes, bet });
                     expect(settleAfterJackpotMock).not.toHaveBeenCalled();
+                });
+
+                it("should call updateBetTrack with correct arguments", async () => {
+                    // Arrange
+                    generateRoundResultMock.mockReturnValueOnce(finish);
+
+                    // Act
+                    await consumer.settleRound(player, roundId);
+
+                    // Assert
+                    expect(updateBetTrackMock).toHaveBeenCalledWith(player, finish);
                 });
             });
 
@@ -842,7 +834,6 @@ describe("SettleGameRoundConsumer", () => {
                     const finish = { settlementResult: {} };
                     queryBetsMock.mockReturnValueOnce(bet);
                     generateRoundResultMock.mockReturnValueOnce(finish);
-                    settleJackpotMock.mockReturnValueOnce([]);
 
                     // Act
                     await consumer.settleRound(player, roundId);
@@ -854,7 +845,6 @@ describe("SettleGameRoundConsumer", () => {
         });
     });
 });
-
 function initDependencies() {
     const gameDefinition = stubGameDefinition();
     const gameData = stubGameData();
