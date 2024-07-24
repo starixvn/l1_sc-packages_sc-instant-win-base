@@ -1,16 +1,16 @@
 {
     "name": "sc-slot-game-base",
-    "version": "3.0.0-beta.5",
+    "version": "3.0.0-beta.6",
     "description": "The codebase of Saba slot games.",
     "main": "src/index.js",
     "scripts": {
         "test": "jest",
         "test-coverage": "jest --collect-coverage",
         "test-board": "node --es-module-specifier-resolution=node  tests/run.js",
-        "reg": "npm set registry http://npm.lumigame.com",
-        "pub": "npm publish --registry http://npm.lumigame.com",
+        "reg": "npm set registry https://npm.lumigame.com",
+        "pub": "npm publish --registry https://npm.lumigame.com",
         "betaver": "npm version prerelease --preid beta",
-        "pubbeta": "npm publish --registry http://npm.lumigame.com --tag beta",
+        "pubbeta": "npm publish --registry https://npm.lumigame.com --tag beta",
         "semantic-release": "semantic-release"
     },
     "jestSonar": {
