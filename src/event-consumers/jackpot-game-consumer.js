@@ -103,6 +103,10 @@ export default class JackpotGameConsumer {
     async autoPickJackpot(player) {
         const { bet, prize } = await this.pickJackpotAndUpdateBet({ player });
 
+        if (!bet) {
+            return;
+        }
+
         const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(
             player,
             bet.id,
