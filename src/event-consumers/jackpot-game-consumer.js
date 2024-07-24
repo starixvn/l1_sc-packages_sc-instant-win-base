@@ -57,6 +57,10 @@ export default class JackpotGameConsumer {
     async pickJackpotAndUpdateBet({ player, chest }) {
         const jackpot = this.getJackpot(player);
 
+        if (jackpot.prizes.length === 0) {
+            return { bet: null, prize: null };
+        }
+
         if (!chest) {
             chest = this.chance.integer({ min: 0, max: jackpot.prizes.length - 1 });
         }
