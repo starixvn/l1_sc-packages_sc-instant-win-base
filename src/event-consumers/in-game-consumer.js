@@ -64,16 +64,30 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
 
     getSlotGameConfig(realPlayer) {
         const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer);
-        const { icons: odds, jackpot, betLevels: baseBetLevels } = this.gameData.gameConfigs.slotsConfig;
+        const { icons: odds, jackpot, betLevels: baseBetLevels, pools } = this.gameData.gameConfigs.slotsConfig;
+
+        const poolConfigs = this.getJackpotPoolsConfig(pools);
 
         return {
-            baseStakeLevels: baseBetLevels,
-            stakeLevels: betLevels,
+            baseBetLevels,
+            betLevels,
             odds,
             jackpot: {
                 winningRatio: jackpot.winningRatio,
+                pools: poolConfigs,
             },
         };
+    }
+
+    getJackpotPoolsConfig(pools) {
+        const poolConfigs = [];
+
+        Object.keys(pools).forEach((prize) => {
+            const config = { pool: prize, contribute: pools[prize].contribute };
+            poolConfigs.push(config);
+        });
+
+        return poolConfigs;
     }
 
     getAvailableFreeSpins(realPlayer) {
