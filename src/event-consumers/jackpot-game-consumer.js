@@ -15,12 +15,13 @@ export default class JackpotGameConsumer {
      * @param {SettleGameRoundConsumer} settleGameRoundConsumer
      * @param {mongoose.Model} dependencies.roundsRepository
      */
-    constructor({ definition, gameData, jackpotPublisher, settleGameRoundConsumer, roundsRepository }) {
+    constructor({ definition, gameData, jackpotPublisher, settleGameRoundConsumer, roundsRepository, logService }) {
         this.definition = definition;
         this.gameData = gameData;
         this.jackpotPublisher = jackpotPublisher;
         this.settleGameRoundConsumer = settleGameRoundConsumer;
         this.roundsRepository = roundsRepository;
+        this.logService = logService;
 
         this.chance = new Chance();
     }
@@ -80,13 +81,18 @@ export default class JackpotGameConsumer {
 
     async processExpired() {
         const expiryTime = moment.utc().subtract(this.definition.jackpotLiveSeconds, "seconds").toDate();
-        const runningBets = Object.values(this.gameData.ingame).filter(
-            (currentBet) => currentBet.finish?.time < expiryTime && this.isHavingJackpot(currentBet)
-        );
 
-        for (const ingameBet of runningBets) {
-            const { player } = ingameBet;
-            await this.autoPickJackpot(player);
+        try {
+            const runningBets = Object.values(this.gameData.ingame).filter(
+                (currentBet) => currentBet.finish && currentBet.finish.time < expiryTime && this.isHavingJackpot(currentBet)
+            );
+
+            for (const ingameBet of runningBets) {
+                const { player } = ingameBet;
+                await this.autoPickJackpot(player);
+            }
+        } catch (error) {
+            this.logService.logError(error);
         }
     }
 
