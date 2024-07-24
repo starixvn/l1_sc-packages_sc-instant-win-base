@@ -162,7 +162,6 @@ export default class JackpotConsumer {
             prizes.map(async (prize) => {
                 const runningPoolFilter = {
                     gameId: this.definition.id,
-                    pool: 0,
                     prize: prize,
                     winnerName: { $exists: false },
                 };
