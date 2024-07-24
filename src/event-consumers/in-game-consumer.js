@@ -110,6 +110,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
             _id: false,
             pool: true,
             amount: true,
+            prize: true,
         };
 
         return this.jackpotsRepository.find(runningPoolsFilter, projection).lean().exec();
