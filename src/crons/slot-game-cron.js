@@ -210,4 +210,11 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             return ingame;
         }, {});
     }
+
+    async updateCurrencyGroupGames() {
+        this.gameData.currencyGroupGames = await this.currencyGroupGamesRepository
+            .find({ gameId: this.definition.id, enabled: true }, "groupId minBet maxBet maxBetPerChoices chips stakeLevels betLevels")
+            .lean()
+            .exec();
+    }
 }
