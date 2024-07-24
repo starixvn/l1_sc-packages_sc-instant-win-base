@@ -42,7 +42,7 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         this.totalNumberOfTickets = 0;
         this.odds = {};
         this.bigWinRatio = 0;
-        this.stakeLevelsTracks = [];
+        this.groupTracks = [];
     }
 
     async reset() {
@@ -71,17 +71,21 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
     }
 
     resetAllBotData() {
-        //TODO get from bet levels
-        const stakeLevelsConfigs = this.gameData.gameConfigs.slotsConfig?.stakeLevels ?? [];
+        const betLevelsConfigs = [...this.gameData.gameConfigs.slotsConfig?.betLevels] ?? [];
 
         this.totalNumberOfTickets = 0;
         this.odds = this.gameData.gameConfigs.slotsConfig?.icons ?? {};
         this.bigWinRatio = this.gameData.gameConfigs.slotsConfig?.bigWinRatio ?? 3;
 
-        this.stakeLevelsTracks = stakeLevelsConfigs.map((config) => {
+        const ratios = [50, 30, 15, 5];
+
+        const betLevelsPerGroup = Math.floor(betLevelsConfigs.length / ratios.length);
+
+        this.groupTracks = ratios.map((ratio, index) => {
+            const length = index === 0 ? betLevelsPerGroup + (betLevelsConfigs.length % ratios.length) : betLevelsPerGroup;
             return {
-                stake: config.stake,
-                ratio: config.botRatio,
+                betLevels: betLevelsConfigs.splice(0, length),
+                ratio,
                 numberOfTickets: 0,
             };
         });
@@ -99,16 +103,19 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         const numberOfPaylines = paylines.length;
         const amount = this.getBetAmount();
         const totalAmount = amount * numberOfPaylines;
-        const track = this.stakeLevelsTracks.find((track) => track.stake === amount);
+        const track = this.groupTracks.find((track) => track.betLevels.includes(amount));
         const generatedBoard = this.boardGenerator.generateForBots(jackpot.enabled, track.ratio);
         const board = this.boardCheatingConsumer.consume(name, generatedBoard);
         const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
         const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
 
         if (jackpot.enabled) {
-            //TODO need to play jackpot game
             if (betResult.jackpotPayline >= 0) {
-                await this.jackpotConsumer.hit(bot, { pool: amount, roundId, exchangeRateId: this.gameData.exchangeRates.exId, rate: this.botRate });
+                const prize = this.chance.weighted(
+                    Object.keys(jackpot.pools),
+                    Object.values(jackpot.pools).map((pool) => pool.botSettings.alloc)
+                );
+                await this.jackpotConsumer.hit(bot, { prize, roundId, exchangeRateId: this.gameData.exchangeRates.exId, rate: this.botRate });
             }
 
             await this.jackpotConsumer.contribute(bot, { totalAmount, roundId, rate: this.botRate });
@@ -127,7 +134,7 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
             });
         }
 
-        this.adjustStakeLevelsTracks(amount);
+        this.adjustGroupTracks(amount);
     }
 
     async increaseRoundId() {
@@ -144,28 +151,30 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
     }
 
     getBetAmount() {
-        const ratiosPerStakeLevel = this.stakeLevelsTracks.map((track) => {
+        const ratiosPerGroup = this.groupTracks.map((track) => {
             return {
-                stake: track.stake,
+                betLevels: track.betLevels,
                 underRatio: (track.numberOfTickets * 100) / this.totalNumberOfTickets < track.ratio,
             };
         });
-        const underRatioStakeLevels = this.chance.shuffle(ratiosPerStakeLevel.filter((stakeLevel) => stakeLevel.underRatio));
+        const underRatioGroups = this.chance.shuffle(ratiosPerGroup.filter((group) => group.underRatio));
 
-        return underRatioStakeLevels.length > 0 ? underRatioStakeLevels[0].stake : this.randomizeStakeLevel();
+        const selectedGroup = underRatioGroups.length > 0 ? underRatioGroups[0] : this.randomizeGroup();
+
+        return this.chance.pickone(selectedGroup.betLevels);
     }
 
-    randomizeStakeLevel() {
-        const randomStakeLevelIndex = this.chance.natural({ min: 0, max: this.stakeLevelsTracks.length - 1 });
+    randomizeGroup() {
+        const randomIndex = this.chance.natural({ min: 0, max: this.groupTracks.length - 1 });
 
-        return this.stakeLevelsTracks[randomStakeLevelIndex].stake;
+        return this.groupTracks[randomIndex];
     }
 
-    adjustStakeLevelsTracks(betAmount) {
-        const stakeLevel = this.stakeLevelsTracks.find((track) => track.stake === betAmount);
+    adjustGroupTracks(betAmount) {
+        const group = this.groupTracks.find((track) => track.betLevels.includes(betAmount));
 
-        if (stakeLevel) {
-            stakeLevel.numberOfTickets++;
+        if (group) {
+            group.numberOfTickets++;
         }
 
         this.totalNumberOfTickets++;
