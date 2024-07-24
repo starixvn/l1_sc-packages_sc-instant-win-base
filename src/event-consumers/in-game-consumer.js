@@ -83,7 +83,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         const poolConfigs = [];
 
         Object.keys(pools).forEach((prize) => {
-            const config = { pool: prize, contribute: pools[prize].contribute };
+            const config = { pool: prize, contribute: pools[prize].contribution };
             poolConfigs.push(config);
         });
 
