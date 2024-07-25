@@ -129,11 +129,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     async generateRoundResult(player, roundId, bet) {
         const { bonus: bonusConfig, icons: odds } = this.gameData.gameConfigs.slotsConfig;
         const { result, settlementResult } = this.generateResultConsumer.generateSettlementResult(player, bet, odds);
+        const bonusChests = settlementResult.bonus?.odds > 0 ? this.generateResultConsumer.generateBonus(bet, bonusConfig) : null;
 
         bet.odds = odds;
         bet.result = result;
         bet.settlementResult = settlementResult;
-        bet.bonusChests = this.generateResultConsumer.generateBonus(bet, bonusConfig);
+        bet.bonusChests = bonusChests;
 
         await bet.save();
 
@@ -142,6 +143,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             result,
             settlementResult,
             time: bet.time,
+            bonusChests,
         };
     }
 
