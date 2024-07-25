@@ -65,7 +65,7 @@ export default class GenerateResultConsumer {
     }
 
     generateBonus(bet, bonusConfig) {
-        this.bonusBoardGenerator.generate(bet.bet, bonusConfig.min, bonusConfig.max, bet.paylines.length);
+        return this.bonusBoardGenerator.generate(bet.bet, bonusConfig.min, bonusConfig.max, bet.paylines.length);
     }
 
     settleJackpot(player, settlementResult) {
