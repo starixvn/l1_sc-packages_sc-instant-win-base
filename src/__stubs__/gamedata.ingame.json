@@ -2,17 +2,18 @@
     "name:": "",
     "player": {},
     "bonusChests": [],
-    "jackpot": {
-        "winningAmount": 0,
-        "winningLine": 5,
-        "picked": false,
-        "prizes": ["minor", "major", "grand", "minor", "major", "minor", "major"]
-    },
     "finish": {
         "roundId": 1,
         "time": "",
-        "result": {},
-        "settlementResult": {}
+        "result": [],
+        "settlementResult": {
+            "jackpot": {
+                "winningAmount": 0,
+                "winningLine": 5,
+                "picked": false,
+                "prizes": ["minor", "major", "grand", "minor", "major", "minor", "major"]
+            }
+        }
     },
     "betQueue": []
 }

@@ -1,0 +1,28 @@
+{
+    "paylines": [
+        {
+            "payline": 1,
+            "symbol": 0,
+            "count": 3,
+            "positions": [0, 3, 6, 9, 12]
+        }
+    ],
+    "freeSpins": { "count": 1, "odds": 0 },
+    "bonus": { "count": 3, "odds": 3 },
+    "jackpotPayline": 2,
+    "jackpot": {
+        "winningLine": 2,
+        "winningAmount": 100000,
+        "pool": "minor",
+        "positions": [0, 3, 6, 9, 12],
+        "symbol": 10
+    },
+    "winningLines": [
+        {
+            "payline": 1,
+            "symbol": 0,
+            "count": 3,
+            "positions": [0, 3, 6, 9, 12]
+        }
+    ]
+}

@@ -2,7 +2,7 @@
     "roundId": 123,
     "result": [1, 2, 4, 7, 1, 3, 0, 0, 4, 0, 7, 2, 0, 1, 0],
     "settlementResult": {
-        "winningLines": [
+        "paylines": [
             {
                 "payline": 1,
                 "symbol": 0,
@@ -10,17 +10,25 @@
                 "positions": [0, 3, 6, 9, 12]
             }
         ],
-        "bonus": 3,
-        "freeSpins": 8,
+        "freeSpins": { "count": 1, "odds": 0 },
+        "bonus": { "count": 3, "odds": 3 },
+        "jackpotPayline": 2,
         "jackpot": {
             "winningLine": 2,
             "winningAmount": 100000,
             "pool": "minor",
             "positions": [0, 3, 6, 9, 12],
             "symbol": 10
-        }
+        },
+        "winningLines": [
+            {
+                "payline": 1,
+                "symbol": 0,
+                "count": 3,
+                "positions": [0, 3, 6, 9, 12]
+            }
+        ]
     },
-    "betWin": 0,
-    "bigWin": true,
-    "totalOfFreeSpins": 12
+    "jackpotWin": 100000,
+    "time": "May 12, 2024"
 }

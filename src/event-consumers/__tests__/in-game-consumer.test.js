@@ -42,7 +42,11 @@ describe("IngameConsumer", () => {
     describe("getPools", () => {
         it("should get pools from jackpot repository", async () => {
             // arrange
-            const expectPools = [{ pool: 1, amount: 1000 }];
+            const expectPools = [
+                { pool: 1, amount: 1000, prize: "minor" },
+                { pool: 5, amount: 10000, prize: "major" },
+                { pool: 10, amount: 100000, prize: "grand" },
+            ];
 
             jackpotsRepository.find().lean().exec.mockReturnValueOnce(expectPools);
 

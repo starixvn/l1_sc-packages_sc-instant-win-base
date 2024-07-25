@@ -15,6 +15,11 @@
     "rate": 1000,
     "exchangeRateId": 4308,
     "jackpotContribution": { "contributionRate": 0.025, "baseContributionAmount": 625 },
+    "poolAllocation": {
+        "grand": { "rate": 0.005, "baseAmount": 125 },
+        "major": { "rate": 0.005, "baseAmount": 125 },
+        "minor": { "rate": 0.015, "baseAmount": 375 }
+    },
     "bonusChests": [
         { "picked": true, "amount": 15 },
         { "picked": true, "amount": 19 },
