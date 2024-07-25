@@ -66,7 +66,7 @@ export default class JackpotGameConsumer {
         }
 
         const bet = await this.roundsRepository.findOneAndUpdate(
-            { playerId: player.session.playerId, paid: false, jackpot: { picked: false } },
+            { playerId: player.session.playerId, paid: false, "settlementResult.jackpot.picked": false },
             { $set: { jackpot: { picked: true } } },
             {
                 new: true,
