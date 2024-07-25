@@ -31,9 +31,7 @@ export default class JackpotPrizeGenerator {
         let jackpotBoard = [];
 
         for (let counter = 0; counter < this.size; counter++) {
-            const jackpot = { prize: this.chance.weighted(prizes, weights) };
-
-            jackpotBoard.push(jackpot);
+            jackpotBoard.push(this.chance.weighted(prizes, weights));
         }
 
         jackpotBoard = this.chance.shuffle(jackpotBoard);
