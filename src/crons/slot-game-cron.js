@@ -27,7 +27,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
      * @param {mongoose.Model} dependencies.notificationRepository
      * @param {mongoose.Model} dependencies.exchangeRatesRepository
      * @param {mongoose.Model} dependencies.partnerConfigRepository
-     * @param {EventConsumers.JackpotGameConsumer} dependencies.jackpotConsumer
+     * @param {EventConsumers.JackpotGameConsumer} dependencies.jackpotGameConsumer
      */
     constructor({
         definition,
@@ -176,6 +176,10 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         const sort = { id: -1 };
 
         const bets = await this.roundsRepository.find(filter, projection, { sort }).lean().exec();
+
+        if (bets.length > 0) {
+            this.logService.log(`${this.definition.configName} --- Running bets: ${bets.map((bet) => bet.id).toString()}`);
+        }
 
         this.gameData.ingame = this.mapToIngameData(bets);
     }
