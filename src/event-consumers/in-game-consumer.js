@@ -108,9 +108,8 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         };
         const projection = {
             _id: false,
-            pool: true,
+            pool: "$prize",
             amount: true,
-            prize: true,
         };
 
         return this.jackpotsRepository.find(runningPoolsFilter, projection).lean().exec();
