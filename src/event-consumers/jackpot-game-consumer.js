@@ -50,7 +50,7 @@ export default class JackpotGameConsumer {
             prize
         );
 
-        await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId: bet.id, prize, winningAmount, winningLine });
+        await this.settleGameRoundConsumer.settleWithJackpotWin({ player, roundId: bet.id, prize, winningAmount, winningLine });
     }
 
     //TODO combine processJackpot and settleWithJackpotWin into ONE
@@ -67,7 +67,7 @@ export default class JackpotGameConsumer {
 
         const bet = await this.roundsRepository.findOneAndUpdate(
             { playerId: player.session.playerId, paid: false, "settlementResult.jackpot.picked": false },
-            { $set: { jackpot: { picked: true } } },
+            { $set: { "settlementResult.jackpot.picked": true } },
             {
                 new: true,
                 lean: true,
@@ -115,7 +115,7 @@ export default class JackpotGameConsumer {
             prize
         );
 
-        await this.settleGameRoundConsumer.settleWithJackpotWin({ roundId: bet.id, prize, winningAmount, winningLine });
+        await this.settleGameRoundConsumer.settleWithJackpotWin({ player, roundId: bet.id, prize, winningAmount, winningLine });
     }
 
     isHavingJackpot(bet) {

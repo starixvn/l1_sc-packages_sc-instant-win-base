@@ -109,11 +109,11 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         );
     }
 
-    async settleWithJackpotWin({ roundId, prize, winningAmount, winningLine }) {
+    async settleWithJackpotWin({ player, roundId, prize, winningAmount, winningLine }) {
         const bet = await this.queryBets(roundId);
         bet.settlementResult.jackpot = { winningAmount, winningLine, picked: true, prize };
 
-        await this.settleAfterJackpot(bet, roundId);
+        await this.settleAfterJackpot(player, bet, roundId);
     }
 
     async settleAfterJackpot(player, bet, roundId) {
