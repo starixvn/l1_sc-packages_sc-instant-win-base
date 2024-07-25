@@ -57,7 +57,7 @@ export default class JackpotGameConsumer {
     async pickJackpotAndUpdateBet({ player, chest }) {
         const jackpot = this.getJackpot(player);
 
-        if (jackpot && jackpot.prizes?.length === 0) {
+        if (!jackpot || jackpot.prizes?.length === 0) {
             return { bet: null, prize: null };
         }
 

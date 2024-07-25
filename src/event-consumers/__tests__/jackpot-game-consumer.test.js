@@ -161,6 +161,7 @@ describe("JackpotGameConsumer", () => {
 
         beforeEach(() => {
             consumer.gameData.ingame["player1"] = { finish: { settlementResult: { jackpot: { ...mockJackpot } } } };
+            consumer.gameData.ingame["player2"] = { finish: { settlementResult: { jackpot: null } } };
 
             chanceMock = {
                 integer: jest.fn(),
@@ -170,6 +171,18 @@ describe("JackpotGameConsumer", () => {
 
         afterEach(() => {
             jest.clearAllMocks();
+        });
+
+        describe("when jackpot not exist", () => {
+            const player = { profile: { name: "player2" }, session: { playerId: "playerId2" } };
+
+            it("should return bet and prize as NULL", async () => {
+                // Act
+                const result = await consumer.pickJackpotAndUpdateBet({ player });
+
+                // Assert
+                expect(result).toStrictEqual({ bet: null, prize: null });
+            });
         });
 
         describe("when chest value provided", () => {
