@@ -98,7 +98,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 return;
             }
 
-            await this.settleAfterJackpot(bet, roundId);
+            await this.settleAfterJackpot(player, bet, roundId);
         }
     }
 
@@ -116,7 +116,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         await this.settleAfterJackpot(bet, roundId);
     }
 
-    async settleAfterJackpot(bet, roundId) {
+    async settleAfterJackpot(player, bet, roundId) {
         if (bet.settlementResult.bonus?.odds === 0) {
             await this.settleBets(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         } else {
