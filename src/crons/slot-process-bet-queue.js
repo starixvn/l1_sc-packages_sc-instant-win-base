@@ -95,7 +95,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         betInfo.totalAmount = math.round(betInfo.amount * betInfo.betChoice.length, 2);
 
         betInfo.contributionRate = this.getContributionRate(slotsConfig, player, payload);
-        betInfo.contributionAmount = math.round(contributionRate * betInfo.totalAmount, 4);
+        betInfo.contributionAmount = math.round(betInfo.contributionRate * betInfo.totalAmount, 4);
 
         return betInfo;
     }
