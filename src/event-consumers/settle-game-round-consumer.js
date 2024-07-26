@@ -340,7 +340,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
         const winningJackpot = jackpot
             ? {
-                  ...jackpot,
+                  winningLine: jackpot.winningLine,
+                  winningAmount: jackpot.winningAmount,
                   symbol: boardDefinition.specialSymbols.jackpot,
                   positions: boardDefinition.paylines[jackpot.winningLine],
               }
