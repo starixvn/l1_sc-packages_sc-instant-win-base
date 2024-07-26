@@ -3,9 +3,8 @@ import mongoose from "mongoose";
 import { logger } from "sc-common/logger";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
+import { jackpotPublisher, jackpotValidator } from "../__tests__/stubs";
 import JackpotConsumer from "../jackpot-consumer";
-import currencyData from "./currency-data.json";
-import { jackpotValidator, jackpotPublisher } from "../__tests__/stubs";
 
 const gameData = stubGameData();
 const gameDefinition = stubGameDefinition();
@@ -40,7 +39,7 @@ describe("JackpotConsumer", () => {
             it("should call contribute with approriate prize and base amount", async () => {
                 // arrange
                 spyOn(consumer, "contributeToPool");
-                const poolConfigs = { bot: 0.01, contribute: 0.1, init: 5000 };
+                const poolConfigs = { init: 5000, playerSettings: { contrib: 0.1, alloc: 90 }, botSettings: { contrib: 0.01, alloc: 80 } };
                 const expectedParams = {
                     baseTotalAmount: 5,
                     contributedByMember: false,
@@ -53,7 +52,7 @@ describe("JackpotConsumer", () => {
                 await consumer.contribute(player, bet);
 
                 // assert
-                expect(consumer.contributeToPool).toBeCalledWith(expectedParams);
+                expect(consumer.contributeToPool).toHaveBeenCalledWith(expectedParams);
             });
 
             it("should call contribute for all prizes", async () => {
@@ -97,7 +96,7 @@ describe("JackpotConsumer", () => {
     describe("calculatePoolAdjustment", () => {
         it("always return approriate format", () => {
             // arrange
-            const poolConfig = { bot: 0.01, contribute: 0.1, init: 5000 };
+            const poolConfig = { init: 5000, playerSettings: { contrib: 0.1, alloc: 90 }, botSettings: { contrib: 0.01, alloc: 80 } };
 
             // act
             const adjustment = consumer.calculatePoolAdjustment({ contributedByMember: false, poolConfig, baseTotalAmount: 5 });
@@ -110,7 +109,7 @@ describe("JackpotConsumer", () => {
         });
 
         describe("when contribute by real player", () => {
-            const poolConfig = { bot: 0.01, contribute: 0.1, init: 5000 };
+            const poolConfig = { init: 5000, playerSettings: { contrib: 0.1, alloc: 90 }, botSettings: { contrib: 0.01, alloc: 80 } };
 
             it("should return byBots equal 0", () => {
                 // arrange
@@ -123,7 +122,7 @@ describe("JackpotConsumer", () => {
 
             it("should return correct byMembers", () => {
                 // arrange
-                const expected = 5 * poolConfig.contribute;
+                const expected = 5 * poolConfig.playerSettings.contrib;
 
                 // act
                 const adjustment = consumer.calculatePoolAdjustment({ contributedByMember: true, poolConfig, baseTotalAmount: 5 });
@@ -134,11 +133,11 @@ describe("JackpotConsumer", () => {
         });
 
         describe("when contribute by bot", () => {
-            const poolConfig = { bot: 0.01, contribute: 0.1, init: 5000 };
+            const poolConfig = { init: 5000, playerSettings: { contrib: 0.1, alloc: 90 }, botSettings: { contrib: 0.01, alloc: 80 } };
 
             it("should return correct byBots ", () => {
                 // arrange
-                const expected = 5 * poolConfig.bot;
+                const expected = 5 * poolConfig.botSettings.contrib;
 
                 // act
                 const adjustment = consumer.calculatePoolAdjustment({ contributedByMember: false, poolConfig, baseTotalAmount: 5 });
@@ -168,7 +167,7 @@ describe("JackpotConsumer", () => {
             },
         };
 
-        const poolConfigs = { bot: 0.01, contribute: 0.1, init: 5000 };
+        const poolConfigs = { init: 5000, playerSettings: { contrib: 0.1, alloc: 90 }, botSettings: { contrib: 0.01, alloc: 80 } };
         const betContribution = {
             baseTotalAmount: 5,
             contributedByMember: false,
@@ -490,9 +489,21 @@ function stubGameData() {
                 excludeTestCurrency: false,
                 winningRatio: 0.98,
                 pools: {
-                    minor: { init: 5000, contribute: 0.1, bot: 0.01 },
-                    major: { init: 25000, contribute: 0.15, bot: 0.015 },
-                    grand: { init: 50000, contribute: 0.25, bot: 0.025 },
+                    minor: {
+                        init: 5000,
+                        playerSettings: { contrib: 0.1, alloc: 90 },
+                        botSettings: { contrib: 0.01, alloc: 80 },
+                    },
+                    major: {
+                        init: 25000,
+                        playerSettings: { contrib: 0.15, alloc: 9 },
+                        botSettings: { contrib: 0.015, alloc: 15 },
+                    },
+                    grand: {
+                        init: 50000,
+                        playerSettings: { contrib: 0.25, alloc: 1 },
+                        botSettings: { contrib: 0.025, alloc: 5 },
+                    },
                 },
                 allowedCurrency: "INH",
             },

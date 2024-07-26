@@ -1,9 +1,9 @@
 import math from "lodash/math";
 import mongoose from "mongoose";
+import JackpotValidator from "../validators/jackpot-validator";
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
-import JackpotValidator from "../validators/jackpot-validator";
 
 export default class JackpotConsumer {
     /**
@@ -71,7 +71,7 @@ export default class JackpotConsumer {
     }
 
     calculatePoolAdjustment({ contributedByMember, poolConfig, baseTotalAmount }) {
-        const contributionRatio = contributedByMember ? poolConfig.contribute : poolConfig.bot;
+        const contributionRatio = contributedByMember ? poolConfig.playerSettings.contrib : poolConfig.botSettings.contrib;
         const contributionAmount = math.round(baseTotalAmount * contributionRatio, 4);
 
         const poolAdjustment = {
