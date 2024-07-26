@@ -12,7 +12,7 @@ export default class JackpotPrizeGenerator {
     constructor(definition, gameData, jackpotValidator) {
         this.definition = definition;
         this.gameData = gameData;
-        this.size = definition.jackpotSize ?? 6;
+        this.size = definition.jackpotSize ?? 10;
         this.jackpotValidator = jackpotValidator;
 
         this.chance = new Chance();

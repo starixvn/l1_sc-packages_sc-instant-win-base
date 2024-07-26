@@ -64,6 +64,7 @@ export default class SlotSocketRouter extends Core.Routers.BaseSocketRouter {
         this.socketClient.on("getBigWinningWinners", this.handleGettingBigWinningWinners.bind(this));
         this.socketClient.on("getJackpotWinners", this.handleGettingJackpotWinners.bind(this));
         this.socketClient.on("bonus", this.handleBonus.bind(this));
+        this.socketClient.on("jackpot", this.handleJackpotGame.bind(this));
     }
 
     async handleGettingBigWinningWinners(payload) {
