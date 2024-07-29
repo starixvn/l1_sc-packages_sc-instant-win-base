@@ -280,7 +280,28 @@ describe("slot-process-bet-queue", () => {
         describe("Jackpot is enabled", () => {
             const gameData = {
                 gameConfigs: {
-                    slotsConfig: { jackpot: { enabled: true, playerContributionRatio: 0.05 } },
+                    slotsConfig: {
+                        jackpot: {
+                            enabled: true,
+                            pools: {
+                                minor: {
+                                    init: 5000,
+                                    playerSettings: { contrib: 0.1, alloc: 90 },
+                                    botSettings: { contrib: 0.01, alloc: 80 },
+                                },
+                                major: {
+                                    init: 25000,
+                                    playerSettings: { contrib: 0.15, alloc: 9 },
+                                    botSettings: { contrib: 0.015, alloc: 15 },
+                                },
+                                grand: {
+                                    init: 50000,
+                                    playerSettings: { contrib: 0.25, alloc: 1 },
+                                    botSettings: { contrib: 0.025, alloc: 5 },
+                                },
+                            },
+                        },
+                    },
                 },
                 currencies: [],
             };
@@ -307,9 +328,9 @@ describe("slot-process-bet-queue", () => {
                     const result = await cron.generateBetInfo(payload, null, player);
 
                     //Assert
-                    expect(result.contributionRate).toEqual(gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio);
+                    expect(result.contributionRate).toEqual(0.5);
                     expect(result.contributionAmount).toEqual(
-                        math.round(payload.amount * payload.betChoice.length * gameData.gameConfigs.slotsConfig.jackpot.playerContributionRatio, 4)
+                        math.round(payload.amount * payload.betChoice.length * 0.5, 4)
                     );
                 });
 
