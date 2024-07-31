@@ -1,11 +1,11 @@
-import JackpotGameConsumer from "../jackpot-game-consumer";
 import SlotNoticeHelper from "../../helpers/slot-notice-helper";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
+import JackpotGameConsumer from "../jackpot-game-consumer";
 
 import moment from "moment";
 
-import { settleConsumer, jackpotPublisher, roundsRepository } from "../__tests__/stubs";
+import { jackpotPublisher, roundsRepository, settleConsumer } from "../__tests__/stubs";
 
 const gameDefinition = stubGameDefinition();
 
@@ -97,7 +97,6 @@ describe("JackpotGameConsumer", () => {
                     await consumer.consume(mockPlayer, mockPayload);
 
                     // Assert
-                    expect(consumer.settleGameRoundConsumer.processJackpot).not.toHaveBeenCalled();
                     expect(consumer.settleGameRoundConsumer.settleWithJackpotWin).not.toHaveBeenCalled();
                 });
             });
@@ -119,22 +118,6 @@ describe("JackpotGameConsumer", () => {
                     });
                 });
 
-                it("should process jackpot with picked prize", async () => {
-                    // Arrange
-
-                    // Act
-                    await consumer.consume(mockPlayer, mockPayload);
-
-                    // Assert
-                    expect(consumer.settleGameRoundConsumer.processJackpot).toHaveBeenCalledWith(
-                        mockPlayer,
-                        mockBet.bet.id,
-                        mockBet.bet,
-                        mockBet.bet.settlementResult.jackpot.winningLine,
-                        "minor"
-                    );
-                });
-
                 it("should settle game round with jackpot win", async () => {
                     // Arrange
                     const mockWinningAmount = 1000;
@@ -146,9 +129,7 @@ describe("JackpotGameConsumer", () => {
                     // Assert
                     expect(settleWithJackpotWinSpy).toHaveBeenCalledWith({
                         roundId: mockBet.bet.id,
-                        prize: "minor",
-                        winningAmount: mockWinningAmount,
-                        winningLine: mockWinningLine,
+                        player: mockPlayer,
                     });
                 });
             });
@@ -181,7 +162,7 @@ describe("JackpotGameConsumer", () => {
                 const result = await consumer.pickJackpotAndUpdateBet({ player });
 
                 // Assert
-                expect(result).toStrictEqual({ bet: null, prize: null });
+                expect(result).toStrictEqual({ bet: null, winningPrize: null });
             });
         });
 
@@ -198,7 +179,7 @@ describe("JackpotGameConsumer", () => {
                 const result = await consumer.pickJackpotAndUpdateBet({ player, chest });
 
                 // Assert
-                expect(result).toEqual({ bet, prize: "major" });
+                expect(result).toEqual({ bet, winningPrize: "major" });
             });
 
             it("should update the bet with jackpot picked set to true", async () => {
@@ -210,8 +191,8 @@ describe("JackpotGameConsumer", () => {
 
                 // Assert
                 expect(roundsRepository.findOneAndUpdate).toHaveBeenCalledWith(
-                    { playerId: "playerId1", paid: false, jackpot: { picked: false } },
-                    { $set: { jackpot: { picked: true } } },
+                    { playerId: "playerId1", paid: false, "settlementResult.jackpot.picked": false },
+                    { $set: { "settlementResult.jackpot.picked": true, "settlementResult.jackpot.winningPrize": "major" } },
                     { new: true, lean: true }
                 );
             });
@@ -255,7 +236,7 @@ describe("JackpotGameConsumer", () => {
                 const result = await consumer.pickJackpotAndUpdateBet({ player, chest });
 
                 // Assert
-                expect(result).toEqual({ bet, prize: "grand" });
+                expect(result).toEqual({ bet, winningPrize: "grand" });
             });
         });
 
@@ -273,7 +254,7 @@ describe("JackpotGameConsumer", () => {
                 const result = await consumer.pickJackpotAndUpdateBet({ player, chest });
 
                 // Assert
-                expect(result).toStrictEqual({ bet: null, prize: null });
+                expect(result).toStrictEqual({ bet: null, winningPrize: null });
             });
 
             it("should NOT set jackpot picked to true in game data", async () => {
@@ -425,21 +406,27 @@ describe("JackpotGameConsumer", () => {
                 player: { profile: { name: "bet1" } },
                 finish: {
                     time: moment.utc().subtract(100, "seconds").toDate(),
-                    jackpot: { winningLine: 3, picked: false, prizes: ["minor", "major", "grand"] },
+                    settlementResult: {
+                        jackpot: { winningLine: 3, picked: false, prizes: ["minor", "major", "grand"] },
+                    },
                 },
             },
             bet2: {
                 player: { profile: { name: "bet2" } },
                 finish: {
                     time: moment.utc().add(2000, "seconds").toDate(),
-                    jackpot: { winningLine: 2, picked: false, prizes: ["minor", "major", "grand"] },
+                    settlementResult: {
+                        jackpot: { winningLine: 2, picked: false, prizes: ["minor", "major", "grand"] },
+                    },
                 },
             },
             bet3: {
                 player: { profile: { name: "bet3" } },
                 finish: {
                     time: moment.utc().subtract(50, "seconds").toDate(),
-                    jackpot: { winningLine: 2, picked: false, prizes: ["minor", "major", "grand"] },
+                    settlementResult: {
+                        jackpot: { winningLine: 2, picked: false, prizes: ["minor", "major", "grand"] },
+                    },
                 },
             },
         };
@@ -448,20 +435,18 @@ describe("JackpotGameConsumer", () => {
             consumer.gameData.ingame = { ...ingame };
         });
 
-        it("should call processJackpot for each expired bet", async () => {
+        it("should call settleWithJackpotWin for each expired bet", async () => {
             // Arrange
             jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockReturnValue({
                 bet: { settlementResult: { jackpot: { winningLine: 3 } } },
                 prize: "minor",
             });
 
-            settleConsumer.processJackpot.mockReturnValue({ winningAmount: 100, winningLine: 3 });
-
             // Act
             await consumer.processExpired();
 
             // Assert
-            expect(settleConsumer.processJackpot).toHaveBeenCalledTimes(2);
+            expect(settleConsumer.settleWithJackpotWin).toHaveBeenCalledTimes(2);
         });
 
         it("should call settleWithJackpotWin the correct number of times", async () => {
@@ -479,25 +464,6 @@ describe("JackpotGameConsumer", () => {
             expect(settleConsumer.settleWithJackpotWin).toHaveBeenCalledTimes(2);
         });
 
-        it("should call processJackpot with correct parameters", async () => {
-            // Arrange
-            const mockBet = { bet: { id: 123, settlementResult: { jackpot: { winningLine: 3 } } }, prize: "minor" };
-            jest.spyOn(consumer, "pickJackpotAndUpdateBet").mockReturnValue(mockBet);
-            settleConsumer.processJackpot.mockReturnValue({ winningAmount: 100, winningLine: 3 });
-
-            // Act
-            await consumer.processExpired();
-
-            // Assert
-            expect(settleConsumer.processJackpot).toHaveBeenCalledWith(
-                { profile: { name: "bet1" } },
-                mockBet.bet.id,
-                mockBet.bet,
-                mockBet.bet.settlementResult.jackpot.winningLine,
-                mockBet.prize
-            );
-        });
-
         it("should call settleWithJackpotWin with correct parameters", async () => {
             // Arrange
             const mockBet = { bet: { id: 123, settlementResult: { jackpot: { winningLine: 3 } } }, prize: "minor" };
@@ -510,9 +476,7 @@ describe("JackpotGameConsumer", () => {
             // Assert
             expect(settleConsumer.settleWithJackpotWin).toHaveBeenCalledWith({
                 roundId: mockBet.bet.id,
-                prize: mockBet.prize,
-                winningAmount: 100,
-                winningLine: mockBet.bet.settlementResult.jackpot.winningLine,
+                player: { profile: { name: "bet1" } },
             });
         });
     });

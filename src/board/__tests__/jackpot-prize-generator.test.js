@@ -1,5 +1,5 @@
-import JackpotPrizeGenerator from "../jackpot-prize-generator";
 import { jackpotValidator } from "../../event-consumers/__tests__/stubs";
+import JackpotPrizeGenerator from "../jackpot-prize-generator";
 
 describe("JackpotGenerator", () => {
     let gameData;
@@ -73,8 +73,8 @@ describe("JackpotGenerator", () => {
             const result = generator.generate();
 
             // Assert
-            result.forEach((jackpot) => {
-                expect(prizes).toContain(jackpot.prize);
+            result.forEach((prize) => {
+                expect(prizes).toContain(prize);
             });
         });
 

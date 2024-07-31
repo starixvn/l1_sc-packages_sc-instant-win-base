@@ -30,6 +30,7 @@ const jackpotSchema = new mongoose.Schema(
     {
         winningLine: { type: Number, required: true },
         winningAmount: { type: Number, required: true },
+        winningPrize: { type: String },
         prizes: { type: [String] },
         picked: { type: Boolean, default: false },
     },

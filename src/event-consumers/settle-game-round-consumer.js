@@ -7,9 +7,9 @@ import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 import FreeSpinsConsumer from "./free-spins-consumer";
+import GenerateResultConsumer from "./generate-result-consumer";
 import HallOfFameConsumer from "./hall-of-fame-consumer";
 import JackpotConsumer from "./jackpot-consumer";
-import GenerateResultConsumer from "./generate-result-consumer";
 
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     /**
@@ -109,10 +109,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         );
     }
 
-    async settleWithJackpotWin({ player, roundId, prize, winningAmount, winningLine }) {
+    async settleWithJackpotWin({ player, roundId }) {
         const bet = await this.queryBets(roundId);
-        bet.settlementResult.jackpot = { winningAmount, winningLine, picked: true, prize };
 
+        await this.processJackpot(player, bet.id, bet, bet.settlementResult.jackpot.winningLine, bet.settlementResult.jackpot.winningPrize);
         await this.settleAfterJackpot(player, bet, roundId);
     }
 
@@ -120,6 +120,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         if (bet.settlementResult.bonus?.odds === 0) {
             await this.settleBets(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         } else {
+            await bet.save();
             await this.processBonus(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         }
 
@@ -200,6 +201,9 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         if (error) {
             this.jackpotPublisher.publishFailedJackpot(player.UID, error);
         }
+
+        this.gameData.ingame[player.profile.name].finish.settlementResult.jackpot.winningAmount = winningAmount;
+        bet.settlementResult.jackpot.winningAmount = winningAmount;
 
         return { winningAmount, winningLine };
     }
@@ -342,6 +346,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             ? {
                   winningLine: jackpot.winningLine,
                   winningAmount: jackpot.winningAmount,
+                  winningPrize: jackpot.winningPrize,
                   symbol: boardDefinition.specialSymbols.jackpot,
                   positions: boardDefinition.paylines[jackpot.winningLine],
               }

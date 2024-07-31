@@ -198,11 +198,16 @@ describe("IngameConsumer", () => {
             // arrange
             const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
             const expected = {
-                baseStakeLevels: [0.1, 1, 5],
-                stakeLevels: [0.1, 1, 5],
+                baseBetLevels: [0.1, 1, 5],
+                betLevels: [0.1, 1, 5],
                 odds: [],
                 jackpot: {
                     winningRatio: 0.98,
+                    pools: [
+                        { pool: "minor", contribute: 0.1 },
+                        { pool: "major", contribute: 0.15 },
+                        { pool: "grand", contribute: 0.25 },
+                    ],
                 },
             };
 
@@ -229,6 +234,23 @@ function stubGameData() {
             jackpot: {
                 winningRatio: 0.98,
                 enabled: true,
+                pools: {
+                    minor: {
+                        init: 5000,
+                        playerSettings: { contrib: 0.1, alloc: 90 },
+                        botSettings: { contrib: 0.01, alloc: 80 },
+                    },
+                    major: {
+                        init: 25000,
+                        playerSettings: { contrib: 0.15, alloc: 9 },
+                        botSettings: { contrib: 0.015, alloc: 15 },
+                    },
+                    grand: {
+                        init: 50000,
+                        playerSettings: { contrib: 0.25, alloc: 1 },
+                        botSettings: { contrib: 0.025, alloc: 5 },
+                    },
+                },
             },
         },
     };

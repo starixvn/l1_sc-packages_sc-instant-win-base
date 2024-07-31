@@ -2,24 +2,23 @@ import { Core } from "sc-game-base";
 import { SettleGameRoundConsumer } from "..";
 import odds from "../../../tests/odds";
 
+import { default as boardDefinition, default as defaultDefinition } from "../../board/default-definition";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
-import defaultDefinition from "../../board/default-definition";
-
 import {
-    roundsRepository,
     betsRepository,
-    roundResultPublisher,
-    userBetResultPublisher,
-    jackpotPublisher,
     boardCheatingConsumer,
-    freeSpinsConsumer,
-    hallOfFameConsumer,
-    jackpotConsumer,
     boardGenerator,
     bonusBoardGenerator,
-    paylineCalculator,
+    freeSpinsConsumer,
     generateResultConsumer,
+    hallOfFameConsumer,
+    jackpotConsumer,
+    jackpotPublisher,
+    paylineCalculator,
+    roundResultPublisher,
+    roundsRepository,
+    userBetResultPublisher,
 } from "./stubs";
 
 describe("SettleGameRoundConsumer", () => {
@@ -84,9 +83,9 @@ describe("SettleGameRoundConsumer", () => {
             const player = "player1";
             const roundId = "round123";
             const bet = { ...betMock };
-            const bonusChests = { bonusChests: "bonusChests" };
+            const bonusChests = { bonusChests: [100, 200] };
             const { bonus: bonusConfig } = consumer.gameData.gameConfigs.slotsConfig;
-            generateResultConsumer.generateSettlementResult.mockReturnValueOnce({ result: {}, settlementResult: {} });
+            generateResultConsumer.generateSettlementResult.mockReturnValueOnce({ result: {}, settlementResult: { bonus: { odds: 2 } } });
             generateResultConsumer.generateBonus.mockReturnValueOnce(bonusChests);
 
             // Act
@@ -129,6 +128,7 @@ describe("SettleGameRoundConsumer", () => {
                 result,
                 settlementResult,
                 time: "2024-07-11T10:00:00Z",
+                bonusChests: null,
             });
         });
 
@@ -467,7 +467,7 @@ describe("SettleGameRoundConsumer", () => {
 
         it("when have jackpot should return correct value", () => {
             // arrange
-            const jackpot = { jackpotId: 1 };
+            const jackpot = { winningLine: 1, winningAmount: 10000, winningPrize: "major" };
             const expectedValue = {
                 winningLines: [
                     {
@@ -479,7 +479,7 @@ describe("SettleGameRoundConsumer", () => {
                 ],
                 bonus: { symbol: 8, count: 2 },
                 freeSpins: { symbol: 7, count: 3 },
-                jackpot: { jackpotId: 1, symbol: 10, positions: undefined },
+                jackpot: { ...jackpot, symbol: 10, positions: boardDefinition.paylines[1] },
             };
 
             // act
@@ -556,17 +556,37 @@ describe("SettleGameRoundConsumer", () => {
             const dependencies = initDependencies();
             dependencies.jackpotConsumer.hit.mockReturnValueOnce({ amount: 10 });
             dependencies.definition = {};
+            dependencies.gameData.ingame = {
+                player01: {
+                    finish: {
+                        settlementResult: {
+                            jackpot: {
+                                winningAmount: 0,
+                                winningLine: 2,
+                            },
+                        },
+                    },
+                },
+            };
 
             const consumer = new SettleGameRoundConsumer(dependencies);
             consumer.hitJackpot = jest.fn();
             consumer.hitJackpot.mockReturnValueOnce({ isOk: false, response: { message: "error" } });
-            const player = {};
+            const player = { profile: { name: "player01" } };
+
             const roundId = {};
             const betAmount = null;
-            const winningLine = {};
+            const winningLine = 2;
+            const winningPrize = "minor";
 
             // act
-            await consumer.processJackpot(player, roundId, { betAmount, rate: 1 }, winningLine);
+            await consumer.processJackpot(
+                player,
+                roundId,
+                { betAmount, rate: 1, settlementResult: { jackpot: { winningLine } } },
+                winningLine,
+                winningPrize
+            );
 
             // assert
             expect(consumer.jackpotPublisher.publishFailedJackpot).toBeCalled();
@@ -577,17 +597,30 @@ describe("SettleGameRoundConsumer", () => {
             const dependencies = initDependencies();
             dependencies.jackpotConsumer.hit.mockReturnValueOnce({ amount: 10 });
             dependencies.definition = {};
+            dependencies.gameData.ingame = {
+                player01: {
+                    finish: {
+                        settlementResult: {
+                            jackpot: {
+                                winningAmount: 0,
+                                winningLine: 2,
+                            },
+                        },
+                    },
+                },
+            };
 
             const consumer = new SettleGameRoundConsumer(dependencies);
             consumer.hitJackpot = jest.fn();
             consumer.hitJackpot.mockReturnValueOnce({ isOk: true, response: {} });
-            const player = {};
+            const player = { profile: { name: "player01" } };
             const roundId = {};
             const betAmount = null;
-            const winningLine = {};
+            const winningLine = 2;
+            const winningPrize = "minor";
 
             // act
-            await consumer.processJackpot(player, roundId, { betAmount, rate: 1 }, winningLine);
+            await consumer.processJackpot(player, roundId, { betAmount, rate: 1, settlementResult: { jackpot: {} } }, winningLine, winningPrize);
 
             // assert
             expect(consumer.jackpotPublisher.publishFailedJackpot).not.toBeCalled();
@@ -839,7 +872,7 @@ describe("SettleGameRoundConsumer", () => {
                     await consumer.settleRound(player, roundId);
 
                     // Assert
-                    expect(settleAfterJackpotMock).toHaveBeenCalledWith(bet, roundId);
+                    expect(settleAfterJackpotMock).toHaveBeenCalledWith(player, bet, roundId);
                 });
             });
         });

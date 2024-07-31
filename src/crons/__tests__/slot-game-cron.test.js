@@ -1,7 +1,8 @@
-import SlotGameCron from "../slot-game-cron";
-import { Core } from "sc-game-base";
-import mongoose from "mongoose";
 import { stub, stubMongoose } from "jest-micro-auto-stub";
+import mongoose from "mongoose";
+import { Core } from "sc-game-base";
+import { JackpotGameConsumer } from "../../event-consumers";
+import SlotGameCron from "../slot-game-cron";
 
 const roundsRepository = stubMongoose(mongoose.Model);
 const archiveStatusesRepository = stubMongoose(mongoose.Model);
@@ -10,6 +11,7 @@ const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
 const partnerConfigRepository = stubMongoose(mongoose.Model);
 const currencyGroupRepository = stubMongoose(mongoose.Model);
 const currencyRepository = stubMongoose(mongoose.Model);
+const jackpotGameConsumer = stub(JackpotGameConsumer);
 
 jest.mock("cron", () => {
     const mScheduleJob = {
@@ -58,7 +60,7 @@ describe("slot-game-cron", () => {
             };
 
             const idCountersConsumer = { getLatestId: jest.fn() };
-            const logService = { logError: jest.fn() };
+            const logService = { logError: jest.fn(), log: jest.fn() };
             const bonusConsumer = { processExpiredBonus: jest.fn() };
             const freeSpinsConsumer = { reload: jest.fn() };
             const definition = {};
@@ -75,6 +77,7 @@ describe("slot-game-cron", () => {
                 partnerConfigRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             roundsRepository
                 .find()
@@ -96,7 +99,7 @@ describe("slot-game-cron", () => {
             };
 
             const idCountersConsumer = { getLatestId: jest.fn() };
-            const logService = { logError: jest.fn() };
+            const logService = { logError: jest.fn(), log: jest.fn() };
             const bonusConsumer = { processExpiredBonus: jest.fn() };
             const freeSpinsConsumer = { reload: jest.fn() };
             const definition = {};
@@ -113,6 +116,7 @@ describe("slot-game-cron", () => {
                 partnerConfigRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             roundsRepository
                 .find()
@@ -134,7 +138,7 @@ describe("slot-game-cron", () => {
 
             const idCountersConsumer = { getLatestId: jest.fn(), updateLatestId: jest.fn() };
             idCountersConsumer.getLatestId.mockReturnValue(0);
-            const logService = { logError: jest.fn() };
+            const logService = { logError: jest.fn(), log: jest.fn() };
             const bonusConsumer = { processExpiredBonus: jest.fn() };
             const freeSpinsConsumer = { reload: jest.fn() };
             const definition = {};
@@ -151,6 +155,7 @@ describe("slot-game-cron", () => {
                 partnerConfigRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -176,7 +181,7 @@ describe("slot-game-cron", () => {
 
             const idCountersConsumer = { getLatestId: jest.fn(), updateLatestId: jest.fn() };
             idCountersConsumer.getLatestId.mockReturnValue(0);
-            const logService = { logError: jest.fn() };
+            const logService = { logError: jest.fn(), log: jest.fn() };
             const bonusConsumer = { processExpiredBonus: jest.fn() };
             const freeSpinsConsumer = { reload: jest.fn() };
             const jackpotConsumer = { initialize: jest.fn() };
@@ -195,6 +200,7 @@ describe("slot-game-cron", () => {
                 partnerConfigRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -249,6 +255,7 @@ describe("slot-game-cron", () => {
                 currencyGroupGamesRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             archiveStatusesRepository.findOne().lean().exec.mockReturnValueOnce(testCase.archiveStatus);
 
@@ -274,6 +281,7 @@ describe("slot-game-cron", () => {
                 currencyGroupGamesRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -294,6 +302,7 @@ describe("slot-game-cron", () => {
                 currencyGroupGamesRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -316,6 +325,7 @@ describe("slot-game-cron", () => {
                 currencyGroupGamesRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -336,6 +346,7 @@ describe("slot-game-cron", () => {
                 currencyGroupGamesRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -356,6 +367,7 @@ describe("slot-game-cron", () => {
                 currencyGroupGamesRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -378,6 +390,7 @@ describe("slot-game-cron", () => {
                 currencyGroupGamesRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -400,6 +413,7 @@ describe("slot-game-cron", () => {
                 currencyGroupGamesRepository,
                 currencyGroupRepository,
                 currencyRepository,
+                jackpotGameConsumer,
             });
             cron.checkGameStatus = jest.fn();
 

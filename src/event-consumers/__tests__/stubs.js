@@ -1,17 +1,18 @@
-import mongoose from "mongoose";
 import { stub, stubMongoose } from "jest-micro-auto-stub";
+import mongoose from "mongoose";
 import { RoundResultPublisher, UserBetResultPublisher } from "sc-game-base/src/core/event-publishers";
-import { JackpotPublisher } from "../../event-publishers";
 import {
-    SettleGameRoundConsumer,
-    JackpotGameConsumer,
+    BoardCheatingConsumer,
+    BonusConsumer,
     FreeSpinsConsumer,
+    GenerateResultConsumer,
     HallOfFameConsumer,
     JackpotConsumer,
-    BoardCheatingConsumer,
-    GenerateResultConsumer,
+    JackpotGameConsumer,
+    SettleGameRoundConsumer,
 } from "../";
-import { BoardGenerator, BonusBoardGenerator, PaylineCalculator, JackpotPrizeGenerator } from "../../board";
+import { BoardGenerator, BonusBoardGenerator, JackpotPrizeGenerator, PaylineCalculator } from "../../board";
+import { JackpotPublisher } from "../../event-publishers";
 import JackpotValidator from "../../validators/jackpot-validator";
 
 const settleConsumer = stub(SettleGameRoundConsumer);
@@ -29,6 +30,7 @@ const paylineCalculator = stub(PaylineCalculator);
 const jackpotValidator = stub(JackpotValidator);
 const generateResultConsumer = stub(GenerateResultConsumer);
 const jackpotPrizeGenerator = stub(JackpotPrizeGenerator);
+const bonusConsumer = stub(BonusConsumer);
 
 /** @type {mongoose.Model}*/
 const roundsRepository = stubMongoose(mongoose.Model);
@@ -37,21 +39,22 @@ const roundsRepository = stubMongoose(mongoose.Model);
 const betsRepository = stubMongoose(mongoose.Model);
 
 export {
-    roundsRepository,
     betsRepository,
-    settleConsumer,
-    jackpotPublisher,
-    jackpotGameConsumer,
-    roundResultPublisher,
-    userBetResultPublisher,
     boardCheatingConsumer,
-    freeSpinsConsumer,
-    hallOfFameConsumer,
-    jackpotConsumer,
     boardGenerator,
     bonusBoardGenerator,
-    paylineCalculator,
-    jackpotValidator,
+    bonusConsumer,
+    freeSpinsConsumer,
     generateResultConsumer,
+    hallOfFameConsumer,
+    jackpotConsumer,
+    jackpotGameConsumer,
     jackpotPrizeGenerator,
+    jackpotPublisher,
+    jackpotValidator,
+    paylineCalculator,
+    roundResultPublisher,
+    roundsRepository,
+    settleConsumer,
+    userBetResultPublisher
 };

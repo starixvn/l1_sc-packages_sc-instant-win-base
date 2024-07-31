@@ -2,10 +2,10 @@ import Chance from "chance";
 import moment from "moment";
 
 import { JackpotPublisher } from "./../event-publishers";
+import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 import SettleGameRoundConsumer from "./settle-game-round-consumer";
-import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 
 export default class JackpotGameConsumer {
     /**
@@ -26,8 +26,6 @@ export default class JackpotGameConsumer {
         this.chance = new Chance();
     }
 
-    //TODO update SlotNoticeHelper.invalidBonus to jackpot invalid
-    //TODO be careful for duplicated event
     async consume(player, payload) {
         const { chest } = payload;
 
@@ -35,52 +33,41 @@ export default class JackpotGameConsumer {
             return;
         }
 
-        const { bet, prize } = await this.pickJackpotAndUpdateBet({ player, chest });
+        const { bet } = await this.pickJackpotAndUpdateBet({ player, chest });
 
         if (!bet) {
             this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
             return;
         }
 
-        const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(
-            player,
-            bet.id,
-            bet,
-            bet.settlementResult.jackpot.winningLine,
-            prize
-        );
-
-        await this.settleGameRoundConsumer.settleWithJackpotWin({ player, roundId: bet.id, prize, winningAmount, winningLine });
+        await this.settleGameRoundConsumer.settleWithJackpotWin({ player, roundId: bet.id });
     }
 
-    //TODO combine processJackpot and settleWithJackpotWin into ONE
     async pickJackpotAndUpdateBet({ player, chest }) {
         const jackpot = this.getJackpot(player);
 
-        if (!jackpot || jackpot.prizes?.length === 0) {
-            return { bet: null, prize: null };
-        }
-
-        if (!chest) {
-            chest = this.chance.integer({ min: 0, max: jackpot.prizes.length - 1 });
-        }
-
-        const bet = await this.roundsRepository.findOneAndUpdate(
-            { playerId: player.session.playerId, paid: false, "settlementResult.jackpot.picked": false },
-            { $set: { "settlementResult.jackpot.picked": true } },
-            {
-                new: true,
-                lean: true,
+        if (jackpot && jackpot.prizes?.length > 0) {
+            if (!chest) {
+                chest = this.chance.integer({ min: 0, max: jackpot.prizes.length - 1 });
             }
-        );
 
-        if (bet) {
-            jackpot.picked = true;
+            const bet = await this.roundsRepository.findOneAndUpdate(
+                { playerId: player.session.playerId, paid: false, "settlementResult.jackpot.picked": false },
+                { $set: { "settlementResult.jackpot.picked": true, "settlementResult.jackpot.winningPrize": jackpot.prizes[chest] } },
+                {
+                    new: true,
+                    lean: true,
+                }
+            );
 
-            return { bet, prize: jackpot.prizes[chest] };
+            if (bet) {
+                jackpot.picked = true;
+
+                return { bet, winningPrize: jackpot.prizes[chest] };
+            }
         }
 
-        return { bet: null, prize: null };
+        return { bet: null, winningPrize: null };
     }
 
     async processExpired() {
@@ -101,21 +88,13 @@ export default class JackpotGameConsumer {
     }
 
     async autoPickJackpot(player) {
-        const { bet, prize } = await this.pickJackpotAndUpdateBet({ player });
+        const { bet } = await this.pickJackpotAndUpdateBet({ player });
 
         if (!bet) {
             return;
         }
 
-        const { winningAmount, winningLine } = await this.settleGameRoundConsumer.processJackpot(
-            player,
-            bet.id,
-            bet,
-            bet.settlementResult.jackpot.winningLine,
-            prize
-        );
-
-        await this.settleGameRoundConsumer.settleWithJackpotWin({ player, roundId: bet.id, prize, winningAmount, winningLine });
+        await this.settleGameRoundConsumer.settleWithJackpotWin({ player, roundId: bet.id });
     }
 
     isHavingJackpot(bet) {

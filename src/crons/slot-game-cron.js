@@ -1,5 +1,4 @@
 import cron from "cron";
-import { logger } from "sc-common";
 import { Core } from "sc-game-base";
 
 import { SlotGameBot } from "./../crons";
@@ -142,8 +141,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
         if (!this.gameData.disabled) {
             this.gameData.remainingTime--;
-            //TODO bot not available yet
-            //this.bot && (await this.bot.run());
+            this.bot && (await this.bot.run());
         }
 
         if (this.gameData.remainingTime < 0) {
