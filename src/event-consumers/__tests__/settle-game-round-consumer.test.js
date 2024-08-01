@@ -583,7 +583,7 @@ describe("SettleGameRoundConsumer", () => {
             await consumer.processJackpot(
                 player,
                 roundId,
-                { betAmount, rate: 1, settlementResult: { jackpot: { winningLine } } },
+                { betAmount, rate: 1, settlementResult: { jackpot: { winningLine } }, save: jest.fn() },
                 winningLine,
                 winningPrize
             );
@@ -620,7 +620,13 @@ describe("SettleGameRoundConsumer", () => {
             const winningPrize = "minor";
 
             // act
-            await consumer.processJackpot(player, roundId, { betAmount, rate: 1, settlementResult: { jackpot: {} } }, winningLine, winningPrize);
+            await consumer.processJackpot(
+                player,
+                roundId,
+                { betAmount, rate: 1, settlementResult: { jackpot: {} }, save: jest.fn() },
+                winningLine,
+                winningPrize
+            );
 
             // assert
             expect(consumer.jackpotPublisher.publishFailedJackpot).not.toBeCalled();

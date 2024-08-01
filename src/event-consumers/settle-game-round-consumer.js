@@ -120,7 +120,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         if (bet.settlementResult.bonus?.odds === 0) {
             await this.settleBets(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         } else {
-            await bet.save();
             await this.processBonus(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         }
 
@@ -204,6 +203,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         this.gameData.ingame[player.profile.name].finish.settlementResult.jackpot.winningAmount = winningAmount;
         bet.settlementResult.jackpot.winningAmount = winningAmount;
+        await bet.save();
 
         return { winningAmount, winningLine };
     }
