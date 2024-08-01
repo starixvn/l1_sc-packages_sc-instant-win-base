@@ -101,9 +101,21 @@ const createStubGameData = () => ({
                 excludeTestCurrency: false,
                 winningRatio: 0.98,
                 pools: {
-                    minor: { init: 5000, contribute: 0.1, bot: 0.01 },
-                    major: { init: 25000, contribute: 0.15, bot: 0.015 },
-                    grand: { init: 50000, contribute: 0.25, bot: 0.025 },
+                    minor: {
+                        init: 5000,
+                        playerSettings: { contrib: 0.1, alloc: 90 },
+                        botSettings: { contrib: 0.01, alloc: 80 },
+                    },
+                    major: {
+                        init: 25000,
+                        playerSettings: { contrib: 0.15, alloc: 9 },
+                        botSettings: { contrib: 0.015, alloc: 15 },
+                    },
+                    grand: {
+                        init: 50000,
+                        playerSettings: { contrib: 0.25, alloc: 1 },
+                        botSettings: { contrib: 0.025, alloc: 5 },
+                    },
                 },
                 allowedCurrency: "INH",
             },
