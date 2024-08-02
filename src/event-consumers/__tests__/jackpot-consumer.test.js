@@ -282,7 +282,10 @@ describe("JackpotConsumer", () => {
                 const player = { UID: "uid", profile: { name: "A" }, session };
                 const bet = { prize: "minor", roundId: gameData.roundId };
                 const winningJackpot = { amount: 12000 };
-                const expectedJackpot = { amount: winningJackpot.amount * gameData.gameConfigs.slotsConfig.jackpot.winningRatio, prize: "minor" };
+                const expectedJackpot = {
+                    amount: winningJackpot.amount * gameData.gameConfigs.slotsConfig.jackpot.winningRatio,
+                    pool: "minor",
+                };
                 spyOn(consumer, "initializeNewPool");
 
                 jackpotsRepository.findOneAndUpdate.mockReturnValueOnce(winningJackpot);

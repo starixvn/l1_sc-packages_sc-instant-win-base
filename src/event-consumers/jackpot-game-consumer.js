@@ -36,7 +36,7 @@ export default class JackpotGameConsumer {
         const { bet } = await this.pickJackpotAndUpdateBet({ player, chest });
 
         if (!bet) {
-            this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+            this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidJackpot } });
             return;
         }
 

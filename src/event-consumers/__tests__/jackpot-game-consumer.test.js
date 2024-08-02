@@ -84,7 +84,7 @@ describe("JackpotGameConsumer", () => {
                     // Assert
                     expect(consumer.jackpotPublisher.publishToUser).toHaveBeenCalledWith("uid1", {
                         endBet: -1,
-                        notice: { errorCode: SlotNoticeHelper.invalidBonus },
+                        notice: { errorCode: SlotNoticeHelper.invalidJackpot },
                     });
                 });
 

@@ -4,4 +4,5 @@ export default {
     invalidStakeLevel: "SB1930",
     invalidBonus: "SB1931",
     openedBonus: "SB1932",
+    invalidJackpot: "SB1933",
 };

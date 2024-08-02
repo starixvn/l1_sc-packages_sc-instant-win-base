@@ -60,7 +60,7 @@ export default class HallOfFameQuery {
             _id: false,
             hitTime: true,
             winnerName: true,
-            pool: true,
+            pool: "$prize",
             amount: true,
             winningRatio: true,
             exchangeRateId: true,
@@ -76,7 +76,7 @@ export default class HallOfFameQuery {
             return {
                 time: jackpotWinner.hitTime,
                 name: jackpotWinner.winnerName,
-                bet: jackpotWinner.pool,
+                pool: jackpotWinner.pool,
                 winningAmount,
                 exchangeRateId: jackpotWinner.exchangeRateId,
             };
