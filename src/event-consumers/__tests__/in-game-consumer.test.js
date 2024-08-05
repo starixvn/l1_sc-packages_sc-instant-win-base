@@ -200,6 +200,7 @@ describe("IngameConsumer", () => {
             const expected = {
                 baseBetLevels: [0.1, 1, 5],
                 betLevels: [0.1, 1, 5],
+                defaultBetLevel: 5,
                 odds: [],
                 jackpot: {
                     winningRatio: 0.98,
@@ -255,7 +256,7 @@ function stubGameData() {
         },
     };
 
-    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", betLevels: [0.1, 1, 5] }];
+    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", betLevels: [0.1, 1, 5], defaultBetLevel: 5 }];
     gameData.exchangeRates = { code: { AUD: 1 } };
 
     return gameData;

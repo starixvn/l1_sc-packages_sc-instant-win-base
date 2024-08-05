@@ -68,7 +68,7 @@ export default class BonusConsumer {
 
     async processExpiredBonus() {
         const expiryTime = moment.utc().subtract(this.definition.bonusLiveSeconds, "seconds").toDate();
-        const bets = Object.values(this.gameData.ingame).filter((currentBet) => currentBet.finish?.time < expiryTime);
+        const bets = Object.values(this.gameData.ingame).filter((currentBet) => currentBet.finish?.bonusTime < expiryTime);
 
         await Promise.all(bets.map((bet) => this.autoOpenRemainingChests(bet.player)));
     }

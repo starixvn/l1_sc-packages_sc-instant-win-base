@@ -128,6 +128,7 @@ describe("SettleGameRoundConsumer", () => {
                 result,
                 settlementResult,
                 time: "2024-07-11T10:00:00Z",
+                bonusTime: "2024-07-11T10:00:00Z",
                 bonusChests: null,
             });
         });

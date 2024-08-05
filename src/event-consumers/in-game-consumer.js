@@ -64,6 +64,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
 
     getSlotGameConfig(realPlayer) {
         const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer);
+        const defaultBetLevel = MultipleCurrencyHelper.getDefaultBetLevel(this.gameData, realPlayer);
         const { icons: odds, jackpot, betLevels: baseBetLevels } = this.gameData.gameConfigs.slotsConfig;
 
         const poolConfigs = this.getJackpotPoolsConfig(jackpot.pools);
@@ -71,6 +72,7 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         return {
             baseBetLevels,
             betLevels,
+            defaultBetLevel,
             odds,
             jackpot: {
                 winningRatio: jackpot.winningRatio,

@@ -323,5 +323,6 @@ function stubFinish() {
             bonus: { count: 5, odds: 5 },
         },
         time: Date.now() - 3000 * 60,
+        bonusTime: Date.now() - 3000 * 60,
     };
 }

@@ -143,6 +143,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             result,
             settlementResult,
             time: bet.time,
+            bonusTime: settlementResult.jackpot ? new Date(bet.time.getTime() + this.definition.jackpotLiveSeconds * 1000) : bet.time,
             bonusChests,
         };
     }

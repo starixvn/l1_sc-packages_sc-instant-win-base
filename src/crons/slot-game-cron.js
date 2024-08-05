@@ -215,7 +215,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
     async updateCurrencyGroupGames() {
         this.gameData.currencyGroupGames = await this.currencyGroupGamesRepository
-            .find({ gameId: this.definition.id, enabled: true }, "groupId minBet maxBet maxBetPerChoices chips stakeLevels betLevels")
+            .find({ gameId: this.definition.id, enabled: true }, "groupId minBet maxBet maxBetPerChoices chips stakeLevels betLevels defaultBetLevel")
             .lean()
             .exec();
     }
