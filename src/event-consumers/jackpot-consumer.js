@@ -24,11 +24,12 @@ export default class JackpotConsumer {
     }
 
     async contribute(player, { totalAmount, roundId, rate, freeSpin }) {
-        if (!this.jackpotValidator.canContributeJackpotPools(player, freeSpin)) {
+        const contributedByMember = !!player.session;
+        
+        if (contributedByMember && !this.jackpotValidator.canContributeJackpotPools(player, freeSpin)) {
             return;
         }
 
-        const contributedByMember = !!player.session;
         const { pools } = this.gameData.gameConfigs.slotsConfig.jackpot;
 
         const baseTotalAmount = totalAmount * rate;

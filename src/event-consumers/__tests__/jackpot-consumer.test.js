@@ -28,7 +28,7 @@ describe("JackpotConsumer", () => {
     describe("contribute", () => {
         const pool = 1000;
 
-        const player = {};
+        const player = { session: {} };
         const bet = { pool, totalAmount: 5, roundId: gameData.roundId, rate: 1 };
 
         describe("when player can contribute", () => {
@@ -42,7 +42,7 @@ describe("JackpotConsumer", () => {
                 const poolConfigs = { init: 5000, playerSettings: { contrib: 0.1, alloc: 90 }, botSettings: { contrib: 0.01, alloc: 80 } };
                 const expectedParams = {
                     baseTotalAmount: 5,
-                    contributedByMember: false,
+                    contributedByMember: true,
                     prize: "minor",
                     roundId: gameData.roundId,
                     pool: poolConfigs,
@@ -63,7 +63,7 @@ describe("JackpotConsumer", () => {
                 await consumer.contribute(player, bet);
 
                 // assert
-                expect(consumer.contributeToPool).toBeCalledTimes(3);
+                expect(consumer.contributeToPool).toHaveBeenCalledTimes(3);
             });
         });
 
@@ -75,14 +75,7 @@ describe("JackpotConsumer", () => {
             it("should NOT contribute to pool", async () => {
                 // arrange
                 spyOn(consumer, "contributeToPool");
-                const poolConfigs = { bot: 0.01, contribute: 0.1, init: 5000 };
-                const expectedParams = {
-                    baseTotalAmount: 5,
-                    contributedByMember: false,
-                    prize: "minor",
-                    roundId: gameData.roundId,
-                    pool: poolConfigs,
-                };
+                const poolConfigs = { init: 5000, playerSettings: { contrib: 0.1, alloc: 90 }, botSettings: { contrib: 0.01, alloc: 80 } };
 
                 // act
                 await consumer.contribute(player, bet);
