@@ -143,7 +143,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             result,
             settlementResult,
             time: bet.time,
-            bonusTime: settlementResult.jackpot ? new Date(bet.time.getTime() + this.definition.jackpotLiveSeconds * 1000) : bet.time,
             bonusChests,
         };
     }
@@ -162,8 +161,15 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
     async processBonus(player, finish, bet) {
         const { result, settlementResult } = finish;
-
+        this.updateBonusTime(player);
         await this.userBetResultPublisher.publishToUser(bet.uid, this.collectBonusResult({ result, settlementResult, roundId: finish.roundId }));
+    }
+
+    updateBonusTime(player) {
+        const { finish } = this.gameData.ingame[player.profile.name];
+        if (!finish.bonusTime) {
+            finish.bonusTime = new Date();
+        }
     }
 
     updateBetTrack(player, finish) {

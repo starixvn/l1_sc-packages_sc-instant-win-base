@@ -25,7 +25,7 @@ export default class JackpotPrizeGenerator {
 
         const { pools } = this.gameData.gameConfigs.slotsConfig.jackpot;
         const prizes = Object.keys(pools);
-        const weights = Object.values(pools).map((pool) => pool.playerSettings.alloc);
+        const weights = Object.values(pools).map((pool) => (pool.playerSettings.alloc > 0 ? pool.playerSettings.alloc : 1));
 
         let jackpotBoard = [];
 

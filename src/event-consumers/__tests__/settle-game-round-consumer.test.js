@@ -128,7 +128,6 @@ describe("SettleGameRoundConsumer", () => {
                 result,
                 settlementResult,
                 time: "2024-07-11T10:00:00Z",
-                bonusTime: "2024-07-11T10:00:00Z",
                 bonusChests: null,
             });
         });
@@ -388,7 +387,7 @@ describe("SettleGameRoundConsumer", () => {
             // arrange
             const dependencies = initDependencies();
             dependencies.definition = {};
-            dependencies.gameData.ingame = { player1: {} };
+            dependencies.gameData.ingame = { player1: { finish: { settlementResult: {} } } };
 
             const consumer = new SettleGameRoundConsumer(dependencies);
             consumer.collectBonusResult = jest.fn();

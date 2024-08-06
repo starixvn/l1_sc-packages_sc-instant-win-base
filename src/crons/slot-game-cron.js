@@ -184,7 +184,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
     mapToIngameData(bets) {
         return bets.reduce((ingame, bet) => {
-            const { bonusChests, result, settlementResult, id: roundId, time, uid: UID, name, jackpot, playerId, currency, operatorId } = bet;
+            const { bonusChests, result, settlementResult, id: roundId, time, uid: UID, name, playerId, currency, operatorId } = bet;
 
             const player = {
                 UID,
@@ -195,17 +195,26 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
                     operatorId,
                 },
             };
+            const finish = {
+                roundId,
+                time,
+                result,
+                settlementResult,
+            };
+
+            if (bonusChests?.some((x) => !x.picked)) {
+                if (settlementResult.jackpot && !settlementResult.jackpot.picked) {
+                    finish.bonusTime = new Date(time.getTime() + this.definition.jackpotLiveSeconds * 1000);
+                } else {
+                    finish.bonusTime = time;
+                }
+            }
 
             ingame[name] = {
                 name,
                 player,
                 bonusChests,
-                finish: {
-                    roundId,
-                    time,
-                    result,
-                    settlementResult,
-                },
+                finish,
                 betQueue: [],
             };
 

@@ -30,7 +30,7 @@ export default class SlotHistoryQuery {
             .lean()
             .exec();
         const betLogs = rawBetLogs.map((rawBetLog) => {
-            const betLog = { ...rawBetLog, enableJackpot: !!rawBetLog.jackpotContribution};
+            const betLog = { ...rawBetLog, enableJackpot: !!rawBetLog.jackpotContribution };
 
             delete betLog.bonusChests;
             delete betLog.jackpotContribution;
@@ -39,6 +39,10 @@ export default class SlotHistoryQuery {
                 (winningAmount, bonusChest) => winningAmount + bonusChest.amount,
                 0
             );
+
+            if (betLog.settlementResult.jackpot) {
+                betLog.settlementResult.jackpot.pool = betLog.settlementResult.jackpot.winningPrize;
+            }
 
             return betLog;
         });
