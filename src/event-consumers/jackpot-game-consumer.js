@@ -98,9 +98,13 @@ export default class JackpotGameConsumer {
     }
 
     isHavingJackpot(bet) {
-        const { jackpot } = bet.finish.settlementResult;
+        if (bet.finish) {
+            const { jackpot } = bet.finish.settlementResult;
 
-        return jackpot ? jackpot.winningLine > 0 && !jackpot.picked : false;
+            return jackpot ? jackpot.winningLine > 0 && !jackpot.picked : false;
+        }
+
+        return false;
     }
 
     validate(player, chest) {
