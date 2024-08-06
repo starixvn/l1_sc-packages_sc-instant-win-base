@@ -75,7 +75,7 @@ export default class JackpotGameConsumer {
 
         try {
             const runningBets = Object.values(this.gameData.ingame).filter(
-                (currentBet) => currentBet.finish && currentBet.finish.time < expiryTime && this.isHavingJackpot(currentBet)
+                (currentBet) => currentBet.finish && currentBet.finish?.time < expiryTime && this.isHavingJackpot(currentBet)
             );
 
             for (const ingameBet of runningBets) {
