@@ -149,7 +149,9 @@ describe("SettleGameRoundConsumer", () => {
         let consumer;
         const finish = {
             settlementResult: {
-                jackpotPayline: "payline1",
+                jackpot: {
+                    winningLine: 1,
+                },
             },
             result: { board: "board1" },
             roundId: "round1",
@@ -174,6 +176,8 @@ describe("SettleGameRoundConsumer", () => {
                     result: finish.result,
                     prizes: prizes.length,
                     roundId: "round1",
+                    symbol: boardDefinition.specialSymbols.jackpot,
+                    positions: boardDefinition.paylines[1],
                 },
             });
         });
@@ -188,6 +192,7 @@ describe("SettleGameRoundConsumer", () => {
             // Assert
             expect(collectJackpotResultSpy).toHaveBeenCalledWith({
                 result: finish.result,
+                settlementResult: finish.settlementResult,
                 roundId: finish.roundId,
                 prizes,
             });
@@ -431,6 +436,11 @@ describe("SettleGameRoundConsumer", () => {
             // arrange
             const consumer = new SettleGameRoundConsumer(initDependencies());
             const result = [1, 3, 5, 8, 9, 9];
+            const settlementResult = {
+                jackpot: {
+                    winningLine: 1,
+                },
+            };
             const prizes = ["minor", "major", "grand"];
             const roundId = 1;
             const expectedValue = {
@@ -438,11 +448,13 @@ describe("SettleGameRoundConsumer", () => {
                     roundId: 1,
                     prizes: 3,
                     result: [1, 3, 5, 8, 9, 9],
+                    positions: boardDefinition.paylines[1],
+                    symbol: boardDefinition.specialSymbols.jackpot,
                 },
             };
 
             // act
-            const actualValue = consumer.collectJackpotResult({ result, prizes, roundId });
+            const actualValue = consumer.collectJackpotResult({ result, settlementResult, prizes, roundId });
 
             // assert
             expect(actualValue).toStrictEqual(expectedValue);

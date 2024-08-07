@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import { Core } from "sc-game-base";
 
 import math from "lodash/math";
+import defaultDefinition from "../board/default-definition";
 import { JackpotPrizeGenerator } from "./../board";
 import { JackpotPublisher } from "./../event-publishers";
 import SlotGameData from "./../slot-game-data";
@@ -46,6 +47,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         logService,
         jackpotPrizeGenerator,
         generateResultConsumer,
+        boardDefinition,
     }) {
         super({
             definition,
@@ -65,6 +67,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         this.logService = logService;
         this.jackpotPrizeGenerator = jackpotPrizeGenerator;
         this.generateResultConsumer = generateResultConsumer;
+        this.boardDefinition = boardDefinition ?? defaultDefinition;
     }
 
     async autoSettleRound(player, roundId) {
@@ -105,7 +108,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
     async publishJackpotPrize({ finish, prizes, bet }) {
         await this.userBetResultPublisher.publishToUser(
             bet.uid,
-            this.collectJackpotResult({ result: finish.result, roundId: finish.roundId, prizes })
+            this.collectJackpotResult({ result: finish.result, settlementResult: finish.settlementResult, roundId: finish.roundId, prizes })
         );
     }
 
@@ -380,12 +383,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         };
     }
 
-    collectJackpotResult({ result, roundId, prizes }) {
+    collectJackpotResult({ result, settlementResult, roundId, prizes }) {
         return {
             jackpot: {
                 roundId,
                 prizes: prizes.length,
                 result,
+                positions: this.boardDefinition.paylines[settlementResult.jackpot.winningLine],
+                symbol: this.boardDefinition.specialSymbols.jackpot,
             },
         };
     }
