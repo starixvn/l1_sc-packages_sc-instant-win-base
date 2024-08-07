@@ -740,7 +740,7 @@ describe("SettleGameRoundConsumer", () => {
         let processFreeSpinsMock;
         let updateBetTrackMock;
         let publishJackpotPrizeMock;
-        let settleAfterJackpotMock;
+        let processBetMock;
 
         beforeEach(() => {
             consumer = new SettleGameRoundConsumer(initDependencies());
@@ -757,8 +757,8 @@ describe("SettleGameRoundConsumer", () => {
             publishJackpotPrizeMock = jest.spyOn(consumer, "publishJackpotPrize");
             publishJackpotPrizeMock.mockReturnValueOnce({});
 
-            settleAfterJackpotMock = jest.spyOn(consumer, "settleAfterJackpot");
-            settleAfterJackpotMock.mockReturnValueOnce({});
+            processBetMock = jest.spyOn(consumer, "processBet");
+            processBetMock.mockReturnValueOnce({});
         });
 
         afterEach(() => {
@@ -795,7 +795,7 @@ describe("SettleGameRoundConsumer", () => {
                 expect(processFreeSpinsMock).not.toHaveBeenCalled();
                 expect(updateBetTrackMock).not.toHaveBeenCalled();
                 expect(publishJackpotPrizeMock).not.toHaveBeenCalled();
-                expect(settleAfterJackpotMock).not.toHaveBeenCalled();
+                expect(processBetMock).not.toHaveBeenCalled();
             });
         });
 
@@ -864,7 +864,7 @@ describe("SettleGameRoundConsumer", () => {
 
                     // Assert
                     expect(publishJackpotPrizeMock).toHaveBeenCalledWith({ finish, prizes, bet });
-                    expect(settleAfterJackpotMock).not.toHaveBeenCalled();
+                    expect(processBetMock).not.toHaveBeenCalled();
                 });
 
                 it("should call updateBetTrack with correct arguments", async () => {
@@ -880,7 +880,7 @@ describe("SettleGameRoundConsumer", () => {
             });
 
             describe("when NO prizes are found", () => {
-                it("should call settleAfterJackpot", async () => {
+                it("should call processBet", async () => {
                     // Arrange
                     const finish = { settlementResult: {} };
                     queryBetsMock.mockReturnValueOnce(bet);
@@ -890,7 +890,7 @@ describe("SettleGameRoundConsumer", () => {
                     await consumer.settleRound(player, roundId);
 
                     // Assert
-                    expect(settleAfterJackpotMock).toHaveBeenCalledWith(player, bet, roundId);
+                    expect(processBetMock).toHaveBeenCalledWith(player, bet, roundId);
                 });
             });
         });

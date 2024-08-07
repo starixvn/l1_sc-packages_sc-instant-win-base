@@ -101,7 +101,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 return;
             }
 
-            await this.settleAfterJackpot(player, bet, roundId);
+            await this.processBet(player, bet, roundId);
         }
     }
 
@@ -116,14 +116,14 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const bet = await this.queryBets(roundId);
 
         await this.processJackpot(player, bet.id, bet, bet.settlementResult.jackpot.winningLine, bet.settlementResult.jackpot.winningPrize);
-        await this.settleAfterJackpot(player, bet, roundId);
+        await this.processBet(player, bet, roundId, true);
     }
 
-    async settleAfterJackpot(player, bet, roundId) {
+    async processBet(player, bet, roundId, afterJackpot = false) {
         if (bet.settlementResult.bonus?.odds === 0) {
             await this.settleBets(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         } else {
-            await this.processBonus(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
+            await this.processBonus(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet, afterJackpot);
         }
 
         await this.jackpotConsumer.contribute(player, { totalAmount: bet.totalAmount, roundId, rate: bet.rate });
@@ -162,16 +162,17 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         }
     }
 
-    async processBonus(player, finish, bet) {
+    async processBonus(player, finish, bet, afterJackpot) {
         const { result, settlementResult } = finish;
-        this.updateBonusTime(player);
+        this.updateBonusTime(player, afterJackpot);
         await this.userBetResultPublisher.publishToUser(bet.uid, this.collectBonusResult({ result, settlementResult, roundId: finish.roundId }));
     }
 
-    updateBonusTime(player) {
+    updateBonusTime(player, afterJackpot) {
         const { finish } = this.gameData.ingame[player.profile.name];
         if (!finish.bonusTime) {
             finish.bonusTime = new Date();
+            afterJackpot && finish.bonusTime.setSeconds(finish.bonusTime.getSeconds() + 3);
         }
     }
 
