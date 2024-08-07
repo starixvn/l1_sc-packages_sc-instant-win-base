@@ -98,7 +98,7 @@ export default class JackpotGameConsumer {
     }
 
     isHavingJackpot(bet) {
-        if (bet.finish) {
+        if (bet.finish?.settlementResult) {
             const { jackpot } = bet.finish.settlementResult;
 
             return jackpot ? jackpot.winningLine > 0 && !jackpot.picked : false;
