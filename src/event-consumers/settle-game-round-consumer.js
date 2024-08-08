@@ -390,7 +390,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 roundId,
                 prizes: prizes.length,
                 result,
-                positions: this.boardDefinition.paylines[settlementResult.jackpot.winningLine],
+                winningLine: settlementResult.jackpot.winningLine,
                 symbol: this.boardDefinition.specialSymbols.jackpot,
             },
         };

@@ -177,7 +177,7 @@ describe("SettleGameRoundConsumer", () => {
                     prizes: prizes.length,
                     roundId: "round1",
                     symbol: boardDefinition.specialSymbols.jackpot,
-                    positions: boardDefinition.paylines[1],
+                    winningLine: 1,
                 },
             });
         });
@@ -448,7 +448,7 @@ describe("SettleGameRoundConsumer", () => {
                     roundId: 1,
                     prizes: 3,
                     result: [1, 3, 5, 8, 9, 9],
-                    positions: boardDefinition.paylines[1],
+                    winningLine: 1,
                     symbol: boardDefinition.specialSymbols.jackpot,
                 },
             };
