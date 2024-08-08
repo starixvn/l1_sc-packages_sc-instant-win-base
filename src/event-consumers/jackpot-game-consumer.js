@@ -77,7 +77,6 @@ export default class JackpotGameConsumer {
             const runningBets = Object.values(this.gameData.ingame).filter(
                 (currentBet) => currentBet.finish && currentBet.finish?.time < expiryTime && this.isHavingJackpot(currentBet)
             );
-
             for (const ingameBet of runningBets) {
                 const { player } = ingameBet;
                 await this.autoPickJackpot(player);
@@ -101,7 +100,7 @@ export default class JackpotGameConsumer {
         if (bet.finish?.settlementResult) {
             const { jackpot } = bet.finish.settlementResult;
 
-            return jackpot ? jackpot.winningLine > 0 && !jackpot.picked : false;
+            return jackpot ? jackpot.winningLine >= 0 && !jackpot.picked : false;
         }
 
         return false;
