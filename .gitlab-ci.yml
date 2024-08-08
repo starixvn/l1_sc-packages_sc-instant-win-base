@@ -1,18 +1,4 @@
-variables:
-    PROJECT_NAME: sc-slot-game-base
-
-stages:
-    - test
-    - post-test
-    - publish
-
 include:
-    - project: "ci/common-ci"
-      ref: registry-image-update
-      file: "unit-test/js-unit-test.gitlab-ci.yml"
-    - project: "ci/common-ci"
-      ref: registry-image-update
-      file: "sonarqube/sonarqube.js-unittest.gitlab-ci.yml"
-    - project: "ci/common-ci"
-      ref: registry-image-update
-      file: "npm/publish-npm.gitlab-ci.yml"
+  - project: ci/core-cicd
+    ref: main
+    file: luminet.gitlab-ci.yml
