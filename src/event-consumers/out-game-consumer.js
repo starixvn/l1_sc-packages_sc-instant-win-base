@@ -29,20 +29,15 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
      * @param {SocketIO.Socket} socketClient
      */
     async consume(socketClient) {
-        try {
-            const realPlayer = this.gameData.realPlayers[socketClient.id];
+        const realPlayer = this.gameData.realPlayers[socketClient.id];
 
-            if (realPlayer) {
-                console.log(this.jackpotGameConsumer);
-                await this.jackpotGameConsumer.autoPickJackpot(realPlayer);
-                await this.bonusConsumer.autoOpenRemainingChests(realPlayer);
-                await this.upsertFreeSpinNotification(realPlayer);
-            }
-
-            super.consume(socketClient);
-        } catch (e) {
-            console.log(e);
+        if (realPlayer) {
+            await this.jackpotGameConsumer.autoPickJackpot(realPlayer);
+            await this.bonusConsumer.autoOpenRemainingChests(realPlayer);
+            await this.upsertFreeSpinNotification(realPlayer);
         }
+
+        super.consume(socketClient);
     }
 
     async upsertFreeSpinNotification(realPlayer) {
