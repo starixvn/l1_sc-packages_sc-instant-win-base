@@ -10,8 +10,8 @@ export default class SlotGameDefinition extends Core.GameDefinition {
         historyPageSize = 10,
         freeSpinLiveSeconds = 86400, // 1 day
         bonusSize = 10,
-        bonusLiveSeconds = 123,
-        jackpotLiveSeconds = 63,
+        bonusLiveSeconds = 125,
+        jackpotLiveSeconds = 65,
         applyNewBonusCalculation = false,
     }) {
         super({ id, name, durations, choices, choicesMapper, historyPageSize }, null, null);
