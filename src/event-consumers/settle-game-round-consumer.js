@@ -172,7 +172,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         const { finish } = this.gameData.ingame[player.profile.name];
         if (!finish.bonusTime) {
             finish.bonusTime = new Date();
-            afterJackpot && finish.bonusTime.setSeconds(finish.bonusTime.getSeconds() + 2);
+            afterJackpot && finish.bonusTime.setSeconds(finish.bonusTime.getSeconds() + this.definition.delaySecondsAfterJackpot);
         }
     }
 

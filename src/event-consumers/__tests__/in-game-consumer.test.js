@@ -198,7 +198,6 @@ describe("IngameConsumer", () => {
             // arrange
             const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
             const expected = {
-                baseBetLevels: [0.1, 1, 5],
                 betLevels: [0.1, 1, 5],
                 defaultBetLevel: 5,
                 odds: [],
