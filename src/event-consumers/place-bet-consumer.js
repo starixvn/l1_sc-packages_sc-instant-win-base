@@ -1,10 +1,9 @@
-import _ from "lodash";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
 
-import SlotNoticeHelper from "./../helpers/slot-notice-helper";
-import { MultipleCurrencyHelper } from "./../helpers";
 import defaultDefinition from "../board/default-definition";
+import { MultipleCurrencyHelper } from "./../helpers";
+import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
     composeBettingTimeValidationCriteria() {
