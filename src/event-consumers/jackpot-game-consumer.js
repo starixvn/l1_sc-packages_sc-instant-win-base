@@ -36,7 +36,7 @@ export default class JackpotGameConsumer {
         const { bet } = await this.pickJackpotAndUpdateBet({ player, chest });
 
         if (!bet) {
-            this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidJackpot } });
+            this.publishInvalidJackpotToUser(player);
             return;
         }
 
@@ -110,7 +110,7 @@ export default class JackpotGameConsumer {
         const jackpot = this.getJackpot(player);
 
         if (jackpot.picked || this.isInvalidChest(chest, jackpot.prizes)) {
-            this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+            this.publishInvalidJackpotToUser(player);
             return false;
         }
 
@@ -126,5 +126,9 @@ export default class JackpotGameConsumer {
 
     isInvalidChest(chest, prizes) {
         return typeof chest !== "number" || chest < 0 || chest >= prizes.length;
+    }
+
+    publishInvalidJackpotToUser(player) {
+        this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidJackpot } });
     }
 }

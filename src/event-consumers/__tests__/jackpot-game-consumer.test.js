@@ -354,7 +354,7 @@ describe("JackpotGameConsumer", () => {
             expect(result).toBe(false);
             expect(jackpotPublisher.publishToUser).toHaveBeenCalledWith("uid1", {
                 endBet: -1,
-                notice: { errorCode: SlotNoticeHelper.invalidBonus },
+                notice: { errorCode: SlotNoticeHelper.invalidJackpot },
             });
         });
 
@@ -368,7 +368,7 @@ describe("JackpotGameConsumer", () => {
 
             // Assert
             expect(result).toBe(false);
-            expect(jackpotPublisher.publishToUser).toHaveBeenCalledWith("uid1", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+            expect(jackpotPublisher.publishToUser).toHaveBeenCalledWith("uid1", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidJackpot } });
         });
 
         it("should return true if jackpot is NOT picked and chest is valid", () => {
@@ -396,7 +396,7 @@ describe("JackpotGameConsumer", () => {
 
             // Assert
             expect(result).toBe(false);
-            expect(jackpotPublisher.publishToUser).toHaveBeenCalledWith("uid2", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidBonus } });
+            expect(jackpotPublisher.publishToUser).toHaveBeenCalledWith("uid2", { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidJackpot } });
         });
     });
 
