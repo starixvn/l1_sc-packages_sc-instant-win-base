@@ -17,7 +17,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         ];
     }
 
-    composeBetAmountValidationCriteria(player, betChoice, amount, freeBet) {
+    composeBetAmountValidationCriteria(player, betChoice, amount, freeSpin) {
         const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, player);
 
         return [
@@ -26,7 +26,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
                 notice: this.getNoticeObj(SlotNoticeHelper.invalidStakeLevel),
             },
             {
-                failure: !betLevels.includes(amount),
+                failure: !freeSpin && !betLevels.includes(amount),
                 notice: this.getNoticeObj(SlotNoticeHelper.invalidStakeLevel),
             },
         ];
@@ -44,10 +44,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             betChoice: [...Object.keys(defaultDefinition.paylines)],
         });
 
-        const { amount, betChoice, freeBet, roundId } = payload;
+        const { amount, betChoice, freeSpin, roundId } = payload;
         const name = player.profile.name;
 
-        if (!this.validateBetRequest(player, betChoice, amount, freeBet, roundId)) {
+        if (!this.validateBetRequest(player, betChoice, amount, freeSpin, roundId)) {
             return;
         }
 

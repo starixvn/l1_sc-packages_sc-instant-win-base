@@ -47,7 +47,7 @@ describe("PlaceBetConsumer", () => {
                     { session: { currencyGroupId: "617a650628b7a500016388f5" } },
                     {},
                     amount,
-                    {}
+                    false
                 );
 
                 // assert
@@ -63,7 +63,7 @@ describe("PlaceBetConsumer", () => {
                 const amount = -1;
 
                 // act
-                const criterions = placeBetConsumer.composeBetAmountValidationCriteria({ session: {} }, {}, amount, {});
+                const criterions = placeBetConsumer.composeBetAmountValidationCriteria({ session: {} }, {}, amount, false);
 
                 // assert
                 expect(criterions.filter((x) => x.failure).length).toBe(2);
@@ -82,7 +82,7 @@ describe("PlaceBetConsumer", () => {
                     { session: { currencyGroupId: "617a650628b7a500016388f5" } },
                     {},
                     amount,
-                    {}
+                    false
                 );
 
                 // assert
