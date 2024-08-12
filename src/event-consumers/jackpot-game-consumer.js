@@ -109,8 +109,13 @@ export default class JackpotGameConsumer {
     validate(player, chest) {
         const jackpot = this.getJackpot(player);
 
-        if (jackpot.picked || this.isInvalidChest(chest, jackpot.prizes)) {
+        if (this.isInvalidChest(chest, jackpot.prizes)) {
             this.publishInvalidJackpotToUser(player);
+            return false;
+        }
+
+        if (jackpot.picked) {
+            this.publishOpenedJackpotToUser(player);
             return false;
         }
 
@@ -126,6 +131,9 @@ export default class JackpotGameConsumer {
 
     isInvalidChest(chest, prizes) {
         return typeof chest !== "number" || chest < 0 || chest >= prizes.length;
+    }
+    publishOpenedJackpotToUser(player) {
+        this.jackpotPublisher.publishToUser(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.openedJackpot } });
     }
 
     publishInvalidJackpotToUser(player) {

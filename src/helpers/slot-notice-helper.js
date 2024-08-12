@@ -5,4 +5,5 @@ export default {
     invalidBonus: "SB1931",
     openedBonus: "SB1932",
     invalidJackpot: "SB1940",
+    openedJackpot: "SB1941",
 };
