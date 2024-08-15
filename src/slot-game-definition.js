@@ -12,7 +12,7 @@ export default class SlotGameDefinition extends Core.GameDefinition {
         bonusSize = 10,
         bonusLiveSeconds = 125,
         jackpotLiveSeconds = 65,
-        delaySecondsAfterJackpot = 3,
+        delaySecondsAfterJackpot = 2,
         applyNewBonusCalculation = false,
     }) {
         super({ id, name, durations, choices, choicesMapper, historyPageSize }, null, null);
