@@ -212,7 +212,7 @@ describe("IngameConsumer", () => {
             };
 
             // act
-            const slotConfig = consumer.getSlotGameConfig(player);
+            const slotConfig = consumer.getSlotGameConfig(player, true);
 
             // assert
             expect(slotConfig).toStrictEqual(expected);

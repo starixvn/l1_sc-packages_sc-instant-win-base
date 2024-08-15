@@ -38,10 +38,11 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
 
     async buildPayload(realPlayer) {
         const { session } = realPlayer;
+        const canAccessJackpot = this.jackpotValidator.canAccessJackpot(realPlayer);
 
-        const gameConfigs = this.getSlotGameConfig(realPlayer);
+        const gameConfigs = this.getSlotGameConfig(realPlayer, canAccessJackpot);
         const freeSpins = this.getAvailableFreeSpins(realPlayer);
-        const jackpotPools = this.jackpotValidator.canAccessJackpot(realPlayer) ? await this.getPools() : [];
+        const jackpotPools = canAccessJackpot ? await this.getPools() : [];
 
         await this.getBalance(realPlayer, true);
 
@@ -62,21 +63,21 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         };
     }
 
-    getSlotGameConfig(realPlayer) {
+    getSlotGameConfig(realPlayer, canAccessJackpot) {
         const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer);
         const defaultBetLevel = MultipleCurrencyHelper.getDefaultBetLevel(this.gameData, realPlayer);
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
-
-        const poolConfigs = this.getJackpotPoolsConfig(jackpot.pools);
 
         return {
             betLevels,
             defaultBetLevel,
             odds,
-            jackpot: {
-                winningRatio: jackpot.winningRatio,
-                pools: poolConfigs,
-            },
+            jackpot: canAccessJackpot
+                ? {
+                      winningRatio: jackpot.winningRatio,
+                      pools: this.getJackpotPoolsConfig(jackpot.pools),
+                  }
+                : {},
         };
     }
 
