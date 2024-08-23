@@ -80,10 +80,8 @@ export default class JackpotGameConsumer {
                     Math.floor(currentBet.finish?.time / 1000) <= Math.floor(expiryTime / 1000) &&
                     this.isHavingJackpot(currentBet)
             );
-            for (const ingameBet of runningBets) {
-                const { player } = ingameBet;
-                await this.autoPickJackpot(player);
-            }
+
+            await Promise.all(runningBets.map((ingameBet) => this.autoPickJackpot(ingameBet.player)));
         } catch (error) {
             this.logService.logError(error);
         }
