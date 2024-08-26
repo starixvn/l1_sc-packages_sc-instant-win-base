@@ -81,14 +81,16 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
 
         const betLevelsPerGroup = Math.floor(betLevelsConfigs.length / ratios.length);
 
-        this.groupTracks = ratios.map((ratio, index) => {
-            const length = index === 0 ? betLevelsPerGroup + (betLevelsConfigs.length % ratios.length) : betLevelsPerGroup;
-            return {
-                betLevels: betLevelsConfigs.splice(0, length),
-                ratio,
-                numberOfTickets: 0,
-            };
-        });
+        this.groupTracks = ratios
+            .map((ratio, index) => {
+                const length = index === 0 ? betLevelsPerGroup + (betLevelsConfigs.length % ratios.length) : betLevelsPerGroup;
+                return {
+                    betLevels: betLevelsConfigs.splice(0, length),
+                    ratio,
+                    numberOfTickets: 0,
+                };
+            })
+            .filter((x) => x.betLevels.length > 0);
 
         super.resetAllBotData();
     }
