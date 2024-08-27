@@ -120,7 +120,6 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     getExchangeRate(session) {
         const { exchangeRates } = this.gameData;
         const { multiplier, currencyCode } = session;
-        //TODO what if exchangeRates.code[currencyCode] is undefined?!?
         const rate = exchangeRates.code[currencyCode] * multiplier;
 
         return { rate, multiplier };

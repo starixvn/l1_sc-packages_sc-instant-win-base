@@ -12,7 +12,6 @@ export default class HallOfFameConsumer {
     }
 
     async add(player, { roundId, bet, totalAmount, baseTotalAmount, winningAmount, baseWinningAmount, numberOfPaylines, freeSpin = false, rate }) {
-        //TODO add jp prize
         const fame = {
             uid: player.UID,
             name: player.profile.name,

@@ -25,7 +25,7 @@ export default class JackpotConsumer {
 
     async contribute(player, { totalAmount, roundId, rate, freeSpin }) {
         const contributedByMember = !!player.session;
-        
+
         if (contributedByMember && !this.jackpotValidator.canContributeJackpotPools(player, freeSpin)) {
             return;
         }
@@ -75,13 +75,11 @@ export default class JackpotConsumer {
         const contributionRatio = contributedByMember ? poolConfig.playerSettings.contrib : poolConfig.botSettings.contrib;
         const contributionAmount = math.round(baseTotalAmount * contributionRatio, 4);
 
-        const poolAdjustment = {
+        return {
             amount: contributionAmount,
             byBots: contributedByMember ? 0 : contributionAmount,
             byMembers: contributedByMember ? contributionAmount : 0,
         };
-
-        return poolAdjustment;
     }
 
     async hit(player, { prize, roundId, exchangeRateId, rate, operatorId, currency }) {

@@ -1,6 +1,6 @@
+import defaultDefinition from "./../board/default-definition";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
-import defaultDefinition from "./../board/default-definition";
 
 import { BoardGenerator, BonusBoardGenerator, JackpotPrizeGenerator, PaylineCalculator } from "./../board";
 import BoardCheatingConsumer from "./board-cheating-consumer";
@@ -70,9 +70,7 @@ export default class GenerateResultConsumer {
 
     settleJackpot(player, settlementResult) {
         if (settlementResult.jackpotPayline > -1) {
-            const jackpotPrizes = this.jackpotPrizeGenerator.generate(player);
-
-            return jackpotPrizes;
+            return this.jackpotPrizeGenerator.generate(player);
         }
 
         return null;
