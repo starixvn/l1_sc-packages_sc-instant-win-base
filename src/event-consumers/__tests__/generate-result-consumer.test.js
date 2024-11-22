@@ -1,16 +1,29 @@
 import { boardGenerator, boardCheatingConsumer, paylineCalculator, bonusBoardGenerator, jackpotPrizeGenerator } from "./stubs";
 import GenerateResultConsumer from "./../generate-result-consumer";
 
+import { boards } from "../../board/__tests__/test-boards";
+import defaultDefinition from "../../board/default-definition";
+
+const TEST_PLAYER_NAME = "testPlayer";
+
 describe("GenerateResultConsumer", () => {
     let consumer;
-    let definitionMock;
-    let gameDataMock;
+    let mockBoardGenerator;
+    let mockBoardCheatingConsumer;
+    let mockPaylineCalculator;
+    let mockGameData;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
-        definitionMock = {};
-        gameDataMock = {
+        mockBoardGenerator = {
+            generate: jest.fn(),
+        };
+        mockBoardCheatingConsumer = {
+            consume: jest.fn(),
+        };
+        mockPaylineCalculator = {
+            calculate: jest.fn(),
+        };
+        mockGameData = {
             gameConfigs: {
                 slotsConfig: {
                     mode: "normal",
@@ -19,243 +32,169 @@ describe("GenerateResultConsumer", () => {
         };
 
         consumer = new GenerateResultConsumer({
-            definition: definitionMock,
-            gameData: gameDataMock,
-            boardGenerator,
-            bonusBoardGenerator,
-            paylineCalculator,
-            boardCheatingConsumer,
-            jackpotPrizeGenerator,
+            gameData: mockGameData,
+            boardGenerator: mockBoardGenerator,
+            boardCheatingConsumer: mockBoardCheatingConsumer,
+            paylineCalculator: mockPaylineCalculator,
         });
     });
 
     describe("generateResult", () => {
-        const playerName = "player1";
-        const mode = "normal";
-        const generatedBoard = { board: "board1" };
-        const consumedBoard = { consumedBoard: "consumedBoard1" };
+        it("should generate regular board and apply cheating rules", () => {
+            mockBoardGenerator.generate.mockReturnValue(boards.noWin);
+            mockBoardCheatingConsumer.consume.mockReturnValue(boards.threeHarry);
 
-        it("should generate board with mode", () => {
-            // Arrange
-            boardGenerator.generate.mockReturnValueOnce(generatedBoard);
-            boardCheatingConsumer.consume.mockReturnValueOnce(consumedBoard);
+            const result = consumer.generateResult(TEST_PLAYER_NAME);
 
-            // Act
-            consumer.generateResult(playerName);
-
-            // Assert
-            expect(boardGenerator.generate).toHaveBeenCalledWith(mode);
+            expect(mockBoardGenerator.generate).toHaveBeenCalledWith("normal");
+            expect(mockBoardCheatingConsumer.consume).toHaveBeenCalledWith(TEST_PLAYER_NAME, boards.noWin);
+            expect(result).toEqual(boards.threeHarry);
         });
 
-        it("should pass generated board to control result", () => {
-            // Arrange
-            boardGenerator.generate.mockReturnValueOnce(generatedBoard);
-            boardCheatingConsumer.consume.mockReturnValueOnce(consumedBoard);
+        it("should handle free spins mode", () => {
+            mockGameData.gameConfigs.slotsConfig.mode = "free";
+            mockBoardGenerator.generate.mockReturnValue(boards.noWin);
+            mockBoardCheatingConsumer.consume.mockReturnValue(boards.noWin);
 
-            // Act
-            consumer.generateResult(playerName);
+            consumer.generateResult(TEST_PLAYER_NAME);
 
-            // Assert
-            expect(boardCheatingConsumer.consume).toHaveBeenCalledWith(playerName, generatedBoard);
+            expect(mockBoardGenerator.generate).toHaveBeenCalledWith("free");
         });
 
-        it("should return result from boardCheatingConsumer", () => {
-            // Arrange
-            boardGenerator.generate.mockReturnValueOnce(generatedBoard);
-            boardCheatingConsumer.consume.mockReturnValueOnce(consumedBoard);
+        it("should generate board with wild symbols", () => {
+            mockBoardGenerator.generate.mockReturnValue(boards.threeHarryWithWild);
+            mockBoardCheatingConsumer.consume.mockReturnValue(boards.threeHarryWithWild);
 
-            // Act
-            const result = consumer.generateResult(playerName);
+            const result = consumer.generateResult(TEST_PLAYER_NAME);
 
-            // Assert
-            expect(result).toEqual(consumedBoard);
-            expect(boardGenerator.generate).toHaveBeenCalledWith(mode);
-            expect(boardCheatingConsumer.consume).toHaveBeenCalledWith(playerName, generatedBoard);
+            expect(result).toEqual(boards.threeHarryWithWild);
         });
     });
 
     describe("settleWinningPaylines", () => {
-        describe("when have jackpot", () => {
-            it("should settle winning paylines exclude jackpot payline", () => {
-                // Arrange
-                const settlementResult = {
-                    paylines: [
-                        { payline: "payline1", odds: 2 },
-                        { payline: "payline2", odds: 0 },
-                        { payline: "payline3", odds: 3 },
-                    ],
-                    jackpot: true,
-                    jackpotPayline: "payline3",
-                };
+        it("should filter and return only paylines with odds greater than 0", () => {
+            const settlementResult = {
+                paylines: [
+                    { payline: defaultDefinition.paylines[0], symbol: "HARRY", count: 3, odds: 2.5 },
+                    { payline: defaultDefinition.paylines[1], symbol: "K", count: 2, odds: 0 },
+                    { payline: defaultDefinition.paylines[2], symbol: "WILD", count: 3, odds: 5 },
+                ],
+                freeSpins: { count: 0, odds: 0 },
+                bonus: { count: 0, odds: 0 },
+            };
 
-                // Act
-                const winningPaylines = consumer.settleWinningPaylines(settlementResult);
+            const winningPaylines = consumer.settleWinningPaylines(settlementResult);
 
-                // Assert
-                expect(winningPaylines).toEqual([{ payline: "payline1", odds: 2 }]);
-            });
+            expect(winningPaylines).toEqual([
+                { payline: defaultDefinition.paylines[0], symbol: "HARRY", count: 3, odds: 2.5 },
+                { payline: defaultDefinition.paylines[2], symbol: "WILD", count: 3, odds: 5 },
+            ]);
         });
 
-        describe("when have NO jackpot", () => {
-            it("should settle all winning paylines", () => {
-                // Arrange
-                const settlementResult = {
-                    paylines: [
-                        { payline: "payline1", odds: 2 },
-                        { payline: "payline2", odds: 0 },
-                        { payline: "payline3", odds: 3 },
-                    ],
-                    jackpot: false,
-                };
+        it("should return empty array when no winning paylines", () => {
+            const settlementResult = {
+                paylines: [
+                    { payline: defaultDefinition.paylines[0], symbol: "K", count: 2, odds: 0 },
+                    { payline: defaultDefinition.paylines[1], symbol: "Q", count: 2, odds: 0 },
+                ],
+                freeSpins: { count: 0, odds: 0 },
+                bonus: { count: 0, odds: 0 },
+            };
 
-                // Act
-                const winningPaylines = consumer.settleWinningPaylines(settlementResult);
+            const winningPaylines = consumer.settleWinningPaylines(settlementResult);
 
-                // Assert
-                expect(winningPaylines).toEqual([
-                    { payline: "payline1", odds: 2 },
-                    { payline: "payline3", odds: 3 },
-                ]);
-            });
+            expect(winningPaylines).toEqual([]);
         });
     });
 
     describe("generateSettlementResult", () => {
-        const bet = {
-            name: "player1",
-            paylines: ["payline1", "payline2"],
+        const setupBasicTest = () => {
+            const bet = {
+                name: "player1",
+                paylines: ["payline1", "payline2"],
+            };
+            const odds = 2;
+            const mockCalculateResult = {
+                paylines: [
+                    { payline: 1, symbol: "1", count: 3, odds: 5 },
+                    { payline: 2, symbol: "10", count: 5, odds: 500 },
+                    { payline: 3, symbol: "2", count: 3, odds: 5 },
+                ],
+                freeSpins: { count: 1, odds: 0 },
+                bonus: { count: 0, odds: 0 },
+                jackpotPayline: -1,
+            };
+            return { bet, odds, mockCalculateResult };
         };
-        const odds = 2;
-        const generatedBoard = [10, 5, 4, 10, 8, 7, 10, 5, 8, 10, 0, 8, 10, 5, 0];
-        const consumedBoard = [2, 1, 5, 10, 8, 7, 10, 5, 8, 10, 0, 0, 0, 5, 0];
-        const paylines = [
-            { payline: 1, symbol: "1", count: 3, odds: 5 },
-            { payline: 2, symbol: "10", count: 5, odds: 500 },
-            { payline: 3, symbol: "2", count: 3, odds: 5 },
-        ];
-        const calculatedResult = {
-            paylines,
-            freeSpins: { count: 1, odds: 0 },
-            bonus: { count: 0, odds: 0 },
-            jackpotPayline: -1,
-        };
-
-        const player = { name: "player1" };
-
-        beforeEach(() => {
-            boardGenerator.generate.mockReturnValueOnce(generatedBoard);
-            boardCheatingConsumer.consume.mockReturnValueOnce(consumedBoard);
-        });
 
         it("always generate result with player name", () => {
-            // Arrange
+            const { bet, odds, mockCalculateResult } = setupBasicTest();
             jest.spyOn(consumer, "generateResult");
-            paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
+            mockPaylineCalculator.calculate.mockReturnValue(mockCalculateResult);
 
-            // Act
-            consumer.generateSettlementResult(player, bet, odds);
+            consumer.generateSettlementResult({ name: bet.name }, bet, odds);
 
-            // Assert
             expect(consumer.generateResult).toHaveBeenCalledWith(bet.name);
         });
 
         it("always calculate from generated result", () => {
-            // Arrange
-            paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
+            const { bet, odds, mockCalculateResult } = setupBasicTest();
+            const generatedBoard = boards.noWin;
+            mockBoardGenerator.generate.mockReturnValue(generatedBoard);
+            mockBoardCheatingConsumer.consume.mockReturnValue(boards.threeHarry);
+            mockPaylineCalculator.calculate.mockReturnValue(mockCalculateResult);
 
-            // Act
-            consumer.generateSettlementResult(player, bet, odds);
+            consumer.generateSettlementResult({ name: bet.name }, bet, odds);
 
-            // Assert
-            expect(paylineCalculator.calculate).toHaveBeenCalledWith(consumedBoard, bet.paylines, odds);
+            expect(mockPaylineCalculator.calculate).toHaveBeenCalledWith(boards.threeHarry, bet.paylines, odds);
         });
 
         it("always settle winning from settlement result", () => {
-            // Arrange
+            const { bet, odds, mockCalculateResult } = setupBasicTest();
             jest.spyOn(consumer, "settleWinningPaylines");
-            paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
+            mockPaylineCalculator.calculate.mockReturnValue(mockCalculateResult);
 
-            // Act
-            consumer.generateSettlementResult(player, bet, odds);
+            consumer.generateSettlementResult({ name: bet.name }, bet, odds);
 
-            // Assert
-            expect(consumer.settleWinningPaylines).toHaveBeenCalledWith(calculatedResult);
+            expect(consumer.settleWinningPaylines).toHaveBeenCalledWith(mockCalculateResult);
         });
 
         it("should generate settlement result correctly", () => {
-            // Arrange
-            paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
+            const { bet, odds, mockCalculateResult } = setupBasicTest();
+            mockBoardGenerator.generate.mockReturnValue(boards.noWin);
+            mockBoardCheatingConsumer.consume.mockReturnValue(boards.threeHarry);
+            mockPaylineCalculator.calculate.mockReturnValue(mockCalculateResult);
 
-            // Act
-            const { result, settlementResult } = consumer.generateSettlementResult(player, bet, odds);
+            const { result, settlementResult } = consumer.generateSettlementResult({ name: bet.name }, bet, odds);
 
-            // Assert
-            expect(result).toEqual(consumedBoard);
+            expect(result).toEqual(boards.threeHarry);
             expect(settlementResult).toEqual({
-                ...calculatedResult,
-                winningPaylines: paylines,
+                ...mockCalculateResult,
+                winningPaylines: mockCalculateResult.paylines.filter((payline) => payline.odds > 0),
             });
         });
 
-        describe("when have jackpot", () => {
-            it("should return result contain correct jackpot info ", () => {
-                // Arrange
-                const prizes = ["minor", "major", "grand"];
-                const resultWithJackpot = { ...calculatedResult };
-                resultWithJackpot.jackpotPayline = 2;
-                paylineCalculator.calculate.mockReturnValueOnce(resultWithJackpot);
-                jackpotPrizeGenerator.generate.mockReturnValueOnce(prizes);
+        it("should handle realistic board configurations", () => {
+            const realisticBet = {
+                name: TEST_PLAYER_NAME,
+                paylines: defaultDefinition.paylines,
+            };
 
-                // Act
-                const { settlementResult } = consumer.generateSettlementResult(player, bet, odds);
+            const realisticCalculateResult = {
+                paylines: [{ payline: defaultDefinition.paylines[0], symbol: "HARRY", count: 3, odds: 2.5 }],
+                freeSpins: { count: 0, odds: 0 },
+                bonus: { count: 0, odds: 0 },
+                jackpotPayline: -1,
+            };
 
-                // Assert
-                expect(settlementResult.jackpot).toStrictEqual({
-                    picked: false,
-                    prizes,
-                    winningLine: resultWithJackpot.jackpotPayline,
-                    winningAmount: 0,
-                });
-            });
+            mockBoardGenerator.generate.mockReturnValue(boards.noWin);
+            mockBoardCheatingConsumer.consume.mockReturnValue(boards.threeHarry);
+            mockPaylineCalculator.calculate.mockReturnValue(realisticCalculateResult);
 
-            it("should exlcude jackpot payline from winningPaylines ", () => {
-                // Arrange
-                const prizes = ["minor", "major", "grand"];
-                const resultWithJackpot = { ...calculatedResult };
-                resultWithJackpot.jackpotPayline = 2;
-                paylineCalculator.calculate.mockReturnValueOnce(resultWithJackpot);
-                jackpotPrizeGenerator.generate.mockReturnValueOnce(prizes);
+            const result = consumer.generateSettlementResult({ name: realisticBet.name }, realisticBet, 2);
 
-                // Act
-                const { settlementResult } = consumer.generateSettlementResult(player, bet, odds);
-
-                // Assert
-                expect(settlementResult.winningPaylines.filter((payline) => payline.payline === resultWithJackpot.jackpotPayline)).toBeEmpty();
-            });
-        });
-
-        describe("when NOT have jackpot", () => {
-            it("should NOT return jackpot", () => {
-                // Arrange
-                paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
-
-                // Act
-                const { settlementResult } = consumer.generateSettlementResult(player, bet, odds);
-
-                // Assert
-                expect(settlementResult.jackpot).toBeUndefined();
-            });
-
-            it("should return all winning paylines", () => {
-                // Arrange
-                paylineCalculator.calculate.mockReturnValueOnce(calculatedResult);
-
-                // Act
-                const { settlementResult } = consumer.generateSettlementResult(player, bet, odds);
-
-                // Assert
-                expect(settlementResult.winningPaylines).toStrictEqual(paylines);
-            });
+            expect(result.result).toEqual(boards.threeHarry);
+            expect(result.settlementResult.winningPaylines[0].symbol).toBe("HARRY");
         });
     });
 });

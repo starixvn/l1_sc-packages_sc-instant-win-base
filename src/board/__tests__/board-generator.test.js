@@ -1,74 +1,122 @@
-import { BoardGenerator } from "..";
-import SlotGameData from "../../slot-game-data";
+import BoardGenerator from "../board-generator";
 import defaultDefinition from "../default-definition";
-import difficulties from "../difficulties";
 
 describe("BoardGenerator", () => {
-    let boardGenerator;
-    const gameData = new SlotGameData();
-
-    gameData.gameConfigs = {
-        enabled: true,
-        minbet: 1,
-        maxbet: 1000,
-        slotsConfig: {
-            stakeLevels: [{ stake: 0.1 }, { stake: 1 }, { stake: 5 }],
-            symbolWeight: {
-                1: [
-                    [55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5],
-                    [1, 1, 1, 2, 0, 0, 0, 1, 1, 0, 0],
-                    [3, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-                ],
-                2: [
-                    [55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5],
-                    [1, 1, 1, 2, 0, 0, 0, 1, 1, 0, 0],
-                    [1, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0],
-                ],
-                3: [
-                    [55, 50, 45, 40, 35, 30, 25, 20, 15, 10, 5],
-                    [1, 1, 1, 2, 2, 2, 2, 1, 1, 0, 0],
-                    [1, 1, 2, 0, 1, 0, 0, 0, 0, 0, 0],
-                ],
-            },
-        },
-    };
+    let generator;
 
     beforeEach(() => {
-        jest.clearAllMocks();
-
-        boardGenerator = new BoardGenerator(defaultDefinition, gameData);
+        generator = new BoardGenerator(defaultDefinition);
     });
 
-    describe("generate", () => {
-        it("should generate approriate board base on definition", () => {
-            // Act
-            const board = boardGenerator.generate(difficulties.easy);
+    test("should generate reel strips with correct weights", () => {
+        const reelStrips = generator.reelStrips;
 
-            // Assert
-            expect(board.length).toEqual(defaultDefinition.numberOfRows * defaultDefinition.numberOfColumns);
+        // Check if we have the correct number of reels
+        expect(reelStrips.length).toBe(defaultDefinition.numberOfColumns);
+
+        // Test first reel's composition
+        const firstReel = reelStrips[0];
+        const symbolCounts = {};
+
+        firstReel.forEach((symbol) => {
+            symbolCounts[symbol] = (symbolCounts[symbol] || 0) + 1;
+        });
+
+        // Check if weights match the filling strategy
+        Object.entries(defaultDefinition.fillingStrategies.reel1).forEach(([symbol, weight]) => {
+            expect(symbolCounts[symbol]).toBe(weight);
         });
     });
 
-    describe("generateForBots", () => {
-        describe("when jackpot enabled", () => {
-            it("should generate appropriate board base on definition ", () => {
-                // Act
-                const board = boardGenerator.generateForBots(true);
+    test("should generate board with correct dimensions", () => {
+        const board = generator.generate();
 
-                // Assert
-                expect(board.length).toEqual(defaultDefinition.numberOfRows * defaultDefinition.numberOfColumns);
+        expect(board.length).toBe(defaultDefinition.numberOfRows);
+        expect(board[0].length).toBe(defaultDefinition.numberOfColumns);
+    });
+
+    test("should generate valid symbols with positions", () => {
+        const board = generator.generate();
+
+        board.forEach((row, rowIndex) => {
+            row.forEach((symbol, colIndex) => {
+                // Check symbol properties
+                expect(symbol).toHaveProperty("id");
+                expect(symbol).toHaveProperty("position");
+                expect(symbol.position).toEqual({ row: rowIndex, col: colIndex });
+
+                // Verify symbol is from the definition
+                expect(defaultDefinition.symbols[symbol.id]).toBeDefined();
             });
         });
+    });
 
-        describe("when jackpot disable", () => {
-            it("should generate appropriate board base on definition ", () => {
-                // Act
-                const board = boardGenerator.generateForBots(false);
+    test("should generate consecutive symbols from reel strips", () => {
+        const board = generator.generate();
 
-                // Assert
-                expect(board.length).toEqual(defaultDefinition.numberOfRows * defaultDefinition.numberOfColumns);
+        // Get symbols from first column
+        const firstColSymbols = board.map((row) => row[0].id);
+
+        // These symbols should exist consecutively somewhere in the first reel strip
+        const firstReelStrip = generator.reelStrips[0];
+
+        // Helper function to check if symbols appear consecutively in reel
+        const findConsecutiveSymbols = (strip, symbols) => {
+            for (let i = 0; i <= strip.length - symbols.length; i++) {
+                const consecutive = strip.slice(i, i + symbols.length);
+                if (JSON.stringify(consecutive) === JSON.stringify(symbols)) {
+                    return true;
+                }
+            }
+            // Check wrap-around case
+            const wrappedStrip = [...strip, ...strip.slice(0, symbols.length - 1)];
+            for (let i = 0; i <= strip.length - 1; i++) {
+                const consecutive = wrappedStrip.slice(i, i + symbols.length);
+                if (JSON.stringify(consecutive) === JSON.stringify(symbols)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        expect(findConsecutiveSymbols(firstReelStrip, firstColSymbols)).toBe(true);
+    });
+
+    test("should process wild multipliers", () => {
+        const board = generator.generate();
+
+        board.forEach((row) => {
+            row.forEach((symbol) => {
+                if (symbol.isWild) {
+                    expect(symbol.multiplier).toBeDefined();
+                    expect(defaultDefinition.symbols.WILD.randomMultipliers).toContain(symbol.multiplier);
+                }
             });
         });
     });
 
+    test("should print board output", () => {
+        const board = generator.generate();
+
+        console.log("\nGenerated Board:");
+        console.log("---------------");
+
+        board.forEach((row, rowIndex) => {
+            const rowStr = row
+                .map((symbol) => {
+                    let display = symbol.id;
+                    if (symbol.isWild && symbol.multiplier) {
+                        display += `(${symbol.multiplier}x)`;
+                    }
+                    return display.padEnd(15); // Pad for alignment
+                })
+                .join(" ");
+            console.log(`Row ${rowIndex}: ${rowStr}`);
+        });
+
+        console.log("\nReel Strip Lengths:");
+        generator.reelStrips.forEach((strip, index) => {
+            console.log(`Reel ${index + 1}: ${strip.length} positions`);
+        });
+    });
 });

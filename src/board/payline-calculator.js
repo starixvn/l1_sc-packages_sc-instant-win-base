@@ -4,114 +4,97 @@ export default class PaylineCalculator {
     /**
      * @param {defaultDefinition} boardDefinition
      */
-    constructor(boardDefinition) {
-        this.definition = boardDefinition ?? defaultDefinition;
-        this.specialSymbols = Object.values(this.definition.specialSymbols).map((symbol) => String(symbol));
-        this.ignoringOddsSymbols = [String(this.definition.specialSymbols.freeSpins), String(this.definition.specialSymbols.bonus)];
+    constructor(boardConfig) {
+        this.boardConfig = boardConfig;
     }
 
-    calculate(board, selectedPaylines, odds) {
-        const occurrences = this.countSymbolsInBoard(board);
-        const occurrencesInSelectedPaylines = selectedPaylines.map((paylineIndex) => ({ paylineIndex, occurrences: occurrences[paylineIndex] }));
-        const paylinesResult = occurrencesInSelectedPaylines.map((occurrencesByPayline) => {
-            const occurrencesWithOddsByPayline = Object.entries(occurrencesByPayline.occurrences).reduce((occurrencesWithOdds, [symbol, count]) => {
-                const symbolOdds = this.ignoringOddsSymbols.includes(symbol) ? 0 : odds[symbol][count];
+    static MIN_SYMBOLS_FOR_WIN = 3;
 
-                occurrencesWithOdds[symbol] = symbolOdds ?? 0;
+    isWinningCombination(symbol, count) {
+        return count >= PaylineCalculator.MIN_SYMBOLS_FOR_WIN && symbol.pays && symbol.pays[count];
+    }
 
-                return occurrencesWithOdds;
-            }, {});
-            const mostProfitableSymbol = Object.keys(occurrencesWithOddsByPayline).reduce((highestOddsSymbol, symbol) =>
-                occurrencesWithOddsByPayline[symbol] > occurrencesWithOddsByPayline[highestOddsSymbol] ? symbol : highestOddsSymbol
+    shouldCountSymbol(acc, symbol, firstSymbol) {
+        return acc.shouldCount && (symbol.id === firstSymbol.id || symbol.isWild);
+    }
+
+    calculateWinDetails(firstSymbol, matchingSymbols, odds, isFreeSpin, freeSpinMultiplier) {
+        const { count, wildMultiplier } = matchingSymbols;
+        const hasWin = this.isWinningCombination(firstSymbol, count);
+        const totalMultiplier = wildMultiplier * (isFreeSpin ? freeSpinMultiplier : 1);
+        const win = hasWin ? firstSymbol.pays[count] * odds * totalMultiplier : 0;
+
+        return {
+            hasWin,
+            win,
+            count,
+            totalMultiplier,
+        };
+    }
+
+    calculate(board, paylines, odds, isFreeSpin = false, freeSpinMultiplier = 1) {
+        const calculatedPaylines = paylines.map((payline) => {
+            const symbols = this.getPaylineSymbols(board, payline);
+            const firstSymbol = symbols[0];
+
+            const matchingSymbols = symbols.slice(1).reduce(
+                (acc, symbol) => {
+                    if (this.shouldCountSymbol(acc, symbol, firstSymbol)) {
+                        return {
+                            count: acc.count + 1,
+                            wildMultiplier: this.calculateWildMultiplier(acc.wildMultiplier, symbol),
+                            shouldCount: true,
+                        };
+                    }
+                    return { ...acc, shouldCount: false };
+                },
+                { count: 1, wildMultiplier: 1, shouldCount: true }
+            );
+
+            const { hasWin, win, count, totalMultiplier } = this.calculateWinDetails(
+                firstSymbol,
+                matchingSymbols,
+                odds,
+                isFreeSpin,
+                freeSpinMultiplier
             );
 
             return {
-                payline: occurrencesByPayline.paylineIndex,
-                symbol: mostProfitableSymbol,
-                count: occurrencesByPayline.occurrences[mostProfitableSymbol],
-                odds: occurrencesWithOddsByPayline[mostProfitableSymbol],
+                payline,
+                win,
+                count: hasWin ? count : 0,
+                symbol: hasWin ? firstSymbol.id : null,
+                multiplier: hasWin ? totalMultiplier : 1,
+                positions: hasWin ? payline.slice(0, count) : [],
             };
         });
 
         return {
-            paylines: paylinesResult,
-            freeSpins: this.calculateFreeSpins(board, occurrencesInSelectedPaylines, odds),
-            bonus: this.calculateBonus(board, occurrencesInSelectedPaylines, odds),
-            jackpotPayline: this.getJackpotWinningPayline(board, occurrencesInSelectedPaylines),
+            totalWin: calculatedPaylines.reduce((sum, payline) => sum + payline.win, 0),
+            paylines: calculatedPaylines,
         };
     }
 
-    calculateFreeSpins(board, paylines, odds) {
-        const countingByColumns = this.countSpecificSymbolPerColumn(board, this.definition.specialSymbols.freeSpins);
-        const numberOfColumns = Object.keys(countingByColumns).length;
-        const numberOfFreeSpins = odds[this.definition.specialSymbols.freeSpins]?.[numberOfColumns] ?? 0;
-
-        return {
-            count: numberOfColumns,
-            odds: numberOfFreeSpins,
-        };
-    }
-
-    calculateBonus(board, paylines, odds) {
-        const countingByColumns = this.countSpecificSymbolPerColumn(board, this.definition.specialSymbols.bonus);
-        const numberOfColumns = Object.keys(countingByColumns).length;
-        const numberOfBonusHits = odds[this.definition.specialSymbols.bonus]?.[numberOfColumns] ?? 0;
-
-        return {
-            count: numberOfColumns,
-            odds: numberOfBonusHits,
-        };
-    }
-
-    countSpecificSymbolPerColumn(board, sample) {
-        return board.reduce((countingByColumns, symbol, index) => {
-            if (symbol === sample) {
-                const column = ~~(index / this.definition.numberOfRows);
-
-                countingByColumns[column] = (countingByColumns[column] ?? 0) + 1;
-            }
-
-            return countingByColumns;
-        }, {});
-    }
-
-    getJackpotWinningPayline(board, paylines) {
-        const jackpotPayline = paylines.find(
-            (payline) => payline.occurrences[this.definition.specialSymbols.jackpot] === this.definition.numberOfColumns
-        );
-
-        return jackpotPayline?.paylineIndex ?? -1;
-    }
-
-    countSymbolsInBoard(board) {
-        const paylinePatterns = this.definition.paylines;
-
-        return paylinePatterns.map((pattern) => {
-            const payline = pattern.map((cellIndex) => board[cellIndex]);
-
-            return this.countSymbolsInPayline(payline);
+    getPaylineSymbols(board, payline) {
+        return payline.map((position) => {
+            const row = Math.floor(position / this.boardConfig.numberOfColumns);
+            const col = position % this.boardConfig.numberOfColumns;
+            return board[row][col];
         });
     }
 
-    countSymbolsInPayline(payline) {
-        let replacements = 0;
-
-        const occurrencesBySymbols = payline.reduce((occurrences, symbol) => {
-            if (symbol === this.definition.specialSymbols.replacement) {
-                replacements++;
-            }
-
-            occurrences[symbol] = (occurrences[symbol] ?? 0) + 1;
-
-            return occurrences;
-        }, {});
-
-        Object.keys(occurrencesBySymbols).forEach((symbol) => {
-            if (!this.specialSymbols.includes(symbol)) {
-                occurrencesBySymbols[symbol] += replacements;
-            }
-        });
-
-        return occurrencesBySymbols;
+    /**
+     * Calculates the cumulative multiplier when wild symbols are present in a winning combination
+     * @param {number} wildMultiplier - The current accumulated wild multiplier
+     * @param {Object} symbol - The symbol being evaluated
+     * @param {boolean} symbol.isWild - Whether the symbol is a wild symbol
+     * @param {number} [symbol.multiplier] - The multiplier value of the wild symbol (if any)
+     * @returns {number} - The new accumulated wild multiplier
+     */
+    calculateWildMultiplier(wildMultiplier, symbol) {
+        if (symbol.isWild && symbol.multiplier) {
+            return wildMultiplier * symbol.multiplier;
+        }
+        return wildMultiplier;
     }
 }

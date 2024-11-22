@@ -1,77 +1,157 @@
-import { PaylineCalculator } from "..";
-import odds from "../../../tests/odds";
+import PaylineCalculator from "../payline-calculator";
+import defaultDefinition from "../default-definition";
+import { boards } from "./test-boards";
 
-describe("generate", () => {
-    it("should return approriate odds for winning paylines", () => {
-        // arrange
-        const board = [1, 2, 2, 1, 4, 4, 1, 9, 3, 4, 1, 2, 7, 2, 2];
-        const selectedPaylines = [1];
-        const calculator = new PaylineCalculator();
-        const expectedCount = 3;
-        const expectedPaylines = [{ payline: 1, count: expectedCount, odds: odds[1][expectedCount], symbol: "1" }];
+describe("PaylineCalculator", () => {
+    let calculator;
 
-        // act
-        const settlementResult = calculator.calculate(board, selectedPaylines, odds);
-
-        // assert
-        expect(settlementResult).not.toBeNull();
-        expect(settlementResult.paylines).toStrictEqual(expectedPaylines);
-        expect(settlementResult.bonus).toStrictEqual({ count: 0, odds: 0 });
+    beforeEach(() => {
+        calculator = new PaylineCalculator(defaultDefinition);
     });
 
-    it("should return bonus when having more than 3 bonus on different columns", () => {
-        // arrange
-        const board = [1, 2, 2, 1, 4, 8, 1, 8, 3, 4, 1, 8, 7, 2, 2];
-        const selectedPaylines = [1];
-        const calculator = new PaylineCalculator();
+    test("should calculate basic win", () => {
+        const result = calculator.calculate(boards.threeHarry, [[0, 1, 2, 3, 4]], 1);
 
-        // act
-        const settlementResult = calculator.calculate(board, selectedPaylines, odds);
-
-        // assert
-        expect(settlementResult.bonus).toStrictEqual({ count: 3, odds: 3 });
+        expect(result.paylines[0].symbol).toBe("HARRY");
+        expect(result.paylines[0].count).toBe(3);
+        expect(result.totalWin).toBe(2.5);
     });
 
-    it("should NOT treat wild icon as replacement of bonus", () => {
-        // arrange
-        const board = [1, 1, 2, 1, 9, 7, 8, 1, 3, 4, 8, 7, 7, 2, 2];
-        const selectedPaylines = [1];
-        const calculator = new PaylineCalculator();
+    test("should calculate win with wild multiplier", () => {
+        const result = calculator.calculate(boards.threeHarryWithWild, [[0, 1, 2, 3, 4]], 1);
 
-        // act
-        const settlementResult = calculator.calculate(board, selectedPaylines, odds);
-
-        // assert
-        expect(settlementResult.bonus).toStrictEqual({ count: 2, odds: 0 });
+        expect(result.paylines[0].symbol).toBe("HARRY");
+        expect(result.paylines[0].count).toBe(3);
+        expect(result.paylines[0].multiplier).toBe(2);
+        expect(result.totalWin).toBe(5);
     });
 
-    it("should return freespins when having more than 3 freespins on different columns", () => {
-        // arrange
-        const board = [1, 2, 2, 1, 4, 7, 1, 8, 3, 4, 1, 7, 7, 2, 2];
-        const selectedPaylines = [1];
-        const calculator = new PaylineCalculator();
+    test("should calculate 4-symbol win", () => {
+        const result = calculator.calculate(boards.fourHarry, [[0, 1, 2, 3, 4]], 1);
 
-        // act
-        const settlementResult = calculator.calculate(board, selectedPaylines, odds);
-
-        // assert
-        expect(settlementResult.freeSpins).toStrictEqual({ count: 3, odds: 3 });
+        expect(result.paylines[0].symbol).toBe("HARRY");
+        expect(result.paylines[0].count).toBe(4);
+        expect(result.totalWin).toBe(5);
     });
 
-    it("should return JACKPOT if payline contains 5 jackpot symbol", () => {
-        // arrange
-        const board = [10, 2, 2, 10, 4, 4, 10, 9, 3, 10, 1, 2, 10, 2, 2];
-        const selectedPaylines = [1];
-        const calculator = new PaylineCalculator();
-        const expectedCount = 5;
-        const expectedPaylines = [{ payline: 1, count: expectedCount, odds: odds[10][expectedCount], symbol: "10" }];
+    test("should calculate 5-symbol win", () => {
+        const result = calculator.calculate(boards.fiveHarry, [[0, 1, 2, 3, 4]], 1);
 
-        // act
-        const settlementResult = calculator.calculate(board, selectedPaylines, odds);
+        expect(result.paylines[0].symbol).toBe("HARRY");
+        expect(result.paylines[0].count).toBe(5);
+        expect(result.totalWin).toBe(25);
+    });
 
-        // assert
-        expect(settlementResult).not.toBeNull();
-        expect(settlementResult.paylines).toStrictEqual(expectedPaylines);
-        expect(settlementResult.jackpotPayline).toBe(1);
+    test("should calculate 4-symbol win with wild multiplier", () => {
+        const result = calculator.calculate(boards.fourHarryWithWild, [[0, 1, 2, 3, 4]], 1);
+
+        expect(result.paylines[0].symbol).toBe("HARRY");
+        expect(result.paylines[0].count).toBe(4);
+        expect(result.paylines[0].multiplier).toBe(2);
+        expect(result.totalWin).toBe(10);
+    });
+
+    test("should calculate 5-symbol win with multiple wild multipliers", () => {
+        const result = calculator.calculate(boards.fiveHarryWithMultipleWilds, [[0, 1, 2, 3, 4]], 1);
+
+        expect(result.paylines[0].symbol).toBe("HARRY");
+        expect(result.paylines[0].count).toBe(5);
+        expect(result.paylines[0].multiplier).toBe(6);
+        expect(result.totalWin).toBe(150);
+    });
+
+    describe("when player has free spins", () => {
+        test("should apply free spins multiplier to basic win", () => {
+            const result = calculator.calculate(boards.threeHarry, [[0, 1, 2, 3, 4]], 1, true, 3);
+
+            expect(result.paylines[0].symbol).toBe("HARRY");
+            expect(result.paylines[0].count).toBe(3);
+            expect(result.paylines[0].multiplier).toBe(3);
+            expect(result.totalWin).toBe(7.5);
+        });
+
+        test("should combine wild and free spins multipliers", () => {
+            const result = calculator.calculate(boards.threeHarryWithWild, [[0, 1, 2, 3, 4]], 1, true, 3);
+
+            expect(result.paylines[0].symbol).toBe("HARRY");
+            expect(result.paylines[0].count).toBe(3);
+            expect(result.paylines[0].multiplier).toBe(6);
+            expect(result.totalWin).toBe(15);
+        });
+
+        test("should calculate 4-symbol win with free spins multiplier", () => {
+            const result = calculator.calculate(boards.fourHarry, [[0, 1, 2, 3, 4]], 1, true, 3);
+
+            expect(result.paylines[0].symbol).toBe("HARRY");
+            expect(result.paylines[0].count).toBe(4);
+            expect(result.paylines[0].multiplier).toBe(3);
+            expect(result.totalWin).toBe(15);
+        });
+
+        test("should calculate 5-symbol win with free spins multiplier", () => {
+            const result = calculator.calculate(boards.fiveHarry, [[0, 1, 2, 3, 4]], 1, true, 3);
+
+            expect(result.paylines[0].symbol).toBe("HARRY");
+            expect(result.paylines[0].count).toBe(5);
+            expect(result.paylines[0].multiplier).toBe(3);
+            expect(result.totalWin).toBe(75);
+        });
+
+        test("should calculate 4-symbol win with wild and free spins multipliers", () => {
+            const result = calculator.calculate(boards.fourHarryWithWild, [[0, 1, 2, 3, 4]], 1, true, 3);
+
+            expect(result.paylines[0].symbol).toBe("HARRY");
+            expect(result.paylines[0].count).toBe(4);
+            expect(result.paylines[0].multiplier).toBe(6);
+            expect(result.totalWin).toBe(30);
+        });
+
+        test("should calculate 5-symbol win with multiple wild and free spins multipliers", () => {
+            const result = calculator.calculate(boards.fiveHarryWithMultipleWilds, [[0, 1, 2, 3, 4]], 1, true, 3);
+
+            expect(result.paylines[0].symbol).toBe("HARRY");
+            expect(result.paylines[0].count).toBe(5);
+            expect(result.paylines[0].multiplier).toBe(18);
+            expect(result.totalWin).toBe(450);
+        });
+    });
+
+    describe("when player got NO wins", () => {
+        test("should handle no matching symbols", () => {
+            const result = calculator.calculate(boards.noWin, [[0, 1, 2, 3, 4]], 1);
+
+            expect(result.paylines[0].symbol).toBeNull();
+            expect(result.paylines[0].count).toBe(0);
+            expect(result.paylines[0].multiplier).toBe(1);
+            expect(result.paylines[0].win).toBe(0);
+            expect(result.totalWin).toBe(0);
+        });
+
+        test("should handle only two matching symbols", () => {
+            const result = calculator.calculate(boards.twoMatchOnly, [[0, 1, 2, 3, 4]], 1);
+
+            expect(result.paylines[0].symbol).toBeNull();
+            expect(result.paylines[0].count).toBe(0);
+            expect(result.paylines[0].multiplier).toBe(1);
+            expect(result.paylines[0].win).toBe(0);
+            expect(result.totalWin).toBe(0);
+        });
+
+        test("should handle empty paylines array", () => {
+            const result = calculator.calculate(boards.threeHarry, [], 1);
+
+            expect(result.paylines).toHaveLength(0);
+            expect(result.totalWin).toBe(0);
+        });
+
+        test("should handle no wins during free spins", () => {
+            const result = calculator.calculate(boards.noWin, [[0, 1, 2, 3, 4]], 1, true, 3);
+
+            expect(result.paylines[0].symbol).toBeNull();
+            expect(result.paylines[0].count).toBe(0);
+            expect(result.paylines[0].multiplier).toBe(1);
+            expect(result.paylines[0].win).toBe(0);
+            expect(result.totalWin).toBe(0);
+        });
     });
 });

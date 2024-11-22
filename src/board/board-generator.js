@@ -1,60 +1,75 @@
-import Chance from "chance";
-import defaultDefinition from "./default-definition";
-import difficulties from "./difficulties";
+import WildMultiplierProcessor from "./wild-multiplier-processor";
+
 export default class BoardGenerator {
-    /**
-     * @param {defaultDefinition} boardDefinition
-     */
-    constructor(boardDefinition, gameData) {
-        this.chance = new Chance();
-        this.definition = boardDefinition ?? defaultDefinition;
-        this.numberOfPaylines = this.definition.paylines.length;
-
-        this.gameData = gameData;
+    constructor(boardConfig) {
+        this.boardConfig = boardConfig;
+        this.wildMultiplierProcessor = new WildMultiplierProcessor(boardConfig);
+        this.reelStrips = this.generateReelStrips();
     }
 
-    generate(difficulty) {
-        const { slotsConfig } = this.gameData.gameConfigs;
-        return this.generateByStrategy(slotsConfig.symbolWeight?.[difficulty] ?? this.getFillingStrategy(difficulty));
+    generate(mode) {
+        // Generate initial board
+        const board = this.generateInitialBoard();
+
+        // Process wild multipliers
+        return this.wildMultiplierProcessor.process(board);
     }
 
-    generateForBots(isJackpotEnabled, botRatio = 40) {
-        const maxJackpotPossibility = Math.round(this.definition.fillingStrategyForBots.jackpotPossibilityRange / botRatio);
-        const jackpotPossibility = this.chance.natural({ min: 0, max: maxJackpotPossibility });
+    generateReelStrips() {
+        const reelStrips = [];
 
-        const fillingStrategy =
-            jackpotPossibility === maxJackpotPossibility && isJackpotEnabled
-                ? this.definition.fillingStrategyForBots.jackpot
-                : this.definition.fillingStrategyForBots.normal;
-        return this.generateByStrategy(fillingStrategy);
-    }
+        // Generate 5 reel strips based on filling strategies
+        for (let reelIndex = 1; reelIndex <= this.boardConfig.numberOfColumns; reelIndex++) {
+            const strategy = this.boardConfig.fillingStrategies[`reel${reelIndex}`];
+            const reelStrip = [];
 
-    generateByStrategy(fillingStrategy) {
-        const board = [];
-        for (const rowWeight of fillingStrategy) {
-            const filledSymbols = rowWeight.reduce((result, repeat, symbol) => result.concat(Array(repeat).fill(symbol)), []);
-            board.push(...this.chance.pickset(filledSymbols, this.definition.numberOfColumns));
-        }
-        return this.shuffle(board);
-    }
+            // Create reel strip based on weights
+            for (const [symbol, weight] of Object.entries(strategy)) {
+                for (let i = 0; i < weight; i++) {
+                    reelStrip.push(symbol);
+                }
+            }
 
-    shuffle(board, times = 3) {
-        let shuffledBoard;
-        for (let time = 0; time < times; time++) {
-            shuffledBoard = this.chance.shuffle(board);
+            reelStrips.push(reelStrip);
         }
 
-        return shuffledBoard;
+        return reelStrips;
     }
 
-    getFillingStrategy(difficulty) {
-        switch (difficulty) {
-            case difficulties.hard:
-                return this.definition.fillingStrategies.hard;
-            case difficulties.medium:
-                return this.definition.fillingStrategies.medium;
-            default:
-                return this.definition.fillingStrategies.easy;
+    generateInitialBoard() {
+        const rows = this.boardConfig.numberOfRows;
+        const cols = this.boardConfig.numberOfColumns;
+        const board = Array(rows)
+            .fill()
+            .map(() => Array(cols).fill(null));
+
+        // Fill each position with a random symbol from corresponding reel strip
+        for (let col = 0; col < cols; col++) {
+            const reelStrip = this.reelStrips[col];
+            const reelSymbols = this.getRandomSymbolsForReel(reelStrip, rows);
+
+            for (let row = 0; row < rows; row++) {
+                board[row][col] = {
+                    ...this.boardConfig.symbols[reelSymbols[row]],
+                    position: { row, col },
+                };
+            }
         }
+
+        return board;
+    }
+
+    getRandomSymbolsForReel(reelStrip, count) {
+        const reelLength = reelStrip.length;
+        const startIndex = Math.floor(Math.random() * reelLength);
+        const symbols = [];
+
+        // Get consecutive symbols from random start position
+        for (let i = 0; i < count; i++) {
+            const index = (startIndex + i) % reelLength;
+            symbols.push(reelStrip[index]);
+        }
+
+        return symbols;
     }
 }
