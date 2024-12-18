@@ -38,6 +38,9 @@ describe("IngameConsumer", () => {
             jackpotValidator,
         });
     });
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
 
     describe("getPools", () => {
         it("should get pools from jackpot repository", async () => {
@@ -64,13 +67,13 @@ describe("IngameConsumer", () => {
                 // arrange
                 jackpotValidator.canAccessJackpot.mockReturnValueOnce(false);
                 consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = false;
-                spyOn(consumer, "getPools");
+                const spy = jest.spyOn(consumer, "getPools");
 
                 // act
                 await consumer.buildPayload({ session: { currencyGroupId: "617a650628b7a500016388f5" } });
 
                 // assert
-                expect(consumer.getPools).not.toBeCalled();
+                expect(spy).not.toHaveBeenCalled();
                 consumer.gameData.gameConfigs.slotsConfig.jackpot.enabled = true;
             });
         });
@@ -198,8 +201,8 @@ describe("IngameConsumer", () => {
             // arrange
             const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
             const expected = {
-                betLevels: [0.1, 1, 5],
-                defaultBetLevel: 5,
+                betLevels: [2.5, 25, 125],
+                defaultBetLevel: 125,
                 odds: [],
                 jackpot: {
                     winningRatio: 0.98,

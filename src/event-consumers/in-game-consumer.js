@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
-import { Core } from "sc-game-base";
+import { Core, Table } from "sc-game-base";
 
+import defaultDefinition from "../board/default-definition";
 import { MultipleCurrencyHelper } from "./../helpers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 import FreeSpinsConsumer from "./free-spins-consumer";
 
-export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
+export default class InGameConsumer extends Table.EventConsumers.TableInGameConsumer {
     /**
      * @param {Object} dependencies
      * @param {SlotGameDefinition} dependencies.definition
@@ -28,18 +29,20 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         userInfosRepository,
         jackpotsRepository,
         jackpotValidator,
+        boardDefinition,
     }) {
         super(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository);
 
         this.freeSpinsConsumer = freeSpinsConsumer;
         this.jackpotsRepository = jackpotsRepository;
         this.jackpotValidator = jackpotValidator;
+        this.boardDefinition = boardDefinition ?? defaultDefinition;
     }
 
     async buildPayload(realPlayer) {
         const { session } = realPlayer;
         const canAccessJackpot = this.jackpotValidator.canAccessJackpot(realPlayer);
-
+        console.log("canAccessJackpot", canAccessJackpot);
         const gameConfigs = this.getSlotGameConfig(realPlayer, canAccessJackpot);
         const freeSpins = this.getAvailableFreeSpins(realPlayer);
         const jackpotPools = canAccessJackpot ? await this.getPools() : [];
@@ -64,8 +67,8 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     }
 
     getSlotGameConfig(realPlayer, canAccessJackpot) {
-        const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer);
-        const defaultBetLevel = MultipleCurrencyHelper.getDefaultBetLevel(this.gameData, realPlayer);
+        const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer).map((x) => x * this.boardDefinition.paylines.length);
+        const defaultBetLevel = MultipleCurrencyHelper.getDefaultBetLevel(this.gameData, realPlayer) * this.boardDefinition.paylines.length;
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
 
         return {

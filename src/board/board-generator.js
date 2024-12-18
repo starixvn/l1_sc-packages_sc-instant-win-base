@@ -31,6 +31,7 @@ export default class BoardGenerator {
 
     generateByStrategy(fillingStrategy) {
         const board = [];
+
         for (const rowWeight of fillingStrategy) {
             const filledSymbols = rowWeight.reduce((result, repeat, symbol) => result.concat(Array(repeat).fill(symbol)), []);
             board.push(...this.chance.pickset(filledSymbols, this.definition.numberOfColumns));

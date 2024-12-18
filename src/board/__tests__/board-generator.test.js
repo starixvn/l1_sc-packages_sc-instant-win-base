@@ -64,11 +64,10 @@ describe("BoardGenerator", () => {
             it("should generate appropriate board base on definition ", () => {
                 // Act
                 const board = boardGenerator.generateForBots(false);
-
+                
                 // Assert
                 expect(board.length).toEqual(defaultDefinition.numberOfRows * defaultDefinition.numberOfColumns);
             });
         });
     });
-
 });

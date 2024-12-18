@@ -29,7 +29,7 @@ export default class JackpotConsumer {
         if (contributedByMember && !this.jackpotValidator.canContributeJackpotPools(player, freeSpin)) {
             return;
         }
-
+        
         const { pools } = this.gameData.gameConfigs.slotsConfig.jackpot;
 
         const baseTotalAmount = totalAmount * rate;

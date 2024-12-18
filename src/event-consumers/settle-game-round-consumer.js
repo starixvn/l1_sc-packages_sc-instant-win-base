@@ -242,28 +242,22 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                     bet.uid,
                     this.collectRoundResult({
                         player,
-                        result,
-                        settlementResult,
                         roundId,
                         betWin: bet.betWin,
                         bigWin: betResult.bigWin,
-                        betByFreeSpin: bet.freeSpin,
                     })
                 );
 
-                if (betResult.bigWin) {
-                    await this.hallOfFameConsumer.add(player, {
-                        roundId,
-                        bet: bet.bet,
-                        rate: bet.rate,
-                        totalAmount: bet.totalAmount,
-                        baseTotalAmount: bet.baseTotalAmount,
-                        winningAmount: betResult.totalWin,
-                        baseWinningAmount: bet.baseBetWin,
-                        numberOfPaylines: bet.paylines.length,
-                        freeSpin: bet.freeSpin,
+                betResult.totalWin > 0 &&
+                    this.userBetResultPublisher.publishToAllUsersExcept(bet.uid, {
+                        winner: {
+                            id: bet.uid,
+                            name: bet.name,
+                            betWin: betResult.totalWin,
+                            bigWin: betResult.bigWin,
+                            rate: bet.rate,
+                        },
                     });
-                }
 
                 delete this.gameData.ingame[player.profile.name].bonusChests;
                 delete this.gameData.ingame[player.profile.name].finish;
@@ -301,7 +295,6 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 netWin: 0,
                 totalLost: 0,
                 winningLines: [],
-                bigWin: false,
             }
         );
 
@@ -318,19 +311,12 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return bonusChests?.reduce((bonusAmount, chest) => bonusAmount + chest.amount, 0) ?? 0;
     }
 
-    collectRoundResult({ player, result, settlementResult, roundId, betWin, bigWin, betByFreeSpin }) {
-        const totalOfFreeSpins = this.freeSpinsConumer.getTotalAvaiableFreeSpins(player);
-        const roundSettlementResult = this.collectRoundSettlementResult(settlementResult);
-
+    collectRoundResult({ roundId, betWin, bigWin }) {
         return {
             finish: {
                 roundId,
-                betByFreeSpin,
-                result,
-                settlementResult: roundSettlementResult,
                 betWin,
                 bigWin,
-                totalOfFreeSpins,
             },
         };
     }

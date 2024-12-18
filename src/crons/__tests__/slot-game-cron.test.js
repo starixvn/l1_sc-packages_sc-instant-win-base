@@ -2,6 +2,7 @@ import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
 import { Core } from "sc-game-base";
 import { JackpotGameConsumer } from "../../event-consumers";
+import SlotGameBot from "../slot-game-bot";
 import SlotGameCron from "../slot-game-cron";
 
 const roundsRepository = stubMongoose(mongoose.Model);
@@ -12,6 +13,7 @@ const partnerConfigRepository = stubMongoose(mongoose.Model);
 const currencyGroupRepository = stubMongoose(mongoose.Model);
 const currencyRepository = stubMongoose(mongoose.Model);
 const jackpotGameConsumer = stub(JackpotGameConsumer);
+const bot = stub(SlotGameBot);
 
 jest.mock("cron", () => {
     const mScheduleJob = {
@@ -67,6 +69,7 @@ describe("slot-game-cron", () => {
             const cron = new SlotGameCron({
                 gameData,
                 definition,
+                bot,
                 idCountersConsumer,
                 logService,
                 bonusConsumer,
@@ -106,6 +109,7 @@ describe("slot-game-cron", () => {
             const cron = new SlotGameCron({
                 gameData,
                 definition,
+                bot,
                 idCountersConsumer,
                 logService,
                 bonusConsumer,
@@ -144,6 +148,7 @@ describe("slot-game-cron", () => {
             const definition = {};
             const cron = new SlotGameCron({
                 gameData,
+                bot,
                 definition,
                 idCountersConsumer,
                 logService,
@@ -188,6 +193,7 @@ describe("slot-game-cron", () => {
             const definition = {};
             const cron = new SlotGameCron({
                 gameData,
+                bot,
                 definition,
                 idCountersConsumer,
                 logService,
@@ -250,6 +256,7 @@ describe("slot-game-cron", () => {
 
             const cron = new SlotGameCron({
                 definition,
+                bot,
                 archiveStatusesRepository,
                 jackpotConsumer,
                 currencyGroupGamesRepository,
@@ -276,6 +283,7 @@ describe("slot-game-cron", () => {
             const gameData = { remainingTime: 1 };
             const cron = new SlotGameCron({
                 definition,
+                bot,
                 gameData,
                 bonusConsumer,
                 currencyGroupGamesRepository,
@@ -297,6 +305,7 @@ describe("slot-game-cron", () => {
             const gameData = { remainingTime: 45 };
             const cron = new SlotGameCron({
                 definition,
+                bot,
                 gameData,
                 bonusConsumer,
                 currencyGroupGamesRepository,
@@ -319,6 +328,7 @@ describe("slot-game-cron", () => {
             const bot = stub(Core.Crons.BaseBot);
             const cron = new SlotGameCron({
                 definition,
+                bot,
                 gameData,
                 bonusConsumer,
                 bot,
@@ -341,6 +351,7 @@ describe("slot-game-cron", () => {
             const gameData = { remainingTime: 45 };
             const cron = new SlotGameCron({
                 definition,
+                bot,
                 gameData,
                 bonusConsumer,
                 currencyGroupGamesRepository,
@@ -362,6 +373,7 @@ describe("slot-game-cron", () => {
             const gameData = { remainingTime: 45, disabled: true };
             const cron = new SlotGameCron({
                 definition,
+                bot,
                 gameData,
                 bonusConsumer,
                 currencyGroupGamesRepository,
@@ -384,6 +396,7 @@ describe("slot-game-cron", () => {
             const bot = stub(Core.Crons.BaseBot);
             const cron = new SlotGameCron({
                 definition,
+                bot,
                 gameData,
                 bonusConsumer,
                 bot,
@@ -407,6 +420,7 @@ describe("slot-game-cron", () => {
             const freeSpinsConsumer = { reload: jest.fn() };
             const cron = new SlotGameCron({
                 definition,
+                bot,
                 gameData,
                 bonusConsumer,
                 freeSpinsConsumer,

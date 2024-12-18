@@ -148,26 +148,13 @@ describe("PlaceBetConsumer", () => {
         it("should NOT push payload into betQueue if invalid bet", () => {
             // arrange
             const player = stubPlayer();
-            const payload = stubPayload(1.5);
+            const payload = stubPayload(1);
 
             // act
             placeBetConsumer.consume(player, payload);
 
             // assert
             expect(placeBetConsumer.gameData.ingame[player.profile.name]).toBeUndefined();
-        });
-
-        it("betQueue should be doubled if it already contains once", () => {
-            // arrange
-            const player = stubPlayer();
-            const payload = stubPayload(1);
-
-            // act
-            placeBetConsumer.consume(player, payload);
-            placeBetConsumer.consume(player, payload);
-
-            // assert
-            expect(placeBetConsumer.gameData.ingame[player.profile.name].betQueue.length).toBe(2);
         });
     });
 });
@@ -210,10 +197,9 @@ function stubPlayer() {
     };
 }
 
-function stubPayload(amount = 1, freeSpin = null) {
+function stubPayload(amount = 15, freeSpin = null) {
     return {
         amount,
-        betChoice: [1, 2, 3],
         freeSpin,
     };
 }

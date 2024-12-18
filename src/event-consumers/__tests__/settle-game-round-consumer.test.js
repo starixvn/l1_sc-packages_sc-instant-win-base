@@ -545,12 +545,8 @@ describe("SettleGameRoundConsumer", () => {
             const expectedValue = {
                 finish: {
                     roundId: 1,
-                    betByFreeSpin: 2,
-                    result: 3,
-                    settlementResult: 5,
                     betWin: 6,
                     bigWin: 7,
-                    totalOfFreeSpins: 8,
                 },
             };
 
@@ -706,30 +702,6 @@ describe("SettleGameRoundConsumer", () => {
 
             // assert
             expect(consumer.callEndGame).toBeCalled();
-        });
-
-        it("when have bigWin should call hallOfFameConsumer.add", async () => {
-            // arrange
-            const dependencies = initDependencies();
-            dependencies.gameData.ingame = { player1: {} };
-            const consumer = new SettleGameRoundConsumer(dependencies);
-            consumer.callEndGame = jest.fn();
-            consumer.calculateBonusAmount = jest.fn();
-            consumer.calculatePaylineResult = jest.fn();
-            consumer.collectRoundResult = jest.fn();
-            consumer.calculatePaylineResult.mockReturnValueOnce({ totalWin: 10, bigWin: true });
-            const player = { profile: { name: "player1" } };
-            const result = {};
-            const settlementResult = {};
-            const roundId = {};
-            const bet = { result: [{ id: 1 }], save: () => {}, paylines: [] };
-            const bonusChests = [];
-
-            // act
-            await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
-
-            // assert
-            expect(consumer.hallOfFameConsumer.add).toBeCalled();
         });
     });
 

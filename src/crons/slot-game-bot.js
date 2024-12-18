@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
-import { Core } from "sc-game-base";
-
+import { Table } from "sc-game-base";
 import * as Board from "./../board";
 import * as EventConsumers from "./../event-consumers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
-export default class SlotGameBot extends Core.Crons.BaseBot {
+export default class SlotGameBot extends Table.Crons.TableGameBot {
     /**
      * @param {Object} dependencies
      * @param {SlotGameDefinition} dependencies.definition
@@ -29,8 +28,9 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         boardGenerator,
         paylineCalculator,
         userInfosRepository,
+        publisher,
     }) {
-        super(definition, gameData, userInfosRepository);
+        super(definition, gameData, publisher, userInfosRepository);
 
         this.idCountersConsumer = idCountersConsumer;
         this.jackpotConsumer = jackpotConsumer;
@@ -45,29 +45,13 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         this.groupTracks = [];
     }
 
-    async reset() {
-        await super.reset();
-
-        const configs = this.gameData.gameConfigs;
-
-        if (configs?.botenabled) {
-            const bots = await this.userInfosRepository.find({ type: true, disabled: false, inRoom: false }, "id name").lean().exec();
-
-            this.bots = this.chance.shuffle(this.standardizeBots(bots)).slice(0, this.maxNumberOfBots);
-        } else {
-            this.bots = [];
-        }
-    }
-
-    standardizeBots(bots) {
-        return bots.map((bot) => {
-            return {
-                UID: bot.id,
-                profile: {
-                    name: bot.name,
-                },
-            };
-        });
+    standardizeBot(bot) {
+        return {
+            UID: bot.id,
+            profile: {
+                name: bot.name,
+            },
+        };
     }
 
     resetAllBotData() {
@@ -98,11 +82,13 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
     async placeBet(bot) {
         await this.increaseRoundId();
 
+        const standardizedBot = this.standardizeBot(bot);
         const { jackpot } = this.gameData.gameConfigs.slotsConfig;
-        const name = bot.profile.name;
+        const name = standardizedBot.profile.name;
         const roundId = this.gameData.roundId;
-        const paylines = this.randomizePaylines();
-        const numberOfPaylines = paylines.length;
+
+        const numberOfPaylines = this.boardGenerator.numberOfPaylines;
+        const paylines = [...Array(numberOfPaylines).keys()];
         const amount = this.getBetAmount();
         const totalAmount = amount * numberOfPaylines;
         const track = this.groupTracks.find((track) => track.betLevels.includes(amount));
@@ -117,22 +103,26 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
                     Object.keys(jackpot.pools),
                     Object.values(jackpot.pools).map((pool) => pool.botSettings.alloc)
                 );
-                await this.jackpotConsumer.hit(bot, { prize, roundId, exchangeRateId: this.gameData.exchangeRates.exId, rate: this.botRate });
+                await this.jackpotConsumer.hit(standardizedBot, {
+                    prize,
+                    roundId,
+                    exchangeRateId: this.gameData.exchangeRates.exId,
+                    rate: this.botRate,
+                });
             }
 
-            await this.jackpotConsumer.contribute(bot, { totalAmount, roundId, rate: this.botRate });
+            await this.jackpotConsumer.contribute(standardizedBot, { totalAmount, roundId, rate: this.botRate });
         }
 
-        if (totalAmount * this.bigWinRatio <= winningAmount) {
-            await this.hallOfFameConsumer.add(bot, {
-                roundId,
-                bet: amount,
-                totalAmount,
-                baseTotalAmount: totalAmount * this.botRate,
-                winningAmount,
-                baseWinningAmount: winningAmount * this.botRate,
-                numberOfPaylines,
-                rate: this.botRate,
+        if (winningAmount > 0) {
+            this.publisher.publishToAllUsers(bot.id, {
+                winner: {
+                    id: bot.id,
+                    name: bot.name,
+                    betWin: winningAmount,
+                    bigWin: totalAmount * this.bigWinRatio <= winningAmount,
+                    rate: this.botRate,
+                },
             });
         }
 
@@ -142,14 +132,6 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
     async increaseRoundId() {
         await this.idCountersConsumer.consume("round");
         this.gameData.roundId++;
-    }
-
-    randomizePaylines() {
-        const numberOfAvailablePaylines = this.boardGenerator.numberOfPaylines;
-        const seeds = [...Array(numberOfAvailablePaylines).keys()];
-        const numberOfPaylines = this.chance.natural({ min: 1, max: numberOfAvailablePaylines - 1 });
-
-        return this.chance.pickset(seeds, numberOfPaylines);
     }
 
     getBetAmount() {
@@ -180,5 +162,9 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         }
 
         this.totalNumberOfTickets++;
+    }
+
+    getTicketsPerRound() {
+        return this.chance.integer({ min: 20, max: 100 });
     }
 }

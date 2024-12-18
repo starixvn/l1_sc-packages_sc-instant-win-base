@@ -39,7 +39,7 @@ describe("init", () => {
     it("should call supper init", () => {
         // arrange
         const router = new SlotHttpRouter(appConfigs, gameData, historyQuery, metricQuery, logService, paylineCalculator);
-        spyOn(HttpRouter.prototype, "init");
+        jest.spyOn(HttpRouter.prototype, "init");
 
         // act
         router.init(app);

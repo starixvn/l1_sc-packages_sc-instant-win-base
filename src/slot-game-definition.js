@@ -1,6 +1,6 @@
-import { Core } from "sc-game-base";
+import { Table } from "sc-game-base";
 
-export default class SlotGameDefinition extends Core.GameDefinition {
+export default class SlotGameDefinition extends Table.TableGameDefinition {
     constructor({
         id = 0,
         name = "",

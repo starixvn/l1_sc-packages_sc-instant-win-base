@@ -1,6 +1,6 @@
+import math from "lodash/math";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
-
 import defaultDefinition from "../board/default-definition";
 import { MultipleCurrencyHelper } from "./../helpers";
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
@@ -38,10 +38,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
 
     consume(player, payload) {
         Object.assign(payload, {
-            amount: payload.amount,
+            amount: math.round(payload.amount / defaultDefinition.paylines.length, 2),
             freeBet: payload.freeBet ?? false,
             freeSpin: payload.freeSpin ?? false,
-            betChoice: [...Object.keys(defaultDefinition.paylines)],
+            betChoice: Object.keys(defaultDefinition.paylines),
         });
 
         const { amount, betChoice, freeSpin, roundId } = payload;
