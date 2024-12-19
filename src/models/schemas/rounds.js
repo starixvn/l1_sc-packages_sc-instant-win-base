@@ -93,5 +93,5 @@ export default new mongoose.Schema({
     exchangeRateId: { type: Number, required: true },
 
     operatorId: { type: String, required: true },
-    playerId: { type: Number, required: true },
+    playerId: { type: String, required: true },
 });

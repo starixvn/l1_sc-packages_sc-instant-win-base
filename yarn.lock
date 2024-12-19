@@ -8938,7 +8938,7 @@ sc-api-client@1.4.0:
 
 sc-base-apis@1.18.1:
   version "1.18.1"
-  resolved "http://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.18.1.tgz"
+  resolved "https://npm.lumigame.com/sc-base-apis/-/sc-base-apis-1.18.1.tgz#3f70c2b1a77e8d57918b7500264c6b13e60a1682"
   integrity sha512-nMpTe7xdvzmDQ0WsYCGibTE9id7ivfd0IIm66IjzzS5RC8O9j7Tsy5RqxkMKRjhCJjvozXPGEvnfZuRu9tqZ4g==
   dependencies:
     moment "^2.29.4"

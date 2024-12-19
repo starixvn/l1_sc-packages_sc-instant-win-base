@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { Core, Table } from "sc-game-base";
 
+import math from "lodash/math";
 import defaultDefinition from "../board/default-definition";
 import { MultipleCurrencyHelper } from "./../helpers";
 import SlotGameData from "./../slot-game-data";
@@ -42,7 +43,7 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
     async buildPayload(realPlayer) {
         const { session } = realPlayer;
         const canAccessJackpot = this.jackpotValidator.canAccessJackpot(realPlayer);
-        console.log("canAccessJackpot", canAccessJackpot);
+
         const gameConfigs = this.getSlotGameConfig(realPlayer, canAccessJackpot);
         const freeSpins = this.getAvailableFreeSpins(realPlayer);
         const jackpotPools = canAccessJackpot ? await this.getPools() : [];
@@ -67,8 +68,13 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
     }
 
     getSlotGameConfig(realPlayer, canAccessJackpot) {
-        const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer).map((x) => x * this.boardDefinition.paylines.length);
-        const defaultBetLevel = MultipleCurrencyHelper.getDefaultBetLevel(this.gameData, realPlayer) * this.boardDefinition.paylines.length;
+        const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer).map((x) =>
+            math.round(x * this.boardDefinition.paylines.length, 2)
+        );
+        const defaultBetLevel = math.round(
+            MultipleCurrencyHelper.getDefaultBetLevel(this.gameData, realPlayer) * this.boardDefinition.paylines.length,
+            2
+        );
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
 
         return {
