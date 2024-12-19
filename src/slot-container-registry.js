@@ -6,7 +6,7 @@ import * as Board from "./board";
 import { SlotGameBot, SlotGameCron, SlotProcessBetQueue } from "./crons";
 import * as EventConsumers from "./event-consumers";
 import { BonusPublisher, JackpotPublisher } from "./event-publishers";
-import { IdCounters, Jackpots } from "./models";
+import { currencyGroupGames, IdCounters, Jackpots } from "./models";
 import { HallOfFameQuery, SlotHistoryQuery } from "./query-apis";
 import { SlotHttpRouter, SlotSocketRouter } from "./routers";
 import SlotGameData from "./slot-game-data";
@@ -44,6 +44,7 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
         super.registerModels();
 
         this.container.register({
+            currencyGroupGamesRepository: asValue(currencyGroupGames()),
             jackpotsRepository: asValue(Jackpots),
             idCountersRepository: asValue(IdCounters),
             gameNotificationsRepository: asValue(gameNotifications),
