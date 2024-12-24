@@ -315,8 +315,10 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         return {
             finish: {
                 roundId,
-                betWin,
-                bigWin,
+                result: {
+                    betWin,
+                    bigWin,
+                },
             },
         };
     }

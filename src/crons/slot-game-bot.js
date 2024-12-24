@@ -165,6 +165,6 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
     }
 
     getTicketsPerRound() {
-        return this.chance.integer({ min: 20, max: 100 });
+        return this.chance.integer({ min: 30, max: 100 });
     }
 }

@@ -11,7 +11,7 @@ const schema = new mongoose.Schema({
     chips: [Number],
     coinValues: [Number],
     maxWinPerRound: Number,
-    betLevels: [Object],
+    betLevels: [Number],
     defaultBetLevel: { type: Number },
 });
 
