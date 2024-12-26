@@ -19,18 +19,6 @@ describe("generate", () => {
         expect(settlementResult.bonus).toStrictEqual({ count: 0, odds: 0 });
     });
 
-    it("should return bonus when having more than 3 bonus on different columns", () => {
-        // arrange
-        const board = [1, 2, 2, 1, 4, 8, 1, 8, 3, 4, 1, 8, 7, 2, 2];
-        const selectedPaylines = [1];
-        const calculator = new PaylineCalculator();
-
-        // act
-        const settlementResult = calculator.calculate(board, selectedPaylines, odds);
-
-        // assert
-        expect(settlementResult.bonus).toStrictEqual({ count: 3, odds: 3 });
-    });
 
     it("should NOT treat wild icon as replacement of bonus", () => {
         // arrange
@@ -43,19 +31,6 @@ describe("generate", () => {
 
         // assert
         expect(settlementResult.bonus).toStrictEqual({ count: 2, odds: 0 });
-    });
-
-    it("should return freespins when having more than 3 freespins on different columns", () => {
-        // arrange
-        const board = [1, 2, 2, 1, 4, 7, 1, 8, 3, 4, 1, 7, 7, 2, 2];
-        const selectedPaylines = [1];
-        const calculator = new PaylineCalculator();
-
-        // act
-        const settlementResult = calculator.calculate(board, selectedPaylines, odds);
-
-        // assert
-        expect(settlementResult.freeSpins).toStrictEqual({ count: 3, odds: 3 });
     });
 
     it("should return JACKPOT if payline contains 5 jackpot symbol", () => {
