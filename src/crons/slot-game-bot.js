@@ -115,7 +115,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
         }
 
         if (winningAmount > 0) {
-            this.publisher.publishToAllUsers(bot.id, {
+            this.publisher.publishToAllUsers({
                 winner: {
                     id: bot.id,
                     name: bot.name,
