@@ -545,8 +545,10 @@ describe("SettleGameRoundConsumer", () => {
             const expectedValue = {
                 finish: {
                     roundId: 1,
-                    betWin: 6,
-                    bigWin: 7,
+                    result: {
+                        betWin: 6,
+                        bigWin: 7,
+                    },
                 },
             };
 

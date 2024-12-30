@@ -83,7 +83,6 @@ export default new mongoose.Schema({
     odds: { type: Object },
     betWin: { type: Number, default: 0 },
     baseBetWin: { type: Number, default: 0 },
-    jackpotWin: { type: Number },
     paid: { type: Boolean, default: false },
     time: { type: Date },
     endTime: { type: Date },

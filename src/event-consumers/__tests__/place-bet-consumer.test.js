@@ -197,7 +197,7 @@ function stubPlayer() {
     };
 }
 
-function stubPayload(amount = 15, freeSpin = null) {
+function stubPayload(amount = 2.5, freeSpin = null) {
     return {
         amount,
         freeSpin,
