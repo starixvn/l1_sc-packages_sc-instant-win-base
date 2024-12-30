@@ -34,19 +34,13 @@ export default class SlotHistoryQuery {
             rate: true,
             exchangeRateId: true,
             operatorId: true,
+            enableJackpot: { $cond: [{ $gt: ["$jackpotContribution.contributionRate", 0] }, true, false] },
         };
 
-        const rawBetLogs = await this.roundsRepository
+        const betLogs = await this.roundsRepository
             .find(filter, roundProjection, { sort: { _id: -1 }, skip: numberOfSkippedBets, limit: pageSize })
             .lean()
             .exec();
-
-        const betLogs = rawBetLogs.map((rawBetLog) => {
-            const betLog = { ...rawBetLog, enableJackpot: !!rawBetLog.jackpotContribution };
-            delete betLog.jackpotContribution;
-
-            return betLog;
-        });
 
         return { history: { betLogs, page, pageSize, total } };
     }

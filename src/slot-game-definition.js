@@ -7,7 +7,7 @@ export default class SlotGameDefinition extends Table.TableGameDefinition {
         durations = {},
         choices = [],
         choicesMapper = {},
-        historyPageSize = 10,
+        historyPageSize = 8,
         freeSpinLiveSeconds = 86400, // 1 day
         bonusSize = 10,
         bonusLiveSeconds = 125,
