@@ -2,6 +2,7 @@ import { stub } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
 import { BaseEventPublishers } from "sc-game-base/src/core";
 
+import defaultDefinition from "../../board/default-definition";
 import SlotNoticeHelper from "../../helpers/slot-notice-helper";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
@@ -15,7 +16,7 @@ describe("PlaceBetConsumer", () => {
     let placeBetConsumer;
 
     beforeEach(() => {
-        placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, publisher);
+        placeBetConsumer = new PlaceBetConsumer(defaultDefinition, gameDefinition, gameData, publisher);
     });
 
     describe("composeBettingTimeValidationCriteria", () => {

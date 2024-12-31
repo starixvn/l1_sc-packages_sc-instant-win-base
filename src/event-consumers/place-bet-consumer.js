@@ -6,6 +6,11 @@ import { MultipleCurrencyHelper } from "./../helpers";
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
+    constructor(definition, gameData, publisher, boardDefinition) {
+        super(definition, gameData, publisher);
+        this.boardDefinition = boardDefinition ?? defaultDefinition;
+    }
+
     composeBettingTimeValidationCriteria() {
         const gameConfigs = this.gameData.gameConfigs;
 
@@ -38,10 +43,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
 
     consume(player, payload) {
         Object.assign(payload, {
-            amount: math.round(payload.amount / defaultDefinition.paylines.length, 2),
+            amount: math.round(payload.amount / this.boardDefinition.paylines.length, 4),
             freeBet: payload.freeBet ?? false,
             freeSpin: payload.freeSpin ?? false,
-            betChoice: Object.keys(defaultDefinition.paylines),
+            betChoice: Object.keys(this.boardDefinition.paylines),
         });
 
         const { amount, betChoice, freeSpin, roundId } = payload;
