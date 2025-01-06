@@ -253,6 +253,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                         winner: {
                             id: bet.uid,
                             name: bet.name,
+                            avatarId: this.gameData.players[bet.uid].avatarId,
                             betWin: betResult.totalWin,
                             bigWin: betResult.bigWin,
                             rate: bet.rate,

@@ -119,6 +119,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
                 winner: {
                     id: bot.id,
                     name: bot.name,
+                    avatarId: bot.avatarId,
                     betWin: winningAmount,
                     bigWin: totalAmount * this.bigWinRatio <= winningAmount,
                     rate: this.botRate,
