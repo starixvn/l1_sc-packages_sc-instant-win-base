@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
-import { Table } from "sc-game-base";
+import { Core } from "sc-game-base";
 
 import SlotGameData from "./../slot-game-data";
 import BonusConsumer from "./bonus-consumer";
 import FreeSpinsConsumer from "./free-spins-consumer";
 import JackpotGameConsumer from "./jackpot-game-consumer";
 
-export default class OutGameConsumer extends Table.EventConsumers.TableOutGameConsumer {
+export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconnectConsumer {
     /**
      * @param {Number} gameId
      * @param {SlotGameData} gameData
@@ -35,6 +35,7 @@ export default class OutGameConsumer extends Table.EventConsumers.TableOutGameCo
             await this.jackpotGameConsumer.autoPickJackpot(realPlayer);
             await this.bonusConsumer.autoOpenRemainingChests(realPlayer);
             await this.upsertFreeSpinNotification(realPlayer);
+            delete this.gameData.players[realPlayer.UID];
         }
 
         super.consume(socketClient);

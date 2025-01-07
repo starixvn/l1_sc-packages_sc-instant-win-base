@@ -16,7 +16,7 @@ describe("PlaceBetConsumer", () => {
     let placeBetConsumer;
 
     beforeEach(() => {
-        placeBetConsumer = new PlaceBetConsumer(defaultDefinition, gameDefinition, gameData, publisher);
+        placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, publisher, defaultDefinition);
     });
 
     describe("composeBettingTimeValidationCriteria", () => {

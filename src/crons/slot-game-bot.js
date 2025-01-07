@@ -166,6 +166,15 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
     }
 
     getTicketsPerRound() {
-        return this.chance.integer({ min: 30, max: 100 });
+        return this.chance.integer({ min: 30, max: 60 });
+    }
+
+    addToPlayersAndPublish(bot) {
+        this.gameData.players[bot.id] = bot;
+    }
+
+    async removeBot(botId) {
+        await this.userInfosRepository.updateOne({ id: botId }, { inRoom: false, inGameRoom: "", patternId: 0 });
+        delete this.gameData.players[botId];
     }
 }
