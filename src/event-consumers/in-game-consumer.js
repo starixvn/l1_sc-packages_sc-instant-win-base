@@ -41,10 +41,10 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
     }
 
     async consume(realPlayer) {
-        const { remainingTime, gameConfigs, umMessages } = this.gameData;
+        const { gameConfigs, umMessages } = this.gameData;
         const disabled = !gameConfigs || !gameConfigs.enabled;
         if (disabled) {
-            realPlayer.socketClient.emit(this.definition.name, { remainingTime, um: disabled, um_message: umMessages });
+            realPlayer.socketClient.emit(this.definition.name, { um: disabled, um_message: umMessages });
         }
 
         const payload = await this.buildPayload(realPlayer);

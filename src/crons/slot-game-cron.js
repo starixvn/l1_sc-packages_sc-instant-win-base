@@ -79,7 +79,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
     async start() {
         await this.bot.resetInRoomTrackings();
-        
+
         this.gameData.roundId = await this.idCountersConsumer.getLatestId("round");
         this.gameData.freeSpinId = await this.idCountersConsumer.getLatestId("freespin");
 
@@ -230,4 +230,6 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
             .lean()
             .exec();
     }
+
+    publishStartGame() {}
 }

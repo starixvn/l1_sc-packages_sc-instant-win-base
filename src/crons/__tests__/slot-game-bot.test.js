@@ -67,6 +67,7 @@ describe("SlotGameBot", () => {
             hallOfFameConsumer,
             jackpotConsumer,
             userInfosRepository,
+            appConfigs: {},
         });
     });
     describe("extends", () => {
@@ -130,7 +131,7 @@ describe("SlotGameBot", () => {
     });
 
     describe("placeBet", () => {
-        const botInfo = { id: 1, profile: { name: "bot" } };
+        const botInfo = { id: 1, profile: { name: "bot" }, selectedBetLevel: 1 };
         const stake = 1;
 
         beforeEach(() => {

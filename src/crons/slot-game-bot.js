@@ -57,7 +57,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
     }
 
     resetAllBotData() {
-        const betLevelsConfigs = [...this.appConfigs.baseBetLevels] ?? [...this.gameData.gameConfigs.slotsConfig?.betLevels];
+        const betLevelsConfigs = [...(this.appConfigs.baseBetLevels  ?? this.gameData.gameConfigs.slotsConfig?.betLevels)] ?? [];
 
         this.totalNumberOfTickets = 0;
         this.odds = this.gameData.gameConfigs.slotsConfig?.icons ?? {};
@@ -91,7 +91,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
 
         const numberOfPaylines = this.boardGenerator.numberOfPaylines;
         const paylines = [...Array(numberOfPaylines).keys()];
-        const amount = bot.selectedBetAmount;
+        const amount = bot.selectedBetLevel;
         const totalAmount = amount * numberOfPaylines;
         const track = this.groupTracks.find((track) => track.betLevels.includes(amount));
         const generatedBoard = this.boardGenerator.generateForBots(jackpot.enabled, track.ratio);
@@ -181,7 +181,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
     }
 
     async botJoinRoom(bot) {
-        bot.selectedBetAmount = this.getBetAmount();
+        bot.selectedBetLevel = this.getBetAmount();
         await super.botJoinRoom(bot);
     }
 }
