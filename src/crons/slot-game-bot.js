@@ -29,6 +29,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
         paylineCalculator,
         userInfosRepository,
         publisher,
+        appConfigs,
     }) {
         super(definition, gameData, publisher, userInfosRepository);
 
@@ -43,6 +44,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
         this.odds = {};
         this.bigWinRatio = 0;
         this.groupTracks = [];
+        this.appConfigs = appConfigs;
     }
 
     standardizeBot(bot) {
@@ -55,7 +57,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
     }
 
     resetAllBotData() {
-        const betLevelsConfigs = [...this.gameData.gameConfigs.slotsConfig?.betLevels] ?? [];
+        const betLevelsConfigs = [...this.appConfigs.baseBetLevels] ?? [...this.gameData.gameConfigs.slotsConfig?.betLevels];
 
         this.totalNumberOfTickets = 0;
         this.odds = this.gameData.gameConfigs.slotsConfig?.icons ?? {};
