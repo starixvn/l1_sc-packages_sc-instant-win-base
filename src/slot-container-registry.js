@@ -92,6 +92,7 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
             settleGameRoundConsumer: asClass(EventConsumers.SettleGameRoundConsumer).singleton().proxy(),
             jackpotGameConsumer: asClass(EventConsumers.JackpotGameConsumer).singleton().proxy(),
             generateResultConsumer: asClass(EventConsumers.GenerateResultConsumer).singleton().proxy(),
+            userSignInConsumer: asClass(EventConsumers.UserSignInConsumer).singleton(),
         });
     }
 

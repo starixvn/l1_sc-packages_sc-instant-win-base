@@ -248,21 +248,22 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                     })
                 );
 
+                const ingame = this.gameData.ingame[bet.name];
                 betResult.totalWin > 0 &&
                     this.userBetResultPublisher.publishToAllUsersExcept(bet.uid, {
                         winner: {
                             id: bet.uid,
                             name: bet.name,
-                            avatarId: this.gameData.players[bet.uid].avatarId,
+                            avatarId: ingame.avatarId,
                             betWin: betResult.totalWin,
                             bigWin: betResult.bigWin,
                             rate: bet.rate,
                         },
                     });
 
-                delete this.gameData.ingame[player.profile.name].bonusChests;
-                delete this.gameData.ingame[player.profile.name].finish;
-                delete this.gameData.ingame[player.profile.name].player;
+                delete ingame.bonusChests;
+                delete ingame.finish;
+                delete ingame.player;
             }
         } catch (ex) {
             this.logService.logError(ex);
