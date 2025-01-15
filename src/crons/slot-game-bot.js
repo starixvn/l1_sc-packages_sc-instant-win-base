@@ -82,12 +82,9 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
     }
 
     async placeBet(bot) {
-        await this.increaseRoundId();
-
         const standardizedBot = this.standardizeBot(bot);
         const { jackpot } = this.gameData.gameConfigs.slotsConfig;
         const name = standardizedBot.profile.name;
-        const roundId = this.gameData.roundId;
 
         const numberOfPaylines = this.boardGenerator.numberOfPaylines;
         const paylines = [...Array(numberOfPaylines).keys()];
@@ -96,6 +93,9 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
         const track = this.groupTracks.find((track) => track.betLevels.includes(amount));
 
         for (let i = 0; i < this.chance.integer({ min: 1, max: 3 }); i++) {
+            await this.increaseRoundId();
+            const roundId = this.gameData.roundId;
+
             const generatedBoard = this.boardGenerator.generateForBots(jackpot.enabled, track.ratio);
             const board = this.boardCheatingConsumer.consume(name, generatedBoard);
             const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
