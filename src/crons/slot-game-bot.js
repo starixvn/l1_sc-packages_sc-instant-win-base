@@ -57,7 +57,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
     }
 
     resetAllBotData() {
-        const betLevelsConfigs = [...(this.appConfigs.baseBetLevels  ?? this.gameData.gameConfigs.slotsConfig?.betLevels)] ?? [];
+        const betLevelsConfigs = [...(this.appConfigs.baseBetLevels ?? this.gameData.gameConfigs.slotsConfig?.betLevels)] ?? [];
 
         this.totalNumberOfTickets = 0;
         this.odds = this.gameData.gameConfigs.slotsConfig?.icons ?? {};
@@ -94,42 +94,45 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
         const amount = bot.selectedBetLevel;
         const totalAmount = amount * numberOfPaylines;
         const track = this.groupTracks.find((track) => track.betLevels.includes(amount));
-        const generatedBoard = this.boardGenerator.generateForBots(jackpot.enabled, track.ratio);
-        const board = this.boardCheatingConsumer.consume(name, generatedBoard);
-        const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
-        const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
 
-        if (jackpot.enabled) {
-            if (betResult.jackpotPayline >= 0) {
-                const prize = this.chance.weighted(
-                    Object.keys(jackpot.pools),
-                    Object.values(jackpot.pools).map((pool) => pool.botSettings.alloc)
-                );
-                await this.jackpotConsumer.hit(standardizedBot, {
-                    prize,
-                    roundId,
-                    exchangeRateId: this.gameData.exchangeRates.exId,
-                    rate: this.botRate,
+        for (let i = 0; i < this.chance.integer({ min: 1, max: 3 }); i++) {
+            const generatedBoard = this.boardGenerator.generateForBots(jackpot.enabled, track.ratio);
+            const board = this.boardCheatingConsumer.consume(name, generatedBoard);
+            const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
+            const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
+
+            if (jackpot.enabled) {
+                if (betResult.jackpotPayline >= 0) {
+                    const prize = this.chance.weighted(
+                        Object.keys(jackpot.pools),
+                        Object.values(jackpot.pools).map((pool) => pool.botSettings.alloc)
+                    );
+                    await this.jackpotConsumer.hit(standardizedBot, {
+                        prize,
+                        roundId,
+                        exchangeRateId: this.gameData.exchangeRates.exId,
+                        rate: this.botRate,
+                    });
+                }
+
+                await this.jackpotConsumer.contribute(standardizedBot, { totalAmount, roundId, rate: this.botRate });
+            }
+
+            if (winningAmount > 0) {
+                this.publisher.publishToAllUsers({
+                    winner: {
+                        id: bot.id,
+                        name: bot.name,
+                        avatarId: bot.avatarId,
+                        betWin: winningAmount,
+                        bigWin: totalAmount * this.bigWinRatio <= winningAmount,
+                        rate: this.botRate,
+                    },
                 });
             }
 
-            await this.jackpotConsumer.contribute(standardizedBot, { totalAmount, roundId, rate: this.botRate });
+            this.adjustGroupTracks(amount);
         }
-
-        if (winningAmount > 0) {
-            this.publisher.publishToAllUsers({
-                winner: {
-                    id: bot.id,
-                    name: bot.name,
-                    avatarId: bot.avatarId,
-                    betWin: winningAmount,
-                    bigWin: totalAmount * this.bigWinRatio <= winningAmount,
-                    rate: this.botRate,
-                },
-            });
-        }
-
-        this.adjustGroupTracks(amount);
     }
 
     async increaseRoundId() {
@@ -165,10 +168,6 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
         }
 
         this.totalNumberOfTickets++;
-    }
-
-    getTicketsPerRound() {
-        return this.chance.integer({ min: 30, max: 60 });
     }
 
     addToPlayersAndPublish(bot) {
