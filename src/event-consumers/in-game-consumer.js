@@ -1,12 +1,14 @@
 import mongoose from "mongoose";
-import { Core } from "sc-game-base";
+import { Core, Table } from "sc-game-base";
 
+import math from "lodash/math";
+import defaultDefinition from "../board/default-definition";
 import { MultipleCurrencyHelper } from "./../helpers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 import FreeSpinsConsumer from "./free-spins-consumer";
 
-export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsumer {
+export default class InGameConsumer extends Table.EventConsumers.TableInGameConsumer {
     /**
      * @param {Object} dependencies
      * @param {SlotGameDefinition} dependencies.definition
@@ -28,12 +30,39 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
         userInfosRepository,
         jackpotsRepository,
         jackpotValidator,
+        boardDefinition,
     }) {
         super(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository);
 
         this.freeSpinsConsumer = freeSpinsConsumer;
         this.jackpotsRepository = jackpotsRepository;
         this.jackpotValidator = jackpotValidator;
+        this.boardDefinition = boardDefinition ?? defaultDefinition;
+    }
+
+    async consume(realPlayer) {
+        const { gameConfigs, umMessages } = this.gameData;
+        const disabled = !gameConfigs || !gameConfigs.enabled;
+        if (disabled) {
+            realPlayer.socketClient.emit(this.definition.name, { um: disabled, um_message: umMessages });
+        }
+
+        const payload = await this.buildPayload(realPlayer);
+        const { red, avatarId, type, rate } = payload.user;
+        const player = {
+            id: realPlayer.UID,
+            name: realPlayer.profile.name,
+            red,
+            avatarId,
+            type,
+            rate,
+        };
+
+        if (!this.gameData.players[realPlayer.UID]) {
+            this.gameData.players[realPlayer.UID] = player;
+        }
+
+        realPlayer.socketClient.emit(this.definition.name, payload);
     }
 
     async buildPayload(realPlayer) {
@@ -64,8 +93,13 @@ export default class InGameConsumer extends Core.BaseEventConsumers.InGameConsum
     }
 
     getSlotGameConfig(realPlayer, canAccessJackpot) {
-        const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer);
-        const defaultBetLevel = MultipleCurrencyHelper.getDefaultBetLevel(this.gameData, realPlayer);
+        const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer).map((x) =>
+            math.round(x * this.boardDefinition.paylines.length, 2)
+        );
+        const defaultBetLevel = math.round(
+            MultipleCurrencyHelper.getDefaultBetLevel(this.gameData, realPlayer) * this.boardDefinition.paylines.length,
+            2
+        );
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
 
         return {

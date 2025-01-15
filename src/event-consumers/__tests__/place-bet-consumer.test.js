@@ -2,6 +2,7 @@ import { stub } from "jest-micro-auto-stub";
 import { helpers } from "sc-common";
 import { BaseEventPublishers } from "sc-game-base/src/core";
 
+import defaultDefinition from "../../board/default-definition";
 import SlotNoticeHelper from "../../helpers/slot-notice-helper";
 import SlotGameData from "../../slot-game-data";
 import SlotGameDefinition from "../../slot-game-definition";
@@ -15,7 +16,7 @@ describe("PlaceBetConsumer", () => {
     let placeBetConsumer;
 
     beforeEach(() => {
-        placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, publisher);
+        placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, publisher, defaultDefinition);
     });
 
     describe("composeBettingTimeValidationCriteria", () => {
@@ -148,26 +149,13 @@ describe("PlaceBetConsumer", () => {
         it("should NOT push payload into betQueue if invalid bet", () => {
             // arrange
             const player = stubPlayer();
-            const payload = stubPayload(1.5);
+            const payload = stubPayload(1);
 
             // act
             placeBetConsumer.consume(player, payload);
 
             // assert
             expect(placeBetConsumer.gameData.ingame[player.profile.name]).toBeUndefined();
-        });
-
-        it("betQueue should be doubled if it already contains once", () => {
-            // arrange
-            const player = stubPlayer();
-            const payload = stubPayload(1);
-
-            // act
-            placeBetConsumer.consume(player, payload);
-            placeBetConsumer.consume(player, payload);
-
-            // assert
-            expect(placeBetConsumer.gameData.ingame[player.profile.name].betQueue.length).toBe(2);
         });
     });
 });
@@ -210,10 +198,9 @@ function stubPlayer() {
     };
 }
 
-function stubPayload(amount = 1, freeSpin = null) {
+function stubPayload(amount = 2.5, freeSpin = null) {
     return {
         amount,
-        betChoice: [1, 2, 3],
         freeSpin,
     };
 }

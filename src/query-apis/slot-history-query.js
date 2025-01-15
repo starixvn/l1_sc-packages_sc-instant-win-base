@@ -18,34 +18,29 @@ export default class SlotHistoryQuery {
         const total = await this.roundsRepository.countDocuments(filter).exec();
         const roundProjection = {
             _id: false,
-            paid: false,
-            odds: false,
-            siteId: false,
-            playerId: false,
-            __v: false,
-            __archive: false,
+            roundId: "$id",
+            name: true,
+            uid: true,
+            bet: true,
+            totalAmount: true,
+            baseTotalAmount: true,
+            freeSpin: true,
+            jackpotContribution: true,
+            betwin: "$betWin",
+            baseBetWin: true,
+            time: true,
+            endTime: true,
+            currency: true,
+            rate: true,
+            exchangeRateId: true,
+            operatorId: true,
+            enableJackpot: { $cond: [{ $gt: ["$jackpotContribution.contributionRate", 0] }, true, false] },
         };
-        const rawBetLogs = await this.roundsRepository
-            .find(filter, roundProjection, { sort: { _id: -1 }, skip: numberOfSkippedBets, limit: pageSize })
+
+        const betLogs = await this.roundsRepository
+            .find(filter, roundProjection, { sort: { id: -1 }, skip: numberOfSkippedBets, limit: pageSize })
             .lean()
             .exec();
-        const betLogs = rawBetLogs.map((rawBetLog) => {
-            const betLog = { ...rawBetLog, enableJackpot: !!rawBetLog.jackpotContribution };
-
-            delete betLog.bonusChests;
-            delete betLog.jackpotContribution;
-
-            betLog.settlementResult.bonus.winningAmount = rawBetLog.bonusChests.reduce(
-                (winningAmount, bonusChest) => winningAmount + bonusChest.amount,
-                0
-            );
-
-            if (betLog.settlementResult.jackpot) {
-                betLog.settlementResult.jackpot.pool = betLog.settlementResult.jackpot.winningPrize;
-            }
-
-            return betLog;
-        });
 
         return { history: { betLogs, page, pageSize, total } };
     }

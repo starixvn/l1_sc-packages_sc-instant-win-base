@@ -1,30 +1,29 @@
-import { stubMongoose } from "jest-micro-auto-stub";
+import { stub, stubMongoose } from "jest-micro-auto-stub";
 import mongoose from "mongoose";
-import { Core } from "sc-game-base";
+import { BaseEventPublishers } from "sc-game-base/src/core";
 import OutGameConsumer from "../out-game-consumer";
 import { bonusConsumer, freeSpinsConsumer, jackpotGameConsumer } from "./stubs";
 
 const gameNotificationsRepository = stubMongoose(mongoose.Model);
+const publisher = stub(BaseEventPublishers);
 
 describe("out-game-consumer", () => {
     afterEach(() => jest.clearAllMocks());
 
-    describe("extends", () => {
-        it("should extend Core.BaseEventConsumers.UserDisconnectConsumer", () => {
-            // act
-            const consumer = new OutGameConsumer();
-
-            // assert
-            expect(consumer instanceof Core.BaseEventConsumers.UserDisconnectConsumer);
-        });
-    });
-
     describe("consume", () => {
         it("when have realPlayers should call autoOpenRemainingChests", async () => {
             // arrange
-            const gameData = { realPlayers: { user1: { profile: {} } } };
+            const gameData = { realPlayers: { user1: { profile: {} } }, players: { user1: {} } };
             const socketClient = { id: "user1" };
-            const consumer = new OutGameConsumer(1, gameData, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository, jackpotGameConsumer);
+            const consumer = new OutGameConsumer(
+                1,
+                gameData,
+                publisher,
+                bonusConsumer,
+                freeSpinsConsumer,
+                gameNotificationsRepository,
+                jackpotGameConsumer
+            );
             consumer.upsertFreeSpinNotification = jest.fn();
 
             // act
@@ -38,7 +37,15 @@ describe("out-game-consumer", () => {
             // arrange
             const gameData = { realPlayers: {} };
             const socketClient = { id: "user1" };
-            const consumer = new OutGameConsumer(1, gameData, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository, jackpotGameConsumer);
+            const consumer = new OutGameConsumer(
+                1,
+                gameData,
+                publisher,
+                bonusConsumer,
+                freeSpinsConsumer,
+                gameNotificationsRepository,
+                jackpotGameConsumer
+            );
             consumer.upsertFreeSpinNotification = jest.fn();
 
             // act
@@ -53,7 +60,15 @@ describe("out-game-consumer", () => {
         it("when not have latestExpiredFreeSpinSet should call gameNotificationsRepository.deleteOne", () => {
             // arrange
             const gameData = { realPlayers: { user1: { profile: {} } } };
-            const consumer = new OutGameConsumer(1, gameData, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository, jackpotGameConsumer);
+            const consumer = new OutGameConsumer(
+                1,
+                gameData,
+                publisher,
+                bonusConsumer,
+                freeSpinsConsumer,
+                gameNotificationsRepository,
+                jackpotGameConsumer
+            );
 
             // act
             consumer.upsertFreeSpinNotification({});
@@ -69,7 +84,15 @@ describe("out-game-consumer", () => {
 
             freeSpinsConsumer.getLatestExpiredFreeSpinSet.mockReturnValueOnce({});
 
-            const consumer = new OutGameConsumer(1, gameData, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository, jackpotGameConsumer);
+            const consumer = new OutGameConsumer(
+                1,
+                gameData,
+                publisher,
+                bonusConsumer,
+                freeSpinsConsumer,
+                gameNotificationsRepository,
+                jackpotGameConsumer
+            );
 
             // act
             consumer.upsertFreeSpinNotification({});

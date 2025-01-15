@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
-import { Core } from "sc-game-base";
-
+import { Table } from "sc-game-base";
 import * as Board from "./../board";
 import * as EventConsumers from "./../event-consumers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
-export default class SlotGameBot extends Core.Crons.BaseBot {
+export default class SlotGameBot extends Table.Crons.TableGameBot {
     /**
      * @param {Object} dependencies
      * @param {SlotGameDefinition} dependencies.definition
@@ -29,8 +28,10 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         boardGenerator,
         paylineCalculator,
         userInfosRepository,
+        publisher,
+        appConfigs,
     }) {
-        super(definition, gameData, userInfosRepository);
+        super(definition, gameData, publisher, userInfosRepository);
 
         this.idCountersConsumer = idCountersConsumer;
         this.jackpotConsumer = jackpotConsumer;
@@ -43,35 +44,20 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         this.odds = {};
         this.bigWinRatio = 0;
         this.groupTracks = [];
+        this.appConfigs = appConfigs;
     }
 
-    async reset() {
-        await super.reset();
-
-        const configs = this.gameData.gameConfigs;
-
-        if (configs?.botenabled) {
-            const bots = await this.userInfosRepository.find({ type: true, disabled: false, inRoom: false }, "id name").lean().exec();
-
-            this.bots = this.chance.shuffle(this.standardizeBots(bots)).slice(0, this.maxNumberOfBots);
-        } else {
-            this.bots = [];
-        }
-    }
-
-    standardizeBots(bots) {
-        return bots.map((bot) => {
-            return {
-                UID: bot.id,
-                profile: {
-                    name: bot.name,
-                },
-            };
-        });
+    standardizeBot(bot) {
+        return {
+            UID: bot.id,
+            profile: {
+                name: bot.name,
+            },
+        };
     }
 
     resetAllBotData() {
-        const betLevelsConfigs = [...this.gameData.gameConfigs.slotsConfig?.betLevels] ?? [];
+        const betLevelsConfigs = [...(this.appConfigs.baseBetLevels ?? this.gameData.gameConfigs.slotsConfig?.betLevels)] ?? [];
 
         this.totalNumberOfTickets = 0;
         this.odds = this.gameData.gameConfigs.slotsConfig?.icons ?? {};
@@ -96,60 +82,64 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
     }
 
     async placeBet(bot) {
-        await this.increaseRoundId();
-
+        const standardizedBot = this.standardizeBot(bot);
         const { jackpot } = this.gameData.gameConfigs.slotsConfig;
-        const name = bot.profile.name;
-        const roundId = this.gameData.roundId;
-        const paylines = this.randomizePaylines();
-        const numberOfPaylines = paylines.length;
-        const amount = this.getBetAmount();
+        const name = standardizedBot.profile.name;
+
+        const numberOfPaylines = this.boardGenerator.numberOfPaylines;
+        const paylines = [...Array(numberOfPaylines).keys()];
+        const amount = bot.selectedBetLevel;
         const totalAmount = amount * numberOfPaylines;
         const track = this.groupTracks.find((track) => track.betLevels.includes(amount));
-        const generatedBoard = this.boardGenerator.generateForBots(jackpot.enabled, track.ratio);
-        const board = this.boardCheatingConsumer.consume(name, generatedBoard);
-        const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
-        const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
 
-        if (jackpot.enabled) {
-            if (betResult.jackpotPayline >= 0) {
-                const prize = this.chance.weighted(
-                    Object.keys(jackpot.pools),
-                    Object.values(jackpot.pools).map((pool) => pool.botSettings.alloc)
-                );
-                await this.jackpotConsumer.hit(bot, { prize, roundId, exchangeRateId: this.gameData.exchangeRates.exId, rate: this.botRate });
+        for (let i = 0; i < this.chance.integer({ min: 1, max: 3 }); i++) {
+            await this.increaseRoundId();
+            const roundId = this.gameData.roundId;
+
+            const generatedBoard = this.boardGenerator.generateForBots(jackpot.enabled, track.ratio);
+            const board = this.boardCheatingConsumer.consume(name, generatedBoard);
+            const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
+            const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
+
+            if (jackpot.enabled) {
+                if (betResult.jackpotPayline >= 0) {
+                    const prize = this.chance.weighted(
+                        Object.keys(jackpot.pools),
+                        Object.values(jackpot.pools).map((pool) => pool.botSettings.alloc)
+                    );
+                    await this.jackpotConsumer.hit(standardizedBot, {
+                        prize,
+                        roundId,
+                        exchangeRateId: this.gameData.exchangeRates.exId,
+                        rate: this.botRate,
+                    });
+                }
+
+                await this.jackpotConsumer.contribute(standardizedBot, { totalAmount, roundId, rate: this.botRate });
             }
 
-            await this.jackpotConsumer.contribute(bot, { totalAmount, roundId, rate: this.botRate });
-        }
+            if (winningAmount > 0) {
+                setTimeout(() => {
+                    this.publisher.publishToAllUsers({
+                        winner: {
+                            id: bot.id,
+                            name: bot.name,
+                            avatarId: bot.avatarId,
+                            betWin: winningAmount,
+                            bigWin: totalAmount * this.bigWinRatio <= winningAmount,
+                            rate: this.botRate,
+                        },
+                    });
+                }, i * 300);
+            }
 
-        if (totalAmount * this.bigWinRatio <= winningAmount) {
-            await this.hallOfFameConsumer.add(bot, {
-                roundId,
-                bet: amount,
-                totalAmount,
-                baseTotalAmount: totalAmount * this.botRate,
-                winningAmount,
-                baseWinningAmount: winningAmount * this.botRate,
-                numberOfPaylines,
-                rate: this.botRate,
-            });
+            this.adjustGroupTracks(amount);
         }
-
-        this.adjustGroupTracks(amount);
     }
 
     async increaseRoundId() {
         await this.idCountersConsumer.consume("round");
         this.gameData.roundId++;
-    }
-
-    randomizePaylines() {
-        const numberOfAvailablePaylines = this.boardGenerator.numberOfPaylines;
-        const seeds = [...Array(numberOfAvailablePaylines).keys()];
-        const numberOfPaylines = this.chance.natural({ min: 1, max: numberOfAvailablePaylines - 1 });
-
-        return this.chance.pickset(seeds, numberOfPaylines);
     }
 
     getBetAmount() {
@@ -180,5 +170,19 @@ export default class SlotGameBot extends Core.Crons.BaseBot {
         }
 
         this.totalNumberOfTickets++;
+    }
+
+    addToPlayersAndPublish(bot) {
+        this.gameData.players[bot.id] = bot;
+    }
+
+    async removeBot(botId) {
+        await this.userInfosRepository.updateOne({ id: botId }, { inRoom: false, inGameRoom: "", patternId: 0 });
+        delete this.gameData.players[botId];
+    }
+
+    async botJoinRoom(bot) {
+        bot.selectedBetLevel = this.getBetAmount();
+        await super.botJoinRoom(bot);
     }
 }

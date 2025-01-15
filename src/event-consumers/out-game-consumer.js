@@ -15,8 +15,8 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
      * @param {mongoose.Model} gameNotificationsRepository
      * @param {JackpotGameConsumer} jackpotGameConsumer
      */
-    constructor(gameId, gameData, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository, jackpotGameConsumer) {
-        super(gameData);
+    constructor(gameId, gameData, publisher, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository, jackpotGameConsumer) {
+        super(gameData, publisher);
 
         this.gameId = gameId;
         this.bonusConsumer = bonusConsumer;
@@ -35,6 +35,7 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
             await this.jackpotGameConsumer.autoPickJackpot(realPlayer);
             await this.bonusConsumer.autoOpenRemainingChests(realPlayer);
             await this.upsertFreeSpinNotification(realPlayer);
+            delete this.gameData.players[realPlayer.UID];
         }
 
         super.consume(socketClient);

@@ -60,7 +60,12 @@ function getOddsRange(noPaylines) {
 export function runOneMillions(mode, boardDefinition) {
     const chance = new Chance();
     const stakes = [0.1, 1, 5];
-    const generator = new BoardGenerator(boardDefinition);
+    const gameData = {
+        gameConfigs: {
+            slotsConfig: {},
+        },
+    };
+    const generator = new BoardGenerator(boardDefinition, gameData);
     const calculator = new PaylineCalculator();
     const paylines = [...Array(25).keys()];
 
@@ -93,10 +98,10 @@ export function runOneMillions(mode, boardDefinition) {
             .fill()
             .map((x) => ({ winAmount: 0 })),
     };
-    for (let counter = 0; counter < 100000; counter++) {
+    for (let counter = 0; counter < 1000000; counter++) {
         const amount = chance.pickone(stakes);
         const board = generator.generate(mode);
-        const randomPaylines = [paylines[0]];
+        const randomPaylines = paylines;
         //const randomPaylines = [chance.pickone(paylines)];
         //const randomPaylines = chance.pickset(paylines, chance.integer({ min: 1, max: 25 }));
         const result = calculator.calculate(board, randomPaylines, odds);
@@ -312,4 +317,4 @@ function checkPosibility() {
     console.log(generator.anySymbolPossibilities);
 }
 
-runOneMillionsForBots();
+runAllModes();

@@ -1,11 +1,16 @@
+import math from "lodash/math";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
-
 import defaultDefinition from "../board/default-definition";
 import { MultipleCurrencyHelper } from "./../helpers";
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
+    constructor(definition, gameData, publisher, boardDefinition) {
+        super(definition, gameData, publisher);
+        this.boardDefinition = boardDefinition ?? defaultDefinition;
+    }
+
     composeBettingTimeValidationCriteria() {
         const gameConfigs = this.gameData.gameConfigs;
 
@@ -38,10 +43,10 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
 
     consume(player, payload) {
         Object.assign(payload, {
-            amount: payload.amount,
+            amount: math.round(payload.amount / this.boardDefinition.paylines.length, 4),
             freeBet: payload.freeBet ?? false,
             freeSpin: payload.freeSpin ?? false,
-            betChoice: [...Object.keys(defaultDefinition.paylines)],
+            betChoice: Object.keys(this.boardDefinition.paylines),
         });
 
         const { amount, betChoice, freeSpin, roundId } = payload;
@@ -54,6 +59,7 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         if (!this.gameData.ingame[name]) {
             const newPlayer = {
                 name: player.profile.name,
+                avatarId: player.profile.avatarId,
                 currency: player.session.currencyName,
                 betTracks: {},
                 betQueue: [],

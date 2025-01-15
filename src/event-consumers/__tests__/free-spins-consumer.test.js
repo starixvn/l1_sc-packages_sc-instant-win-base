@@ -66,7 +66,7 @@ describe("useFreeSpin", () => {
         // gameData.ingame[player.profile.name] = {
         //     freeSpins: [availableSpin],
         // };
-        spyOn(consumer, "getSoonestExpiredFreeSpinSet").and.returnValue(availableSpin);
+        jest.spyOn(consumer, "getSoonestExpiredFreeSpinSet").mockReturnValueOnce(availableSpin);
 
         // act
         await consumer.useFreeSpin(player);
@@ -80,7 +80,7 @@ describe("useFreeSpin", () => {
         // arrange
         const consumer = initConsumer();
         const player = stubPlayer();
-        spyOn(consumer, "getSoonestExpiredFreeSpinSet").and.returnValue(undefined);
+        jest.spyOn(consumer, "getSoonestExpiredFreeSpinSet").mockReturnValueOnce(undefined);
 
         // act
         await consumer.useFreeSpin(player);
@@ -253,8 +253,8 @@ describe("reload", () => {
     it("should cleanUpGameNotifications", async () => {
         // arrange
         const consumer = initConsumer();
-        spyOn(consumer, "queryFreeSpins").and.returnValue([]);
-        spyOn(consumer, "cleanUpGameNotifications");
+        jest.spyOn(consumer, "queryFreeSpins").mockReturnValueOnce([]);
+        jest.spyOn(consumer, "cleanUpGameNotifications");
 
         // act
         await consumer.reload();
@@ -266,7 +266,7 @@ describe("reload", () => {
     it("should load free spins to game data", async () => {
         // arrange
         const consumer = initConsumer();
-        spyOn(consumer, "queryFreeSpins").and.returnValue([
+        jest.spyOn(consumer, "queryFreeSpins").mockReturnValueOnce([
             { id: 1, name: "A", available: 2, total: 3 },
             { id: 2, name: "B", available: 4, total: 5 },
         ]);

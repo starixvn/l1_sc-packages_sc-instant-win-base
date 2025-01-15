@@ -1,13 +1,13 @@
-import { Core } from "sc-game-base";
+import { Table } from "sc-game-base";
 
-export default class SlotGameDefinition extends Core.GameDefinition {
+export default class SlotGameDefinition extends Table.TableGameDefinition {
     constructor({
         id = 0,
         name = "",
         durations = {},
         choices = [],
         choicesMapper = {},
-        historyPageSize = 10,
+        historyPageSize = 8,
         freeSpinLiveSeconds = 86400, // 1 day
         bonusSize = 10,
         bonusLiveSeconds = 125,

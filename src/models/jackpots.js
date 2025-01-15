@@ -3,20 +3,19 @@ import mongoose from "mongoose";
 const jackpotSchema = new mongoose.Schema({
     gameId: { type: Number, required: true },
     gameName: { type: String, required: true },
-    pool: { type: Number }, // pool associated with each bet amount, such as 100, 100, etc.
-    prize: { type: String, required: true }, // jackpot prizes such as minor, major, grand....
+    pool: { type: Number },
     initAmount: { type: Number, required: true },
     amount: { type: Number, default: 0 },
     winningRatio: { type: Number },
 
     winnerName: { type: String },
-    winnerId: { type: Number },
+    winnerId: { type: String },
 
     byBots: { type: Number, default: 0 },
     byMembers: { type: Number, default: 0 },
 
-    createdAt: { type: Number, required: true }, // ticket's ID from which the jackpot pool was created.
-    hitAt: { type: Number }, // ticket's ID from which the jackpot pool was hit.
+    createdAt: { type: Number, required: true },
+    hitAt: { type: Number },
 
     createdTime: { type: Date, required: true },
     hitTime: { type: Date },
@@ -25,6 +24,7 @@ const jackpotSchema = new mongoose.Schema({
     exchangeRateId: { type: Number },
     operatorId: { type: String },
     currency: { type: String },
+    prize: { type: String },
 });
 
 export default mongoose.model("Jackpot", jackpotSchema);
