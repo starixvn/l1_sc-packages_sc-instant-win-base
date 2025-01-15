@@ -20,7 +20,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://git3.nexdev.net/sc-packages/sc-instant-win-base.git"
+        "url": "https://git3.nexdev.net/l1/sc-packages/sc-instant-win-base.git"
     },
     "keywords": [
         "game-base",
