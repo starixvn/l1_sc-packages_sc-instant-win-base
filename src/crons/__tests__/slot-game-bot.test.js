@@ -6,6 +6,8 @@ import { BoardGenerator, PaylineCalculator } from "../../board";
 import { BoardCheatingConsumer, HallOfFameConsumer, IdCountersConsumer, JackpotConsumer } from "../../event-consumers";
 import SlotGameBot from "../slot-game-bot";
 
+jest.useFakeTimers();
+
 const userInfosRepository = stubMongoose(mongoose.Model);
 userInfosRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
 
@@ -138,6 +140,7 @@ describe("SlotGameBot", () => {
             bot.resetAllBotData();
             bot.adjustGroupTracks = jest.fn();
             bot.getBetAmount = () => stake;
+            jest.spyOn(bot.chance, "integer").mockReturnValue(1);
         });
 
         it("should adjustGroupTracks", async () => {
@@ -211,11 +214,12 @@ describe("SlotGameBot", () => {
         describe("when winningAmount exceed bigWin", () => {
             it("should call publisher.publishToAllUsers", async () => {
                 // Arrange
+                jest.settime
                 paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 5 }], jackpotPayline: -1 });
 
                 // Act
                 await bot.placeBet(botInfo);
-
+                jest.runAllTimers();
                 // Assert
                 expect(publisher.publishToAllUsers).toHaveBeenCalled();
             });
