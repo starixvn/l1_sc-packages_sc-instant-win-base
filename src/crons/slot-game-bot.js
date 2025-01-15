@@ -93,33 +93,33 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
         const track = this.groupTracks.find((track) => track.betLevels.includes(amount));
 
         for (let i = 0; i < this.chance.integer({ min: 1, max: 3 }); i++) {
-            setTimeout(async () => {
-                await this.increaseRoundId();
-                const roundId = this.gameData.roundId;
+            await this.increaseRoundId();
+            const roundId = this.gameData.roundId;
 
-                const generatedBoard = this.boardGenerator.generateForBots(jackpot.enabled, track.ratio);
-                const board = this.boardCheatingConsumer.consume(name, generatedBoard);
-                const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
-                const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
+            const generatedBoard = this.boardGenerator.generateForBots(jackpot.enabled, track.ratio);
+            const board = this.boardCheatingConsumer.consume(name, generatedBoard);
+            const betResult = this.paylineCalculator.calculate(board, paylines, this.odds);
+            const winningAmount = betResult.paylines.reduce((currentWinningAmount, payline) => currentWinningAmount + payline.odds * amount, 0);
 
-                if (jackpot.enabled) {
-                    if (betResult.jackpotPayline >= 0) {
-                        const prize = this.chance.weighted(
-                            Object.keys(jackpot.pools),
-                            Object.values(jackpot.pools).map((pool) => pool.botSettings.alloc)
-                        );
-                        await this.jackpotConsumer.hit(standardizedBot, {
-                            prize,
-                            roundId,
-                            exchangeRateId: this.gameData.exchangeRates.exId,
-                            rate: this.botRate,
-                        });
-                    }
-
-                    await this.jackpotConsumer.contribute(standardizedBot, { totalAmount, roundId, rate: this.botRate });
+            if (jackpot.enabled) {
+                if (betResult.jackpotPayline >= 0) {
+                    const prize = this.chance.weighted(
+                        Object.keys(jackpot.pools),
+                        Object.values(jackpot.pools).map((pool) => pool.botSettings.alloc)
+                    );
+                    await this.jackpotConsumer.hit(standardizedBot, {
+                        prize,
+                        roundId,
+                        exchangeRateId: this.gameData.exchangeRates.exId,
+                        rate: this.botRate,
+                    });
                 }
 
-                if (winningAmount > 0) {
+                await this.jackpotConsumer.contribute(standardizedBot, { totalAmount, roundId, rate: this.botRate });
+            }
+
+            if (winningAmount > 0) {
+                setTimeout(() => {
                     this.publisher.publishToAllUsers({
                         winner: {
                             id: bot.id,
@@ -130,10 +130,10 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
                             rate: this.botRate,
                         },
                     });
-                }
+                }, i * 300);
+            }
 
-                this.adjustGroupTracks(amount);
-            }, i * 300);
+            this.adjustGroupTracks(amount);
         }
     }
 
