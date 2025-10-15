@@ -531,31 +531,6 @@ describe("ProgressBonusConsumer", () => {
 
             expect(progressBonusConsumer.metrics.betsTracked).toBe(1);
         });
-
-        test("should reset metrics", () => {
-            progressBonusConsumer.metrics.betsTracked = 10;
-            progressBonusConsumer.metrics.bonusesAwarded = 5;
-            progressBonusConsumer.metrics.totalBonusAmount = 1000;
-            progressBonusConsumer.metrics.errors = 2;
-
-            progressBonusConsumer.resetMetrics();
-
-            expect(progressBonusConsumer.metrics).toEqual({
-                betsTracked: 0,
-                bonusesAwarded: 0,
-                totalBonusAmount: 0,
-                errors: 0,
-            });
-        });
-
-        test("should calculate average bonus amount", () => {
-            progressBonusConsumer.metrics.bonusesAwarded = 4;
-            progressBonusConsumer.metrics.totalBonusAmount = 1000;
-
-            const metrics = progressBonusConsumer.getMetrics();
-
-            expect(metrics.averageBonusAmount).toBe(250);
-        });
     });
 
     describe("Error Handling", () => {

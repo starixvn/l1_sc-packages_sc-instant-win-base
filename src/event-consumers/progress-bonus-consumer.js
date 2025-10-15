@@ -459,27 +459,4 @@ export default class ProgressBonusConsumer {
             this.logService.logError(error);
         }
     }
-
-    /**
-     * Get current metrics
-     * @returns {Object} - Current metrics
-     */
-    getMetrics() {
-        return {
-            ...this.metrics,
-            averageBonusAmount: this.metrics.bonusesAwarded > 0 ? this.metrics.totalBonusAmount / this.metrics.bonusesAwarded : 0,
-        };
-    }
-
-    /**
-     * Reset metrics (for testing or monitoring)
-     */
-    resetMetrics() {
-        this.metrics = {
-            betsTracked: 0,
-            bonusesAwarded: 0,
-            totalBonusAmount: 0,
-            errors: 0,
-        };
-    }
 }
