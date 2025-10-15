@@ -64,6 +64,7 @@ describe("slot-game-cron", () => {
             const idCountersConsumer = { getLatestId: jest.fn() };
             const logService = { logError: jest.fn(), log: jest.fn() };
             const bonusConsumer = { processExpiredBonus: jest.fn() };
+            const progressBonusConsumer = { initialize: jest.fn() };
             const freeSpinsConsumer = { reload: jest.fn() };
             const definition = {};
             const cron = new SlotGameCron({

@@ -1,7 +1,7 @@
 import math from "lodash/math";
 import { helpers } from "sc-common";
 import { Core } from "sc-game-base";
-import { FreeSpinsConsumer, SettleGameRoundConsumer } from "./../event-consumers";
+import { FreeSpinsConsumer, SettleGameRoundConsumer, ProgressBonusConsumer } from "./../event-consumers";
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
@@ -13,6 +13,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
      * @param {Core.BaseEventPublishers.PlaceBetPublisher} placeBetPublisher
      * @param {FreeSpinsConsumer} freeSpinsConsumer
      * @param {SettleGameRoundConsumer} settleGameRoundConsumer
+     * @param {ProgressBonusConsumer} progressBonusConsumer
      * @param {placeBetApi} dependencies.placeBet
      * @param {logger} dependencies.logService
      * @param {mongoose.Model} dependencies.roundsRepository
@@ -27,6 +28,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         placeBetPublisher,
         freeSpinsConsumer,
         settleGameRoundConsumer,
+        progressBonusConsumer,
         placeBet,
         logService,
         roundsRepository,
@@ -51,6 +53,7 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
         this.freeSpinsConsumer = freeSpinsConsumer;
         this.settleGameRoundConsumer = settleGameRoundConsumer;
+        this.progressBonusConsumer = progressBonusConsumer;
         this.roundsRepository = roundsRepository;
         this.idCountersConsumer = idCountersConsumer;
         this.jackpotValidator = jackpotValidator;
@@ -140,6 +143,8 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
 
         await this.upsertBet(player, roundId, bet, rate);
         this.notifyPlacingBetResult(player, balance, bet, rate);
+
+        await this.progressBonusConsumer.trackBetAndCheckProgressBonus(player, bet.totalAmount, roundId, bet.freeSpin);
 
         await this.settleGameRoundConsumer.settleRound(player, roundId);
     }

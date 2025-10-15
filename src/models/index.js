@@ -3,7 +3,7 @@ import IdCounters from "./id-counters";
 import Jackpots from "./jackpots";
 import FreeSpinsSchema from "./schemas/free-spins";
 import HallOfFamesSchema from "./schemas/hall-of-fames";
+import ProgressBonusSchema from "./schemas/progress-bonus";
 import RoundsSchema from "./schemas/rounds";
 
-export { FreeSpinsSchema, HallOfFamesSchema, IdCounters, Jackpots, RoundsSchema, currencyGroupGames };
-
+export { FreeSpinsSchema, HallOfFamesSchema, IdCounters, Jackpots, ProgressBonusSchema, RoundsSchema, currencyGroupGames };

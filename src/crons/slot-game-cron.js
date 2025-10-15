@@ -50,6 +50,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         currencyGroupRepository,
         currencyRepository,
         jackpotGameConsumer,
+        progressBonusConsumer,
     }) {
         super({
             definition,
@@ -75,6 +76,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         this.idCountersConsumer = idCountersConsumer;
         this.jackpotConsumer = jackpotConsumer;
         this.jackpotGameConsumer = jackpotGameConsumer;
+        this.progressBonusConsumer = progressBonusConsumer;
     }
 
     async start() {
@@ -103,6 +105,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         await this.freeSpinsConsumer.reload();
         await this.getSettingForNewRound();
         await this.updateExchangeRates();
+        await this.progressBonusConsumer.initialize();
 
         if (this.gameData.gameConfigs.slotsConfig?.jackpot.enabled) {
             await this.jackpotConsumer.initialize();
@@ -154,6 +157,7 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
 
         await this.jackpotGameConsumer.processExpired();
         await this.bonusConsumer.processExpiredBonus();
+        this.progressBonusConsumer.processCountdown();
     }
 
     async loadUnsettledBetsToIngame() {

@@ -89,6 +89,7 @@ export default class SlotContainerRegistry extends Table.TableContainerRegistry 
             jackpotConsumer: asClass(EventConsumers.JackpotConsumer).singleton(),
             userDisconnectConsumer: asClass(EventConsumers.OutGameConsumer).singleton(),
             placeBetConsumer: asClass(EventConsumers.PlaceBetConsumer).singleton(),
+            progressBonusConsumer: asClass(EventConsumers.ProgressBonusConsumer).singleton(),
             settleGameRoundConsumer: asClass(EventConsumers.SettleGameRoundConsumer).singleton().proxy(),
             jackpotGameConsumer: asClass(EventConsumers.JackpotGameConsumer).singleton().proxy(),
             generateResultConsumer: asClass(EventConsumers.GenerateResultConsumer).singleton().proxy(),

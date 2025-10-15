@@ -7,6 +7,7 @@ import { MultipleCurrencyHelper } from "./../helpers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 import FreeSpinsConsumer from "./free-spins-consumer";
+import ProgressBonusConsumer from "./progress-bonus-consumer";
 
 export default class InGameConsumer extends Table.EventConsumers.TableInGameConsumer {
     /**
@@ -16,6 +17,7 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
      * @param {Core.QueryApis.RoundQuery} dependencies.roundQuery
      * @param {Core.BaseEventPublishers.BaseEventPublisher} dependencies.publisher
      * @param {FreeSpinsConsumer} dependencies.freeSpinsConsumer
+     * @param {ProgressBonusConsumer} dependencies.progressBonusConsumer
      * @param {getBalanceApi} dependencies.getBalance
      * @param {mongoose.Model} dependencies.userInfosRepository
      * @param {mongoose.Model} dependencies.jackpotsRepository
@@ -26,6 +28,7 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
         roundQuery,
         publisher,
         freeSpinsConsumer,
+        progressBonusConsumer,
         getBalance,
         userInfosRepository,
         jackpotsRepository,
@@ -35,6 +38,7 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
         super(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository);
 
         this.freeSpinsConsumer = freeSpinsConsumer;
+        this.progressBonusConsumer = progressBonusConsumer;
         this.jackpotsRepository = jackpotsRepository;
         this.jackpotValidator = jackpotValidator;
         this.boardDefinition = boardDefinition ?? defaultDefinition;
@@ -71,6 +75,7 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
 
         const gameConfigs = this.getSlotGameConfig(realPlayer, canAccessJackpot);
         const freeSpins = this.getAvailableFreeSpins(realPlayer);
+        const progressBonus = this.progressBonusConsumer.getProgressBonusStatus(realPlayer);
         const jackpotPools = canAccessJackpot ? await this.getPools() : [];
 
         await this.getBalance(realPlayer, true);
@@ -83,6 +88,7 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
             gameConfigs,
             jackpotPools,
             freeSpins,
+            progressBonus,
             user: {
                 ...user,
                 rate,

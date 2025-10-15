@@ -96,8 +96,9 @@ describe("slot-process-bet-queue", () => {
         it("should call settleGameRoundConsumer.settleRound", async () => {
             // arrange
             const settleGameRoundConsumer = { settleRound: jest.fn() };
+            const progressBonusConsumer = { trackBetAndCheckProgressBonus: jest.fn() };
             const gameData = { exchangeRates: { code: [] } };
-            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, gameData });
+            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, progressBonusConsumer, gameData });
             cron.upsertBet = jest.fn();
             cron.notifyPlacingBetResult = jest.fn();
 
@@ -115,9 +116,10 @@ describe("slot-process-bet-queue", () => {
         it("when is freespin should call freeSpinsConsumer.useFreeSpin", async () => {
             // arrange
             const settleGameRoundConsumer = { settleRound: jest.fn() };
+            const progressBonusConsumer = { trackBetAndCheckProgressBonus: jest.fn() };
             const freeSpinsConsumer = { useFreeSpin: jest.fn() };
             const gameData = { exchangeRates: { code: [] } };
-            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, freeSpinsConsumer, gameData });
+            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, progressBonusConsumer, freeSpinsConsumer, gameData });
             cron.upsertBet = jest.fn();
             cron.notifyPlacingBetResult = jest.fn();
 
@@ -329,9 +331,7 @@ describe("slot-process-bet-queue", () => {
 
                     //Assert
                     expect(result.contributionRate).toEqual(0.5);
-                    expect(result.contributionAmount).toEqual(
-                        math.round(payload.amount * payload.betChoice.length * 0.5, 4)
-                    );
+                    expect(result.contributionAmount).toEqual(math.round(payload.amount * payload.betChoice.length * 0.5, 4));
                 });
 
                 it("contributionRate & contributionAmount should be 0 with free spin", async () => {
