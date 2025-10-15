@@ -97,15 +97,6 @@ describe("ProgressBonusConsumer", () => {
             expect(customConsumer.MULTIPLIERS).toEqual([2, 4, 10]);
             expect(customConsumer.MULTIPLIER_WEIGHTS).toEqual([0.5, 0.3, 0.2]);
         });
-
-        test("should initialize metrics", () => {
-            expect(progressBonusConsumer.metrics).toEqual({
-                betsTracked: 0,
-                bonusesAwarded: 0,
-                totalBonusAmount: 0,
-                errors: 0,
-            });
-        });
     });
 
     describe("Input Validation", () => {
@@ -507,32 +498,6 @@ describe("ProgressBonusConsumer", () => {
         });
     });
 
-    describe("Metrics", () => {
-        test("should track metrics correctly", async () => {
-            const player = {
-                profile: { name: "testPlayer" },
-                UID: "player123",
-                session: { playerId: "p123", operatorId: "op123", currencyName: "USD" },
-            };
-            const betAmount = 10;
-            const roundId = 1;
-
-            // Set up player data in gameData.ingame
-            mockGameData.ingame.testPlayer = {
-                player: player,
-            };
-
-            mockProgressBonusRepository.findOne.mockReturnValue({
-                lean: jest.fn().mockResolvedValue(null),
-            });
-            mockProgressBonusRepository.findOneAndUpdate.mockResolvedValue({});
-
-            await progressBonusConsumer.trackBetAndCheckProgressBonus(player, betAmount, roundId);
-
-            expect(progressBonusConsumer.metrics.betsTracked).toBe(1);
-        });
-    });
-
     describe("Error Handling", () => {
         test("should handle database errors gracefully", async () => {
             const player = {
@@ -556,9 +521,6 @@ describe("ProgressBonusConsumer", () => {
             await expect(progressBonusConsumer.trackBetAndCheckProgressBonus(player, betAmount, roundId)).rejects.toThrow(
                 "Database connection failed"
             );
-
-            // The error count will be higher due to retry attempts, so we check it's at least 1
-            expect(progressBonusConsumer.metrics.errors).toBeGreaterThanOrEqual(1);
         });
 
         test("should handle database errors gracefully", async () => {

@@ -37,22 +37,8 @@ export default class ProgressBonusConsumer {
 
         this.TIMEOUT_DURATION = 3000;
         this.DECREASE_INTERVAL = 150;
-
-        this.metrics = {
-            betsTracked: 0,
-            bonusesAwarded: 0,
-            totalBonusAmount: 0,
-            errors: 0,
-        };
     }
 
-    /**
-     * Track bet count for user and trigger progress bonus if threshold reached
-     * @param {Object} player - Player object
-     * @param {Number} betAmount - Bet amount for this round
-     * @param {Number} roundId - Round ID
-     * @param {Boolean} isFreeSpin - Whether this is a free spin bet
-     */
     async trackBetAndCheckProgressBonus(player, betAmount, roundId, isFreeSpin = false) {
         if (!this.validateInputs(player, betAmount, roundId)) {
             return;
@@ -77,16 +63,8 @@ export default class ProgressBonusConsumer {
             this.triggerProgressBonus(player, progressData.totalBetAmount, roundId);
             await this.resetProgress(playerName, roundId);
         }
-
-        this.metrics.betsTracked++;
     }
 
-    /**
-     * Validate input parameters
-     * @param {Object} player - Player object
-     * @param {Number} betAmount - Bet amount
-     * @param {Number} roundId - Round ID
-     */
     validateInputs(player, betAmount, roundId) {
         return player?.profile?.name && betAmount >= 0 && roundId > 0;
     }
@@ -145,12 +123,6 @@ export default class ProgressBonusConsumer {
         await this.saveProgressToDatabaseWithRetry(playerName, progressData);
     }
 
-    /**
-     * Trigger progress bonus game
-     * @param {Object} player - Player object
-     * @param {Number} totalBetAmount - Total bet amount for bonus calculation
-     * @param {Number} roundId - Current round ID
-     */
     async triggerProgressBonus(player, totalBetAmount, roundId) {
         const playerName = player.profile.name;
         const bonusCalculation = this.calculateBonusAmount(totalBetAmount);
@@ -158,9 +130,6 @@ export default class ProgressBonusConsumer {
 
         this.storeBonusGameData(playerName, bonusGameData);
         this.awardProgressBonus(player, bonusGameData);
-
-        this.metrics.bonusesAwarded++;
-        this.metrics.totalBonusAmount += bonusCalculation.finalAmount;
     }
 
     calculateBonusAmount(totalBetAmount) {
@@ -193,10 +162,6 @@ export default class ProgressBonusConsumer {
         this.gameData.ingame[playerName].progressBonusGame = bonusGameData;
     }
 
-    /**
-     * Publish progress update to player
-     * @param {Object} player - Player object
-     */
     publishProgressUpdate(player) {
         try {
             const status = this.getProgressBonusStatus(player);
@@ -205,7 +170,6 @@ export default class ProgressBonusConsumer {
                 progressBonus: status,
             });
         } catch (error) {
-            this.metrics.errors++;
             this.logService.logError(error);
         }
     }
@@ -229,11 +193,6 @@ export default class ProgressBonusConsumer {
         }
     }
 
-    /**
-     * Award progress bonus to player
-     * @param {Object} player - Player object
-     * @param {Object} bonusGameData - Bonus game data
-     */
     awardProgressBonus(player, bonusGameData) {
         this.publishBonusAward(player, bonusGameData);
         this.cleanupBonusGameData(player.profile.name);
@@ -254,11 +213,6 @@ export default class ProgressBonusConsumer {
         delete this.gameData.ingame[playerName].progressBonusGame;
     }
 
-    /**
-     * Get progress bonus status for player
-     * @param {Object} player - Player object
-     * @returns {Object} - Progress bonus status
-     */
     getProgressBonusStatus(player) {
         const playerName = player.profile.name;
         const progressData = this.getPlayerProgressData(playerName);
@@ -303,16 +257,12 @@ export default class ProgressBonusConsumer {
         return Math.min(100, (betCount / this.BETS_TRIGGER_THRESHOLD) * 100);
     }
 
-    /**
-     * Reset progress bonus for player (for testing or admin purposes)
-     * @param {Object} player - Player object
-     */
     async resetProgressBonus(player) {
         const playerName = player.profile.name;
-        if (!this.hasProgressData(playerName)) return;
-
-        this.resetPlayerProgress(playerName);
-        await this.saveProgressToDatabaseWithRetry(playerName, this.gameData.ingame[playerName].progressBonus);
+        if (this.hasProgressData(playerName)) {
+            this.resetPlayerProgress(playerName);
+            await this.saveProgressToDatabaseWithRetry(playerName, this.gameData.ingame[playerName].progressBonus);
+        }
     }
 
     hasProgressData(playerName) {
@@ -327,11 +277,6 @@ export default class ProgressBonusConsumer {
         };
     }
 
-    /**
-     * Save progress to database with retry mechanism
-     * @param {String} playerName - Player name
-     * @param {Object} progressData - Progress data
-     */
     async saveProgressToDatabaseWithRetry(playerName, progressData) {
         for (let attempt = 1; attempt <= this.DATABASE_RETRY_ATTEMPTS; attempt++) {
             try {
@@ -377,7 +322,10 @@ export default class ProgressBonusConsumer {
     async loadProgressFromDatabase(playerName) {
         try {
             const player = this.getPlayerFromGameData(playerName);
-            if (!player) return null;
+
+            if (!player) {
+                return null;
+            }
 
             const filter = {
                 playerId: player.session.playerId,
@@ -397,7 +345,6 @@ export default class ProgressBonusConsumer {
                   }
                 : null;
         } catch (error) {
-            this.metrics.errors++;
             this.logService.logError(error);
             return null;
         }
@@ -455,7 +402,6 @@ export default class ProgressBonusConsumer {
                 };
             }
         } catch (error) {
-            this.metrics.errors++;
             this.logService.logError(error);
         }
     }
