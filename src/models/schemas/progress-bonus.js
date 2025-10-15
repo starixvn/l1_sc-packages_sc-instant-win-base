@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const progressBonusSchema = new mongoose.Schema({
+export default new mongoose.Schema({
     playerId: { type: String, required: true },
     operatorId: { type: String, required: true },
     uid: { type: String, required: true },
@@ -17,5 +17,3 @@ const progressBonusSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
-
-export default progressBonusSchema;
