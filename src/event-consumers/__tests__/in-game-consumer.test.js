@@ -21,6 +21,7 @@ describe("IngameConsumer", () => {
     const roundQuery = stub(RoundQuery);
     const jackpotValidator = stub(JackpotValidator);
     const freeSpinsConsumer = stub(FreeSpinsConsumer);
+    const progressBonusConsumer = { getProgressBonusStatus: jest.fn() };
 
     let consumer;
 
@@ -31,6 +32,7 @@ describe("IngameConsumer", () => {
             roundQuery,
             publisher,
             freeSpinsConsumer,
+            progressBonusConsumer,
             getBalance,
             userInfosRepository,
             jackpotsRepository,
@@ -40,6 +42,18 @@ describe("IngameConsumer", () => {
     });
     afterEach(() => {
         jest.clearAllMocks();
+    });
+
+    beforeEach(() => {
+        progressBonusConsumer.getProgressBonusStatus.mockReturnValue({
+            betCount: 0,
+            totalBetAmount: 0,
+            remainingBets: 200,
+            progressPercentage: 0,
+            lastTapTime: null,
+            isDecreasing: false,
+            decreaseStartTime: null,
+        });
     });
 
     describe("getPools", () => {

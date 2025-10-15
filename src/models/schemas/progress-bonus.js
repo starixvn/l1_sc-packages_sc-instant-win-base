@@ -10,7 +10,6 @@ const progressBonusSchema = new mongoose.Schema({
     totalBetAmount: { type: Number, default: 0 },
     lastBonusRoundId: { type: Number, default: null },
 
-    // Fortune Scale timeout and decrease tracking
     lastTapTime: { type: Date, default: null },
     isDecreasing: { type: Boolean, default: false },
     decreaseStartTime: { type: Date, default: null },
