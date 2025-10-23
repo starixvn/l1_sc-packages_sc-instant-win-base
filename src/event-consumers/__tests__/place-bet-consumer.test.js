@@ -16,14 +16,16 @@ describe("PlaceBetConsumer", () => {
     let placeBetConsumer;
 
     beforeEach(() => {
-        placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, publisher, defaultDefinition);
+        const logService = { logError: jest.fn() };
+        placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, publisher, logService, defaultDefinition);
     });
 
     describe("composeBettingTimeValidationCriteria", () => {
         it("should return placeBetNextRound when game was disabled", () => {
             // arrange
             gameData.gameConfigs.enabled = false;
-            const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData);
+            const logService = { logError: jest.fn() };
+            const placeBetConsumer = new PlaceBetConsumer(gameDefinition, gameData, publisher, logService);
 
             // act
             const criterions = placeBetConsumer.composeBettingTimeValidationCriteria();
@@ -173,13 +175,27 @@ function stubGameData() {
         },
     };
 
-    gameData.currencyGroupGames = [{ groupId: "617a650628b7a500016388f5", betLevels: [0.1, 1, 5] }];
+    gameData.currencyGroupGames = [
+        {
+            groupId: "617a650628b7a500016388f5",
+            betLevels: [0.1, 1, 5],
+            minBet: 0.1,
+            maxBet: 100,
+            maxBetPerChoices: { 0: 100, 1: 100, 2: 100, 3: 100, 4: 100 },
+        },
+    ];
     return gameData;
 }
 
 function stubGameDefinition() {
     return new SlotGameDefinition({
         choices: [1, 2, 3, 4, 5],
+        hedgeBetGroups: [],
+        durations: {
+            lockingBet: 5,
+            placingBets: 20,
+        },
+        provablyFair: false,
     });
 }
 
@@ -194,6 +210,7 @@ function stubPlayer() {
         session: {
             currencyName: "US",
             currencyGroupId: "617a650628b7a500016388f5",
+            system: "web",
         },
     };
 }

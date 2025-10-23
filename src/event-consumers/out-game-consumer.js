@@ -10,13 +10,14 @@ export default class OutGameConsumer extends Core.BaseEventConsumers.UserDisconn
     /**
      * @param {Number} gameId
      * @param {SlotGameData} gameData
+     * @param {UserTrackingClient} userTrackingClient
      * @param {BonusConsumer} bonusConsumer
      * @param {FreeSpinsConsumer} freeSpinsConsumer
      * @param {mongoose.Model} gameNotificationsRepository
      * @param {JackpotGameConsumer} jackpotGameConsumer
      */
-    constructor(gameId, gameData, publisher, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository, jackpotGameConsumer) {
-        super(gameData, publisher);
+    constructor(gameId, gameData, userTrackingClient, bonusConsumer, freeSpinsConsumer, gameNotificationsRepository, jackpotGameConsumer) {
+        super(gameData, userTrackingClient);
 
         this.gameId = gameId;
         this.bonusConsumer = bonusConsumer;

@@ -3,11 +3,31 @@ import { Core } from "sc-game-base";
 import JackpotValidator from "../../validators/jackpot-validator";
 import SlotProcessBetQueue from "../slot-process-bet-queue";
 
+// Helper function to create all required mock dependencies for sc-game-base 6.1.0
+const createMockDependencies = () => ({
+    gameManagementApiClientFactory: {
+        instance: jest.fn().mockReturnValue({
+            get: jest.fn(),
+            post: jest.fn(),
+            put: jest.fn(),
+            delete: jest.fn(),
+        }),
+    },
+    baseMetrics: {
+        increment: jest.fn(),
+        decrement: jest.fn(),
+        set: jest.fn(),
+        get: jest.fn(),
+        collectBetProcessedTime: jest.fn(),
+    },
+});
+
 describe("slot-process-bet-queue", () => {
     describe("extends", () => {
         it("should extend Core.Crons.BaseBot", () => {
             // act
-            const cron = new SlotProcessBetQueue({});
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ ...mockDeps });
 
             // assert
             expect(cron instanceof Core.Crons.ProcessBetQueue);
@@ -17,7 +37,8 @@ describe("slot-process-bet-queue", () => {
     describe("generatePlacingBetResult", () => {
         it("should return correct value", () => {
             // arrange
-            const cron = new SlotProcessBetQueue({});
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ ...mockDeps });
             const player = {};
             const balance = { username: "username" };
             const bet = { totalAmount: 10, freeSpin: 1 };
@@ -37,7 +58,8 @@ describe("slot-process-bet-queue", () => {
             const roundsRepository = { create: jest.fn() };
             const gameData = { exchangeRates: {}, gameConfigs: { slotsConfig: { jackpot: { enabled: false } } } };
             const jackpotValidator = new JackpotValidator(gameData);
-            const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator });
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator, ...mockDeps });
             const player = { session: { playerId: 1, siteId: 2 }, profile: { name: "user3" } };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
@@ -53,7 +75,8 @@ describe("slot-process-bet-queue", () => {
             const roundsRepository = { create: jest.fn() };
             const gameData = { exchangeRates: {}, gameConfigs: { slotsConfig: { jackpot: { enabled: false } } } };
             const jackpotValidator = new JackpotValidator(gameData);
-            const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator });
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator, ...mockDeps });
             const player = { profile: { name: "user3" }, session: null };
             const bet = { totalAmount: 10, freeSpin: 1 };
 
@@ -70,7 +93,8 @@ describe("slot-process-bet-queue", () => {
                 const roundsRepository = { create: jest.fn() };
                 const gameData = { exchangeRates: {}, gameConfigs: { slotsConfig: { jackpot: { enabled: true } } } };
                 const jackpotValidator = new JackpotValidator(gameData);
-                const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator });
+                const mockDeps = createMockDependencies();
+                const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator, ...mockDeps });
                 const player = { session: { playerId: 1, siteId: 2 }, profile: { name: "user3" } };
                 const bet = { totalAmount: 10, freeSpin: 1, contributionRate: 0.025 };
                 const rate = 0.8;
@@ -98,7 +122,8 @@ describe("slot-process-bet-queue", () => {
             const settleGameRoundConsumer = { settleRound: jest.fn() };
             const progressBonusConsumer = { trackBetAndCheckProgressBonus: jest.fn() };
             const gameData = { exchangeRates: { code: [] } };
-            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, progressBonusConsumer, gameData });
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, progressBonusConsumer, gameData, ...mockDeps });
             cron.upsertBet = jest.fn();
             cron.notifyPlacingBetResult = jest.fn();
 
@@ -119,7 +144,8 @@ describe("slot-process-bet-queue", () => {
             const progressBonusConsumer = { trackBetAndCheckProgressBonus: jest.fn() };
             const freeSpinsConsumer = { useFreeSpin: jest.fn() };
             const gameData = { exchangeRates: { code: [] } };
-            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, progressBonusConsumer, freeSpinsConsumer, gameData });
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ settleGameRoundConsumer, progressBonusConsumer, freeSpinsConsumer, gameData, ...mockDeps });
             cron.upsertBet = jest.fn();
             cron.notifyPlacingBetResult = jest.fn();
 
@@ -138,7 +164,8 @@ describe("slot-process-bet-queue", () => {
     describe("composeBettingTimeValidationCriteria", () => {
         it("should return empty", () => {
             // arrange
-            const cron = new SlotProcessBetQueue({});
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ ...mockDeps });
 
             // act
             const actualValue = cron.composeBettingTimeValidationCriteria(1);
@@ -154,7 +181,8 @@ describe("slot-process-bet-queue", () => {
             const definition = { id: 1 };
             const gameData = { roundId: 2 };
 
-            const cron = new SlotProcessBetQueue({ definition, gameData });
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ definition, gameData, ...mockDeps });
             const payload = {
                 totalAmount: 10,
                 freeBet: false,
@@ -191,7 +219,8 @@ describe("slot-process-bet-queue", () => {
                 },
             };
             const placeBetPublisher = { publishGameFailedBet: jest.fn() };
-            const cron = new SlotProcessBetQueue({ gameData, placeBetPublisher });
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ gameData, placeBetPublisher, ...mockDeps });
             const player = { profile: { name: "player1" } };
             const payload = {};
 
@@ -216,7 +245,8 @@ describe("slot-process-bet-queue", () => {
             const freeSpinsConsumer = { getSoonestExpiredFreeSpinSet: jest.fn() };
             const soonestExpiredFreeSpinSet = null;
             freeSpinsConsumer.getSoonestExpiredFreeSpinSet.mockReturnValueOnce(soonestExpiredFreeSpinSet);
-            const cron = new SlotProcessBetQueue({ gameData, placeBetPublisher, freeSpinsConsumer });
+            const mockDeps = createMockDependencies();
+            const cron = new SlotProcessBetQueue({ gameData, placeBetPublisher, freeSpinsConsumer, ...mockDeps });
             const player = { profile: { name: "player1" } };
             const payload = { freeSpin: true };
 
@@ -256,6 +286,7 @@ describe("slot-process-bet-queue", () => {
                 return { response: {} };
             };
             const baseMetrics = { collectBetProcessedTime: jest.fn() };
+            const mockDeps = createMockDependencies();
             const cron = new SlotProcessBetQueue({
                 gameData,
                 definition,
@@ -266,6 +297,7 @@ describe("slot-process-bet-queue", () => {
                 placeBet,
                 baseMetrics,
                 jackpotValidator,
+                ...mockDeps,
             });
             const player = { profile: { name: "player1" }, session: { disabledJackpotGames: false } };
             const payload = { freeSpin: false, betChoice: [] };
@@ -321,9 +353,11 @@ describe("slot-process-bet-queue", () => {
                         amount: 0.1,
                         betChoice: [1, 2, 3],
                     };
+                    const mockDeps = createMockDependencies();
                     const cron = new SlotProcessBetQueue({
                         gameData,
                         jackpotValidator,
+                        ...mockDeps,
                     });
 
                     //Act
@@ -341,9 +375,11 @@ describe("slot-process-bet-queue", () => {
                         amount: 0.1,
                         betChoice: [1, 2, 3],
                     };
+                    const mockDeps = createMockDependencies();
                     const cron = new SlotProcessBetQueue({
                         gameData,
                         jackpotValidator,
+                        ...mockDeps,
                     });
 
                     //Act
@@ -368,9 +404,11 @@ describe("slot-process-bet-queue", () => {
                         amount: 0.1,
                         betChoice: [1, 2, 3],
                     };
+                    const mockDeps = createMockDependencies();
                     const cron = new SlotProcessBetQueue({
                         gameData,
                         jackpotValidator,
+                        ...mockDeps,
                     });
 
                     //Act
@@ -404,9 +442,11 @@ describe("slot-process-bet-queue", () => {
                     amount: 0.1,
                     betChoice: [1, 2, 3],
                 };
+                const mockDeps = createMockDependencies();
                 const cron = new SlotProcessBetQueue({
                     gameData,
                     jackpotValidator,
+                    ...mockDeps,
                 });
 
                 //Act

@@ -6,10 +6,26 @@ import { BoardGenerator, PaylineCalculator } from "../../board";
 import { BoardCheatingConsumer, HallOfFameConsumer, IdCountersConsumer, JackpotConsumer } from "../../event-consumers";
 import SlotGameBot from "../slot-game-bot";
 
-jest.useFakeTimers();
+// Create a shared mock instance to ensure consistency
+const mockGameManagementApiClient = {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    updateBotsOutRoom: jest.fn().mockResolvedValue({}),
+    users: {
+        updateBotsOutRoom: jest.fn().mockResolvedValue({}),
+    },
+};
 
-const userInfosRepository = stubMongoose(mongoose.Model);
-userInfosRepository.countDocuments.mockReturnValue({ exec: jest.fn() });
+// Helper function to create all required mock dependencies for sc-game-base 6.1.0
+const createMockDependencies = () => ({
+    gameManagementApiClientFactory: {
+        instance: jest.fn().mockReturnValue(mockGameManagementApiClient),
+    },
+});
+
+jest.useFakeTimers();
 
 const idCountersConsumer = stub(IdCountersConsumer);
 const boardCheatingConsumer = stub(BoardCheatingConsumer);
@@ -59,6 +75,7 @@ describe("SlotGameBot", () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
+        const mockDeps = createMockDependencies();
         bot = new SlotGameBot({
             gameData,
             publisher,
@@ -68,8 +85,8 @@ describe("SlotGameBot", () => {
             paylineCalculator,
             hallOfFameConsumer,
             jackpotConsumer,
-            userInfosRepository,
             appConfigs: {},
+            ...mockDeps,
         });
     });
     describe("extends", () => {
@@ -214,7 +231,7 @@ describe("SlotGameBot", () => {
         describe("when winningAmount exceed bigWin", () => {
             it("should call publisher.publishToAllUsers", async () => {
                 // Arrange
-                jest.settime
+                jest.settime;
                 paylineCalculator.calculate.mockReturnValueOnce({ paylines: [{ odds: 5 }], jackpotPayline: -1 });
 
                 // Act

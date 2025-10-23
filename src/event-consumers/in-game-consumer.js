@@ -19,8 +19,9 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
      * @param {FreeSpinsConsumer} dependencies.freeSpinsConsumer
      * @param {ProgressBonusConsumer} dependencies.progressBonusConsumer
      * @param {getBalanceApi} dependencies.getBalance
-     * @param {mongoose.Model} dependencies.userInfosRepository
      * @param {mongoose.Model} dependencies.jackpotsRepository
+     * @param {GameManagementApiClientFactory} dependencies.gameManagementApiClientFactory
+     * @param {UserTrackingClient} dependencies.userTrackingClient
      */
     constructor({
         definition,
@@ -30,12 +31,13 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
         freeSpinsConsumer,
         progressBonusConsumer,
         getBalance,
-        userInfosRepository,
         jackpotsRepository,
         jackpotValidator,
         boardDefinition,
+        gameManagementApiClientFactory,
+        userTrackingClient,
     }) {
-        super(definition, gameData, roundQuery, publisher, getBalance, userInfosRepository);
+        super(definition, gameData, roundQuery, publisher, getBalance, gameManagementApiClientFactory, userTrackingClient);
 
         this.freeSpinsConsumer = freeSpinsConsumer;
         this.progressBonusConsumer = progressBonusConsumer;

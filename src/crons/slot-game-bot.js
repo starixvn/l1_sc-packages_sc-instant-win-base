@@ -16,7 +16,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
      * @param {EventConsumers.BoardCheatingConsumer} dependencies.boardCheatingConsumer
      * @param {Board.BoardGenerator} dependencies.boardGenerator
      * @param {Board.PaylineCalculator} dependencies.paylineCalculator
-     * @param {mongoose.Model} dependencies.userInfosRepository
+     * @param {GameManagementApiClientFactory} dependencies.gameManagementApiClientFactory
      */
     constructor({
         definition,
@@ -27,11 +27,11 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
         boardCheatingConsumer,
         boardGenerator,
         paylineCalculator,
-        userInfosRepository,
         publisher,
         appConfigs,
+        gameManagementApiClientFactory,
     }) {
-        super(definition, gameData, publisher, userInfosRepository);
+        super(definition, gameData, publisher, gameManagementApiClientFactory);
 
         this.idCountersConsumer = idCountersConsumer;
         this.jackpotConsumer = jackpotConsumer;
@@ -177,7 +177,7 @@ export default class SlotGameBot extends Table.Crons.TableGameBot {
     }
 
     async removeBot(botId) {
-        await this.userInfosRepository.updateOne({ id: botId }, { inRoom: false, inGameRoom: "", patternId: 0 });
+        await this.gameManagementApiClient.users.updateBotsOutRoom({ botIds: [botId] });
         delete this.gameData.players[botId];
     }
 

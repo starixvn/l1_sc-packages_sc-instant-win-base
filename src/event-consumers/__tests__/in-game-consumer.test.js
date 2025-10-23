@@ -8,11 +8,10 @@ import SlotGameDefinition from "../../slot-game-definition";
 import JackpotValidator from "../../validators/jackpot-validator";
 
 /** @type {mongoose.Model}*/
-const userInfosRepository = stubMongoose(mongoose.Model);
 /** @type {mongoose.Model}*/
 const jackpotsRepository = stubMongoose(mongoose.Model);
 const currencyGroupGamesRepository = stubMongoose(mongoose.Model);
-const getBalance = jest.fn();
+const getBalance = jest.fn().mockResolvedValue({ response: { balance: 1000 } });
 
 describe("IngameConsumer", () => {
     const gameData = stubGameData();
@@ -26,6 +25,22 @@ describe("IngameConsumer", () => {
     let consumer;
 
     beforeEach(() => {
+        const gameManagementApiClientFactory = {
+            instance: jest.fn().mockReturnValue({
+                get: jest.fn(),
+                post: jest.fn(),
+                put: jest.fn(),
+                delete: jest.fn(),
+                users: {
+                    getUserInfo: jest.fn().mockResolvedValue({ response: { user: { id: 1, name: "test" } } }),
+                    setBalance: jest.fn().mockResolvedValue({ response: { user: { id: 1, name: "test" } } }),
+                },
+            }),
+        };
+        const userTrackingClient = {
+            track: jest.fn(),
+        };
+
         consumer = new InGameConsumer({
             definition,
             gameData,
@@ -34,10 +49,11 @@ describe("IngameConsumer", () => {
             freeSpinsConsumer,
             progressBonusConsumer,
             getBalance,
-            userInfosRepository,
             jackpotsRepository,
             currencyGroupGamesRepository,
             jackpotValidator,
+            gameManagementApiClientFactory,
+            userTrackingClient,
         });
     });
     afterEach(() => {
@@ -84,7 +100,12 @@ describe("IngameConsumer", () => {
                 const spy = jest.spyOn(consumer, "getPools");
 
                 // act
-                await consumer.buildPayload({ session: { currencyGroupId: "617a650628b7a500016388f5" } });
+                const realPlayer = {
+                    UID: "test-uid",
+                    profile: { name: "test-player" },
+                    session: { currencyGroupId: "617a650628b7a500016388f5" },
+                };
+                await consumer.buildPayload(realPlayer);
 
                 // assert
                 expect(spy).not.toHaveBeenCalled();
@@ -102,7 +123,12 @@ describe("IngameConsumer", () => {
                 const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
 
                 // act
-                const payload = await consumer.buildPayload(player);
+                const realPlayer = {
+                    UID: "test-uid",
+                    profile: { name: "test-player" },
+                    session: { currencyGroupId: "617a650628b7a500016388f5" },
+                };
+                const payload = await consumer.buildPayload(realPlayer);
 
                 // assert
                 expect(payload.jackpotPools).not.toBeNull();
@@ -112,10 +138,14 @@ describe("IngameConsumer", () => {
 
         it("always contains exchange rate", async () => {
             // arrange
-            const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
+            const realPlayer = {
+                UID: "test-uid",
+                profile: { name: "test-player" },
+                session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 },
+            };
 
             // act
-            const { user } = await consumer.buildPayload(player);
+            const { user } = await consumer.buildPayload(realPlayer);
 
             // assert
             expect(user.rate).not.toBeNull();
@@ -126,14 +156,18 @@ describe("IngameConsumer", () => {
 
         it("always contains disableJackpotGames from session", async () => {
             // arrange
-            const player = { session: { disableJackpotGames: true } };
+            const realPlayer = {
+                UID: "test-uid",
+                profile: { name: "test-player" },
+                session: { disableJackpotGames: true },
+            };
 
             // act
-            const { user } = await consumer.buildPayload(player);
+            const { user } = await consumer.buildPayload(realPlayer);
 
             // assert
             expect(user.disableJackpotGames).not.toBeUndefined();
-            expect(user.disableJackpotGames).toBe(player.session.disableJackpotGames);
+            expect(user.disableJackpotGames).toBe(realPlayer.session.disableJackpotGames);
         });
 
         it("always contains free spins", async () => {
@@ -151,7 +185,12 @@ describe("IngameConsumer", () => {
             });
 
             // act
-            const payload = await consumer.buildPayload({ session: {} });
+            const realPlayer = {
+                UID: "test-uid",
+                profile: { name: "test-player" },
+                session: {},
+            };
+            const payload = await consumer.buildPayload(realPlayer);
 
             // assert
             expect(payload.freeSpins).not.toBeNull();

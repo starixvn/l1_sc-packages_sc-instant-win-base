@@ -29,6 +29,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
      * @param {mongoose.Model} dependencies.betsRepository
      * @param {JackpotPrizeGenerator} dependencies.jackpotPrizeGenerator
      * @param {GenerateResultConsumer} dependencies.generateResultConsumer
+     * @param {GameManagementApiClientFactory} dependencies.gameManagementApiClientFactory
      */
 
     constructor({
@@ -48,6 +49,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         jackpotPrizeGenerator,
         generateResultConsumer,
         boardDefinition,
+        gameManagementApiClientFactory,
     }) {
         super({
             definition,
@@ -57,6 +59,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
             endGame,
             roundsRepository,
             betsRepository,
+            gameManagementApiClientFactory,
         });
 
         this.jackpotPublisher = jackpotPublisher;

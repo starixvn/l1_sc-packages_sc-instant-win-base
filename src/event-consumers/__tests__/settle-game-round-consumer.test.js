@@ -289,8 +289,14 @@ describe("SettleGameRoundConsumer", () => {
                     time: 4,
                     operatorId: undefined,
                     playerId: 2,
+                    siteName: undefined,
                 },
-                settlementInfo: { redPlay: 10, freeBet: false },
+                settlementInfo: {
+                    redPlay: 10,
+                    freeBet: false,
+                    baseTotalAmount: NaN,
+                    promotionId: undefined,
+                },
             };
 
             // act
@@ -317,8 +323,14 @@ describe("SettleGameRoundConsumer", () => {
                     time: 4,
                     operatorId: undefined,
                     playerId: 2,
+                    siteName: undefined,
                 },
-                settlementInfo: { redPlay: 0, freeBet: true },
+                settlementInfo: {
+                    redPlay: 0,
+                    freeBet: true,
+                    baseTotalAmount: NaN,
+                    promotionId: undefined,
+                },
             };
 
             // act
@@ -877,6 +889,14 @@ function initDependencies() {
     const logService = { logError: jest.fn() };
     const endGame = jest.fn();
     const hitJackpot = jest.fn();
+    const gameManagementApiClientFactory = {
+        instance: jest.fn().mockReturnValue({
+            get: jest.fn(),
+            post: jest.fn(),
+            put: jest.fn(),
+            delete: jest.fn(),
+        }),
+    };
 
     return {
         gameDefinition,
@@ -897,6 +917,7 @@ function initDependencies() {
         betsRepository,
         logService,
         generateResultConsumer,
+        gameManagementApiClientFactory,
     };
 }
 

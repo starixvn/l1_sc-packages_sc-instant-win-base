@@ -15,6 +15,60 @@ const currencyRepository = stubMongoose(mongoose.Model);
 const jackpotGameConsumer = stub(JackpotGameConsumer);
 const bot = stub(SlotGameBot);
 
+// Create a shared mock instance to ensure consistency
+const mockGameManagementApiClient = {
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+    aggregation: {
+        getSettingForNewRound: jest.fn().mockResolvedValue({
+            isSuccessful: true,
+            data: {
+                currencyGroupGames: [],
+                partnerGameSiteExclusions: [],
+                currencyGroups: [],
+                currencies: [],
+            },
+        }),
+    },
+    exchangeRates: {
+        getExchangeRates: jest.fn().mockResolvedValue({
+            isSuccessful: true,
+            data: [],
+        }),
+    },
+    currencyGroupGames: {
+        getCurrencyGroupGamesByGameId: jest.fn().mockResolvedValue({
+            isSuccessful: true,
+            data: [],
+        }),
+    },
+    archiveStatus: {
+        getArchiveStatus: jest.fn().mockResolvedValue({
+            isSuccessful: true,
+            data: { lastArcId: { _rounds: 0, _freespins: 0 } },
+        }),
+    },
+};
+
+// Helper function to create all required mock dependencies for sc-game-base 6.1.0
+const createMockDependencies = () => ({
+    gameManagementApiClientFactory: {
+        instance: jest.fn().mockReturnValue(mockGameManagementApiClient),
+    },
+    roundResultConsumer: { process: jest.fn() },
+    resultsRepository: stubMongoose(mongoose.Model),
+    appConfigs: { gameManagementApiSettings: {} },
+    roundIdConsumer: { getLatestId: jest.fn(), initRoundId: jest.fn() },
+    provablyFairConsumer: { process: jest.fn(), reset: jest.fn() },
+    unsettledRoundConsumer: { process: jest.fn(), proceed: jest.fn() },
+    promotionFreeSpinsConsumer: { process: jest.fn(), loadPromotionsRunning: jest.fn() },
+    settleGameRoundConsumer: { process: jest.fn() },
+    gameStatusPublisher: { publish: jest.fn() },
+    runningRoundInfoPublisher: { publish: jest.fn() },
+});
+
 jest.mock("cron", () => {
     const mScheduleJob = {
         called: false,
@@ -47,7 +101,10 @@ describe("slot-game-cron", () => {
     describe("extends", () => {
         it("should extend Core.Crons.BaseBot", () => {
             // act
-            const cron = new SlotGameCron({});
+            const mockDeps = createMockDependencies();
+            const cron = new SlotGameCron({
+                ...mockDeps,
+            });
 
             // assert
             expect(cron instanceof Core.Crons.BaseGameCron);
@@ -67,6 +124,7 @@ describe("slot-game-cron", () => {
             const progressBonusConsumer = { initialize: jest.fn(), processCountdown: jest.fn() };
             const freeSpinsConsumer = { reload: jest.fn() };
             const definition = {};
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 gameData,
                 definition,
@@ -83,6 +141,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             roundsRepository
                 .find()
@@ -109,6 +168,7 @@ describe("slot-game-cron", () => {
             const progressBonusConsumer = { initialize: jest.fn(), processCountdown: jest.fn() };
             const freeSpinsConsumer = { reload: jest.fn() };
             const definition = {};
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 gameData,
                 definition,
@@ -125,6 +185,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             roundsRepository
                 .find()
@@ -151,6 +212,7 @@ describe("slot-game-cron", () => {
             const progressBonusConsumer = { initialize: jest.fn(), processCountdown: jest.fn() };
             const freeSpinsConsumer = { reload: jest.fn() };
             const definition = {};
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 gameData,
                 bot,
@@ -167,6 +229,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -198,6 +261,7 @@ describe("slot-game-cron", () => {
             const freeSpinsConsumer = { reload: jest.fn() };
             const jackpotConsumer = { initialize: jest.fn() };
             const definition = {};
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 gameData,
                 bot,
@@ -215,6 +279,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             cron.getLastArchiveRound = jest.fn();
             cron.getLastArchiveRound.mockReturnValueOnce({ roundId: 3, freeSpinId: 5 });
@@ -258,23 +323,27 @@ describe("slot-game-cron", () => {
 
         it.each(testCases)("should return correct info", async (testCase) => {
             // arrange
-            const definition = {};
+            const definition = { configName: "test-game" };
             const jackpotConsumer = { getLatestRoundId: jest.fn() };
             const progressBonusConsumer = { initialize: jest.fn(), processCountdown: jest.fn() };
             jackpotConsumer.getLatestRoundId.mockReturnValueOnce(10);
+            const mockDeps = createMockDependencies();
+
+            // Mock the API response based on test case
+            const apiResponse = testCase.archiveStatus 
+                ? { isSuccessful: true, data: testCase.archiveStatus }
+                : { isSuccessful: true, data: null };
+            mockDeps.gameManagementApiClientFactory.instance().archiveStatus.getArchiveStatus.mockResolvedValueOnce(apiResponse);
 
             const cron = new SlotGameCron({
                 definition,
                 bot,
-                archiveStatusesRepository,
+                roundsRepository,
                 jackpotConsumer,
-                currencyGroupGamesRepository,
-                currencyGroupRepository,
-                currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
-            archiveStatusesRepository.findOne().lean().exec.mockReturnValueOnce(testCase.archiveStatus);
 
             // act
             const actualValue = await cron.getLastArchiveRound(testCase.jackpotEnabled);
@@ -292,6 +361,7 @@ describe("slot-game-cron", () => {
         it("should processExpiredBonus", async () => {
             // arrange
             const gameData = { remainingTime: 1 };
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 definition,
                 bot,
@@ -302,6 +372,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -315,6 +386,7 @@ describe("slot-game-cron", () => {
         it("when remainingTime === durations.wholeRound and not have bot should checkGameStatus", async () => {
             // arrange
             const gameData = { remainingTime: 45 };
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 definition,
                 bot,
@@ -325,6 +397,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -339,6 +412,7 @@ describe("slot-game-cron", () => {
             // arrange
             const gameData = { remainingTime: 45 };
             const bot = stub(Core.Crons.BaseBot);
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 definition,
                 bot,
@@ -350,6 +424,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -363,6 +438,7 @@ describe("slot-game-cron", () => {
         it("when game not disabled and not have bot should reduce remainingTime", async () => {
             // arrange
             const gameData = { remainingTime: 45 };
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 definition,
                 bot,
@@ -373,6 +449,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -386,6 +463,7 @@ describe("slot-game-cron", () => {
         it("when game disabled and not have bot should not reduce remainingTime", async () => {
             // arrange
             const gameData = { remainingTime: 45, disabled: true };
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 definition,
                 bot,
@@ -396,6 +474,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -410,6 +489,7 @@ describe("slot-game-cron", () => {
             // arrange
             const gameData = { remainingTime: 45 };
             const bot = stub(Core.Crons.BaseBot);
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 definition,
                 bot,
@@ -421,6 +501,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             cron.checkGameStatus = jest.fn();
 
@@ -435,6 +516,7 @@ describe("slot-game-cron", () => {
             // arrange
             const gameData = { remainingTime: -1 };
             const freeSpinsConsumer = { reload: jest.fn() };
+            const mockDeps = createMockDependencies();
             const cron = new SlotGameCron({
                 definition,
                 bot,
@@ -446,6 +528,7 @@ describe("slot-game-cron", () => {
                 currencyRepository,
                 jackpotGameConsumer,
                 progressBonusConsumer,
+                ...mockDeps,
             });
             cron.checkGameStatus = jest.fn();
 

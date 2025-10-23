@@ -6,12 +6,12 @@ import { MultipleCurrencyHelper } from "./../helpers";
 import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 
 export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetConsumer {
-    constructor(definition, gameData, publisher, boardDefinition) {
-        super(definition, gameData, publisher);
+    constructor(definition, gameData, publisher, logService, boardDefinition) {
+        super(definition, gameData, publisher, logService);
         this.boardDefinition = boardDefinition ?? defaultDefinition;
     }
 
-    composeBettingTimeValidationCriteria() {
+    composeBettingTimeValidationCriteria(roundId) {
         const gameConfigs = this.gameData.gameConfigs;
 
         return [
@@ -41,7 +41,15 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
         return [];
     }
 
-    consume(player, payload) {
+    composeHedgeBetValidationCriteria(betChoice, player) {
+        return [];
+    }
+
+    composePromotionValidationCriteria(player) {
+        return [];
+    }
+
+    async consume(player, payload) {
         Object.assign(payload, {
             amount: math.round(payload.amount / this.boardDefinition.paylines.length, 4),
             freeBet: payload.freeBet ?? false,
@@ -56,19 +64,31 @@ export default class PlaceBetConsumer extends Core.BaseEventConsumers.PlaceBetCo
             return;
         }
 
+        this.initializePlayerData(player, payload);
+        this.adjustBetTracks(player.profile.name, payload);
+        this.gameData.ingame[name].betQueue.push({ player, payload });
+    }
+
+    initializePlayerData(player, payload) {
+        const name = player.profile.name;
+
         if (!this.gameData.ingame[name]) {
             const newPlayer = {
                 name: player.profile.name,
                 avatarId: player.profile.avatarId,
                 currency: player.session.currencyName,
+                system: player.session.system,
                 betTracks: {},
                 betQueue: [],
+                clientSeed: payload.clientSeed,
                 operatorId: player.session.operatorId,
             };
 
+            if (player.promotion) {
+                newPlayer.promotion = { ...player.promotion };
+            }
+
             this.gameData.ingame[name] = newPlayer;
         }
-
-        this.gameData.ingame[name].betQueue.push({ player, payload });
     }
 }
