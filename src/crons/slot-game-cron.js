@@ -6,6 +6,27 @@ import * as EventConsumers from "./../event-consumers";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
+/**
+ * SLOT GAME CRON - Game Engine Heartbeat
+ *
+ * PURPOSE:
+ * Manages the game's timing engine and background processes.
+ * Runs every second to advance game state, process bets, and maintain system health.
+ *
+ * CRON RESPONSIBILITIES:
+ * 1. **Round Management**: Advances game rounds every wholeRound seconds
+ * 2. **Bet Processing**: Processes queued bets and settles completed rounds
+ * 3. **Bot Management**: Controls automated players for game activity
+ * 4. **Cleanup Tasks**: Expires abandoned bonus games and free spins
+ * 5. **Data Synchronization**: Reloads free spins and updates currencies
+ * 6. **System Health**: Ensures jackpot pools are initialized and running
+ *
+ * EXECUTION CYCLE:
+ * - Runs every 1 second (* * * * * *)
+ * - Each cycle advances remainingTime by -1
+ * - When remainingTime reaches 0, processes round completion
+ * - Handles round rollover and state resets
+ */
 export default class SlotGameCron extends Core.Crons.BaseGameCron {
     /**
      * @param {Object} dependencies
@@ -141,28 +162,48 @@ export default class SlotGameCron extends Core.Crons.BaseGameCron {
         return { roundId: Math.max(roundId, latestJackpotRoundId), freeSpinId };
     }
 
+    /**
+     * MAIN CRON EXECUTION CYCLE - Runs Every Second
+     *
+     * This is the heartbeat of the game engine. Each second this method:
+     * 1. Advances the game timer
+     * 2. Processes round transitions
+     * 3. Manages bot activity
+     * 4. Handles cleanup tasks
+     *
+     * Timing Logic:
+     * - remainingTime starts at durations.wholeRound (e.g., 30 seconds)
+     * - Each second: remainingTime--
+     * - When remainingTime reaches 0: Round completes, reset to wholeRound
+     * - Special handling at round start/completion boundaries
+     */
     async proceed() {
         const { durations } = this.definition;
 
+        // ROUND START: When timer resets to full round duration
         if (this.gameData.remainingTime === durations.wholeRound) {
-            await this.checkGameStatus();
-            this.bot && (await this.bot.reset());
+            await this.checkGameStatus();  // Verify game is operational
+            this.bot && (await this.bot.reset());  // Reset bot states
         }
 
+        // NORMAL TICK: Advance game state if not disabled
         if (!this.gameData.disabled) {
-            this.gameData.remainingTime--;
-            this.bot && (await this.bot.run());
+            this.gameData.remainingTime--;  // Count down to round end
+            this.bot && (await this.bot.run());  // Execute bot actions
         }
 
+        // ROUND COMPLETION: When timer reaches zero
         if (this.gameData.remainingTime < 0) {
-            this.gameData.remainingTime = durations.wholeRound;
+            this.gameData.remainingTime = durations.wholeRound;  // Reset for next round
 
+            // Reload free spins data to ensure synchronization
             await this.freeSpinsConsumer.reload();
         }
 
-        await this.jackpotGameConsumer.processExpired();
-        await this.bonusConsumer.processExpiredBonus();
-        this.progressBonusConsumer.processCountdown();
+        // CONTINUOUS MAINTENANCE TASKS (run every second)
+        await this.jackpotGameConsumer.processExpired();  // Clean up expired jackpot games
+        await this.bonusConsumer.processExpiredBonus();   // Auto-complete abandoned bonuses
+        this.progressBonusConsumer.processCountdown();    // Update bonus timers
     }
 
     async loadUnsettledBetsToIngame() {

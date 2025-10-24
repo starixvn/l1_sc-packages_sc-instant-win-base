@@ -12,6 +12,31 @@ import GenerateResultConsumer from "./generate-result-consumer";
 import HallOfFameConsumer from "./hall-of-fame-consumer";
 import JackpotConsumer from "./jackpot-consumer";
 
+/**
+ * SETTLE GAME ROUND CONSUMER - Final Game Resolution Engine
+ *
+ * PURPOSE:
+ * Orchestrates the complete game round settlement process including:
+ * - Board generation and win calculation
+ * - Special feature processing (bonus, free spins, jackpot)
+ * - Multi-stage payout handling
+ * - Player balance updates and notifications
+ *
+ * SETTLEMENT SEQUENCE:
+ * 1. Generate random board and calculate wins
+ * 2. Process free spins if triggered
+ * 3. Handle jackpot wins (special multi-step process)
+ * 4. Process bonus games (interactive chest opening)
+ * 5. Calculate final payouts and update balances
+ * 6. Send results to player and broadcast winners
+ *
+ * JACKPOT COMPLEXITY:
+ * Jackpots require special handling because they involve:
+ * - Progressive pool updates
+ * - Multi-step client interaction (prize wheel)
+ * - Delayed bonus processing
+ */
+
 export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.SettleGameRoundConsumer {
     /**
      * @param {Object} dependencies
@@ -90,20 +115,34 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         );
     }
 
+    /**
+     * MAIN SETTLEMENT ENTRY POINT
+     *
+     * Settlement Flow:
+     * 1. Generate board and calculate all wins
+     * 2. Process free spins (grant if triggered)
+     * 3. If jackpot won: special handling (prize wheel interaction)
+     * 4. If no jackpot: process bonus game or settle immediately
+     */
     async settleRound(player, roundId) {
         const bet = await this.queryBets(roundId);
 
         if (bet) {
+            // STEP 1: Generate board and calculate wins
             const finish = await this.generateRoundResult(player, roundId, bet);
             const { settlementResult } = finish;
+
+            // STEP 2: Grant free spins if triggered
             await this.processFreeSpins(player, bet, settlementResult);
             this.updateBetTrack(player, finish);
 
+            // STEP 3: JACKPOT BRANCH - Special multi-step handling
             if (settlementResult.jackpot && settlementResult.jackpot.prizes?.length > 0) {
                 await this.publishJackpotPrize({ finish, prizes: settlementResult.jackpot.prizes, bet });
-                return;
+                return; // Exit - jackpot needs client interaction
             }
 
+            // STEP 4: NORMAL BRANCH - Bonus or immediate settlement
             await this.processBet(player, bet, roundId);
         }
     }
@@ -122,14 +161,31 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
         await this.processBet(player, bet, roundId, true);
     }
 
+    /**
+     * BET PROCESSING DECISION TREE
+     *
+     * Routes settlement based on game features:
+     * - No bonus triggered → Immediate settlement
+     * - Bonus triggered → Interactive bonus game
+     * - Always contributes to jackpot pools
+     */
     async processBet(player, bet, roundId, afterJackpot = false) {
+        // BONUS CHECK: If bonus chests generated (>0), start bonus mini-game
         if (bet.settlementResult.bonus?.odds === 0) {
+            // NO BONUS: Settle immediately
             await this.settleBets(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet);
         } else {
+            // BONUS TRIGGERED: Start interactive chest-opening game
             await this.processBonus(player, { result: bet.result, settlementResult: bet.settlementResult, roundId }, bet, afterJackpot);
         }
 
-        await this.jackpotConsumer.contribute(player, { totalAmount: bet.totalAmount, roundId, rate: bet.rate, freeSpin: bet.freeSpin });
+        // JACKPOT CONTRIBUTION: Every bet feeds progressive pools
+        await this.jackpotConsumer.contribute(player, {
+            totalAmount: bet.totalAmount,
+            roundId,
+            rate: bet.rate,
+            freeSpin: bet.freeSpin
+        });
     }
 
     async generateRoundResult(player, roundId, bet) {

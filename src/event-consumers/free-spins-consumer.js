@@ -2,6 +2,26 @@ import mongoose from "mongoose";
 
 import SlotGameData from "./../slot-game-data";
 
+/**
+ * FREE SPINS CONSUMER - Free Spins Feature Manager
+ *
+ * PURPOSE:
+ * Manages the free spins feature where players get additional spins without betting.
+ * Free spins are awarded for landing bonus symbols and provide risk-free gameplay.
+ *
+ * FREE SPINS LIFECYCLE:
+ * 1. Player lands free spin symbols → Awarded free spins with time limit
+ * 2. Free spins are stored and tracked per player
+ * 3. Player can use free spins instead of regular bets
+ * 4. Free spins expire after 24 hours (configurable)
+ * 5. Multiple free spin sets can stack per player
+ *
+ * BUSINESS VALUE:
+ * - Rewards player engagement with bonus gameplay
+ * - Allows players to continue playing without additional cost
+ * - Increases session time and revenue potential
+ * - Provides recovery mechanism for losing streaks
+ */
 export default class FreeSpinsConsumer {
     /**
      * @param {Number} gameId
@@ -9,6 +29,13 @@ export default class FreeSpinsConsumer {
      * @param {mongoose.Model} freeSpinsRepository
      * @param {mongoose.Model} gameNotificationsRepository
      * @param {EventConsumers.IdCountersConsumer} dependencies.idCountersConsumer
+     */
+    /**
+     * @param {Number} gameId - Unique identifier for this game
+     * @param {SlotGameData} gameData - Runtime game state
+     * @param {mongoose.Model} freeSpinsRepository - Database model for free spins
+     * @param {mongoose.Model} gameNotificationsRepository - Database model for notifications
+     * @param {Object} idCountersConsumer - ID generator for free spin records
      */
     constructor(gameId, gameData, freeSpinsRepository, gameNotificationsRepository, idCountersConsumer) {
         this.gameId = gameId;
@@ -18,23 +45,50 @@ export default class FreeSpinsConsumer {
         this.idCountersConsumer = idCountersConsumer;
     }
 
+    /**
+     * CHECK IF PLAYER HAS AVAILABLE FREE SPINS
+     *
+     * Determines if a player has any free spins they can currently use.
+     * Checks both availability count and expiration time.
+     *
+     * @param {Object} player - Player session data
+     * @returns {boolean} - True if player has available free spins
+     */
     hasFreeSpin(player) {
         const freeSpinsOfPlayer = this.gameData.ingame[player.profile.name]?.freeSpins;
 
         if (freeSpinsOfPlayer && freeSpinsOfPlayer.length > 0) {
             const currentDateTime = new Date();
 
-            return freeSpinsOfPlayer.some((freeSpin) => freeSpin.available > 0 && freeSpin.expiryTime > currentDateTime);
+            // Check if any free spin set has available spins and hasn't expired
+            return freeSpinsOfPlayer.some((freeSpin) =>
+                freeSpin.available > 0 && freeSpin.expiryTime > currentDateTime
+            );
         }
 
         return false;
     }
 
+    /**
+     * CONSUME ONE FREE SPIN - Use Free Spin for Gameplay
+     *
+     * Deducts one free spin from player's available balance.
+     * Uses the free spin set that expires soonest (FIFO principle).
+     *
+     * @param {Object} player - Player session data
+     */
     async useFreeSpin(player) {
+        // Get the free spin set that expires soonest
         const firstAvailableFreeSpinSet = this.getSoonestExpiredFreeSpinSet(player);
 
         if (firstAvailableFreeSpinSet) {
-            await this.freeSpinsRepository.updateOne({ id: firstAvailableFreeSpinSet.id }, { $inc: { available: -1 } });
+            // Atomically decrement available count in database
+            await this.freeSpinsRepository.updateOne(
+                { id: firstAvailableFreeSpinSet.id },
+                { $inc: { available: -1 } }
+            );
+
+            // Update in-memory cache
             firstAvailableFreeSpinSet.available--;
         }
     }
@@ -53,6 +107,27 @@ export default class FreeSpinsConsumer {
         return freeSpinsOfPlayer.reverse().find((freeSpin) => freeSpin.available > 0 && freeSpin.expiryTime > currentDateTime);
     }
 
+    /**
+     * AWARD FREE SPINS TO PLAYER
+     *
+     * Grants free spins when player lands free spin symbols.
+     * Creates persistent database record and in-memory cache.
+     *
+     * Free Spin Creation Process:
+     * 1. Generate unique ID for the free spin set
+     * 2. Set expiration time (24 hours default)
+     * 3. Store in database with player association
+     * 4. Cache in memory for fast access
+     * 5. Update game notifications for client
+     *
+     * @param {Object} player - Player session data
+     * @param {Object} params - Free spin parameters
+     * @param {number} params.roundId - Round where free spins were earned
+     * @param {number} params.bet - Bet amount per spin
+     * @param {Array} params.paylines - Active paylines configuration
+     * @param {number} params.numberOfFreeSpins - How many free spins to award
+     * @param {number} timeToLive - Seconds until expiration (default 86400 = 24 hours)
+     */
     async gainFreeSpin(player, { roundId, bet, paylines, numberOfFreeSpins }, timeToLive) {
         const createdTime = new Date();
         const expiryTime = new Date(createdTime.getTime()).setSeconds(createdTime.getSeconds() + timeToLive);

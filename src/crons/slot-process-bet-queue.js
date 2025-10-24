@@ -6,6 +6,27 @@ import SlotNoticeHelper from "./../helpers/slot-notice-helper";
 import SlotGameData from "./../slot-game-data";
 import SlotGameDefinition from "./../slot-game-definition";
 
+/**
+ * SLOT PROCESS BET QUEUE - Bet Processing Engine
+ *
+ * PURPOSE:
+ * Processes the queued bets from players, handles free spins, calculates contributions,
+ * and initiates the game round settlement process.
+ *
+ * BET PROCESSING FLOW:
+ * 1. **Validation**: Check if player can place bet (not in middle of round)
+ * 2. **Free Spin Handling**: Use expired free spins or validate free spin requests
+ * 3. **Bet Information**: Generate complete bet data with contributions and amounts
+ * 4. **Round Creation**: Generate new round ID and create bet record
+ * 5. **Settlement**: Trigger the complete game round processing
+ *
+ * KEY RESPONSIBILITIES:
+ * - Queue management for asynchronous bet processing
+ * - Free spin lifecycle management
+ * - Jackpot contribution calculations
+ * - Multi-currency bet handling
+ * - Round ID generation and tracking
+ */
 export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
     /**
      * @param {SlotGameDefinition} definition
@@ -59,28 +80,55 @@ export default class SlotProcessBetQueue extends Core.Crons.ProcessBetQueue {
         this.jackpotValidator = jackpotValidator;
     }
 
+    /**
+     * MAIN BET PROCESSING ENTRY POINT
+     *
+     * Processes a single bet from the queue, handling validation, free spins,
+     * bet information generation, and round creation.
+     *
+     * Processing Steps:
+     * 1. **Round State Check**: Ensure player isn't already in a round
+     * 2. **Free Spin Logic**: Auto-use expired free spins or validate manual free spin requests
+     * 3. **Bet Generation**: Create complete bet information with contributions
+     * 4. **Round ID**: Generate unique round identifier
+     * 5. **Parent Processing**: Call base class for API communication and balance updates
+     *
+     * @param {Object} player - Player session data
+     * @param {Object} payload - Bet request payload
+     */
     async proceedBet(player, payload) {
+        // VALIDATION: Prevent bets if player already has an active round
         if (this.gameData.ingame[player.profile.name]?.finish) {
-            this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1, notice: { errorCode: helpers.noticeHelper.cannotPlaceBet } });
-
+            this.placeBetPublisher.publishGameFailedBet(player.UID, {
+                endBet: -1,
+                notice: { errorCode: helpers.noticeHelper.cannotPlaceBet }
+            });
             return;
         }
 
+        // FREE SPIN HANDLING: Check for expired free spins to auto-use
         const soonestExpiredFreeSpinSet = this.freeSpinsConsumer.getSoonestExpiredFreeSpinSet(player);
 
+        // Set free spin flag: manual request OR auto-use expired spins
         payload.freeSpin = payload.freeSpin || (soonestExpiredFreeSpinSet == null ? false : true);
 
+        // VALIDATION: Ensure free spin request is valid
         if (payload.freeSpin && !soonestExpiredFreeSpinSet) {
-            this.placeBetPublisher.publishGameFailedBet(player.UID, { endBet: -1, notice: { errorCode: SlotNoticeHelper.invalidFreeSpin } });
-
+            this.placeBetPublisher.publishGameFailedBet(player.UID, {
+                endBet: -1,
+                notice: { errorCode: SlotNoticeHelper.invalidFreeSpin }
+            });
             return;
         }
 
+        // Generate complete bet information with contributions and amounts
         const betInfo = await this.generateBetInfo(payload, soonestExpiredFreeSpinSet, player);
 
+        // Generate new unique round ID for this bet
         await this.idCountersConsumer.consume("round");
         this.gameData.roundId++;
 
+        // Call parent class for balance checking, API calls, and success handling
         await super.proceedBet(player, betInfo);
     }
 
