@@ -220,6 +220,40 @@ describe("IngameConsumer", () => {
             // assert
             expect(slotConfig).toStrictEqual(expected);
         });
+
+        it("should round betLevels and defaultBetLevel to 4 decimal places", () => {
+            // arrange
+            const gameData = stubGameData();
+            gameData.currencyGroupGames = [
+                {
+                    groupId: "617a650628b7a500016388f5",
+                    betLevels: [0.0001, 0.0002, 0.0003, 0.0004, 0.004, 0.006, 0.01, 0.02],
+                    defaultBetLevel: 0.0001,
+                },
+            ];
+            const consumer = new InGameConsumer({
+                definition,
+                gameData,
+                roundQuery,
+                publisher,
+                freeSpinsConsumer,
+                getBalance,
+                userInfosRepository,
+                jackpotsRepository,
+                currencyGroupGamesRepository,
+                jackpotValidator,
+            });
+            const player = { session: { currencyGroupId: "617a650628b7a500016388f5", currencyCode: "AUD", multiplier: 1000 } };
+
+            // act
+            const slotConfig = consumer.getSlotGameConfig(player, true);
+
+            // assert
+            const expectedBetLevels = [0.0025, 0.005, 0.0075, 0.01, 0.1, 0.15, 0.25, 0.5];
+            const expectedDefaultBetLevel = 0.0025;
+            expect(slotConfig.betLevels).toEqual(expectedBetLevels);
+            expect(slotConfig.defaultBetLevel).toBe(expectedDefaultBetLevel);
+        });
     });
 });
 

@@ -266,9 +266,8 @@ describe("SettleGameRoundConsumer", () => {
             const actualValue = consumer.calculatePaylineResult(paylines, bet, bonus);
 
             // assert
-            expect(actualValue.totalWin).toBe(parseFloat(actualValue.totalWin.toFixed(4)));
-            // Verify netWin is rounded to 4 decimals
-            expect(actualValue.netWin).toBe(parseFloat(actualValue.netWin.toFixed(4)));
+            expect(actualValue.totalWin).toBe(2.2222);
+            expect(actualValue.netWin).toBe(-3.3333);
         });
     });
 
@@ -766,6 +765,36 @@ describe("SettleGameRoundConsumer", () => {
                 bet.uid,
                 collectRoundResultReturn
             );
+        });
+
+        it("should round baseBetWin to 4 decimal places", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.gameData.ingame = { player1: {} };
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const player = { profile: { name: "player1" } };
+            const roundId = "round123";
+            const bet = {
+                uid: "user123",
+                name: "player1",
+                rate: 1.11111111,
+                result: [],
+                save: jest.fn(),
+            };
+            const result = {};
+            const settlementResult = { winningPaylines: [] };
+            const bonusChests = [];
+            const betResult = { totalWin: 2.22222222, bigWin: false };
+
+            consumer.calculateBonusAmount = jest.fn().mockReturnValue(0);
+            consumer.calculatePaylineResult = jest.fn().mockReturnValue(betResult);
+            consumer.callEndGame = jest.fn().mockResolvedValue({ isOk: false });
+
+            // act
+            await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
+
+            // assert
+            expect(bet.baseBetWin).toBe(2.4691);
         });
 
         it("when apiResult.isOk is false should NOT call publishToUser", async () => {

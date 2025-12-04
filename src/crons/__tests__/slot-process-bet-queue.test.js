@@ -48,6 +48,27 @@ describe("slot-process-bet-queue", () => {
             expect(roundsRepository.create).toHaveBeenCalledWith(expect.objectContaining({ playerId: 1, siteId: 2 }));
         });
 
+        it("should round baseTotalAmount to 4 decimal places", async () => {
+            // arrange
+            const roundsRepository = { create: jest.fn() };
+            const gameData = { exchangeRates: { exId: 1 }, gameConfigs: { slotsConfig: { jackpot: { enabled: false } } } };
+            const jackpotValidator = new JackpotValidator(gameData);
+            const cron = new SlotProcessBetQueue({ roundsRepository, gameData, jackpotValidator });
+            const player = { session: { playerId: 1, siteId: 2 }, profile: { name: "user3" }, UID: "user123" };
+            const bet = { totalAmount: 1.11111111, freeSpin: 1, betChoice: [1, 2, 3], amount: 0.5 };
+            const rate = 1.22222222;
+
+            // act
+            await cron.upsertBet(player, 1, bet, rate);
+
+            // assert
+            expect(roundsRepository.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    baseTotalAmount: 1.358,
+                })
+            );
+        });
+
         it("when not have player session should create correct info", async () => {
             // arrange
             const roundsRepository = { create: jest.fn() };
@@ -327,12 +348,14 @@ describe("slot-process-bet-queue", () => {
                     //Act
                     const result = await cron.generateBetInfo(payload, null, player);
 
-                    //Assert
-                    expect(result.contributionRate).toEqual(0.5);
-                    expect(result.contributionAmount).toEqual(
-                        math.round(payload.amount * payload.betChoice.length * 0.5, 4)
-                    );
-                });
+                //Assert
+                expect(result.contributionRate).toEqual(0.5);
+                expect(result.contributionAmount).toEqual(
+                    math.round(payload.amount * payload.betChoice.length * 0.5, 4)
+                );
+                // Verify totalAmount is rounded to 4 decimals
+                expect(result.totalAmount).toBe(0.3);
+            });
 
                 it("contributionRate & contributionAmount should be 0 with free spin", async () => {
                     //Arrange
@@ -352,6 +375,25 @@ describe("slot-process-bet-queue", () => {
                     //Assert
                     expect(result.contributionRate).toEqual(0);
                     expect(result.contributionAmount).toEqual(0);
+                });
+
+                it("should round totalAmount to 4 decimal places when amount produces many decimals", async () => {
+                    //Arrange
+                    const payload = {
+                        freeSpin: false,
+                        amount: 1.11111111,
+                        betChoice: [1, 2, 3],
+                    };
+                    const cron = new SlotProcessBetQueue({
+                        gameData,
+                        jackpotValidator,
+                    });
+
+                    //Act
+                    const result = await cron.generateBetInfo(payload, null, player);
+
+                    //Assert
+                    expect(result.totalAmount).toBe(3.3333);
                 });
             });
 

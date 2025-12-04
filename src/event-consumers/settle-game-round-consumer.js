@@ -231,7 +231,7 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 bet.settlementResult = bet.settlementResult ?? settlementResult;
                 bet.bonusChests = bonusChests;
                 bet.betWin = betResult.totalWin;
-                bet.baseBetWin = math.round(betResult.totalWin * bet.rate, 2);
+                bet.baseBetWin = math.round(betResult.totalWin * bet.rate, 4);
                 bet.paid = true;
                 bet.endTime = new Date();
 

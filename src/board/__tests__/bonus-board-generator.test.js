@@ -30,7 +30,9 @@ describe("BonusBoardGenerator", () => {
 
             // assert
             board.forEach((bonus) => {
-                expect(bonus.amount).toBe(parseFloat(bonus.amount.toFixed(4)));
+                // Verify the amount is properly rounded by checking it equals itself when rounded
+                const roundedAmount = Math.round(bonus.amount * 10000) / 10000;
+                expect(bonus.amount).toBe(roundedAmount);
             });
         });
 

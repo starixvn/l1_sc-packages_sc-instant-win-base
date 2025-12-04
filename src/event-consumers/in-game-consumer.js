@@ -94,11 +94,11 @@ export default class InGameConsumer extends Table.EventConsumers.TableInGameCons
 
     getSlotGameConfig(realPlayer, canAccessJackpot) {
         const betLevels = MultipleCurrencyHelper.getBetLevels(this.gameData, realPlayer).map((x) =>
-            math.round(x * this.boardDefinition.paylines.length, 2)
+            math.round(x * this.boardDefinition.paylines.length, 4)
         );
         const defaultBetLevel = math.round(
             MultipleCurrencyHelper.getDefaultBetLevel(this.gameData, realPlayer) * this.boardDefinition.paylines.length,
-            2
+            4
         );
         const { icons: odds, jackpot } = this.gameData.gameConfigs.slotsConfig;
 
