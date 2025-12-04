@@ -20,6 +20,20 @@ describe("BonusBoardGenerator", () => {
             expect(board.length).toEqual(bonusSize);
         });
 
+        it("should round amounts to 4 decimal places", () => {
+            // arrange
+            const boardGenerator = new BonusBoardGenerator({ bonusSize });
+            const betAmount = 1.23456789;
+
+            // act
+            const board = boardGenerator.generate(betAmount, minRate, maxRate, numberOfPaylines);
+
+            // assert
+            board.forEach((bonus) => {
+                expect(bonus.amount).toBe(parseFloat(bonus.amount.toFixed(4)));
+            });
+        });
+
         describe("when apply new bonus calculator", () => {
             const boardGenerator = new BonusBoardGenerator({ bonusSize, applyNewBonusCalculation: true }, { paylines: boardPaylines });
 

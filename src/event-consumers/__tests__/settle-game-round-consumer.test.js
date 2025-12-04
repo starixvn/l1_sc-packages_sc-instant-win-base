@@ -250,6 +250,26 @@ describe("SettleGameRoundConsumer", () => {
             // assert
             expect(actualValue).toStrictEqual(expectedValue);
         });
+
+        it("should round totalWin and netWin to 4 decimal places", () => {
+            // arrange
+            const dependencies = initDependencies();
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const paylines = [{ odds: 2 }];
+            const bet = {
+                bet: 1.1111,
+                totalAmount: 5.5555,
+            };
+            const bonus = 0;
+
+            // act
+            const actualValue = consumer.calculatePaylineResult(paylines, bet, bonus);
+
+            // assert
+            expect(actualValue.totalWin).toBe(parseFloat(actualValue.totalWin.toFixed(4)));
+            // Verify netWin is rounded to 4 decimals
+            expect(actualValue.netWin).toBe(parseFloat(actualValue.netWin.toFixed(4)));
+        });
     });
 
     describe("queryBets", () => {
@@ -704,6 +724,178 @@ describe("SettleGameRoundConsumer", () => {
 
             // assert
             expect(consumer.callEndGame).toBeCalled();
+        });
+
+        it("when apiResult.isOk is true should call publishToUser with correct parameters", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.gameData.ingame = { player1: { avatarId: "avatar123" } };
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const player = { profile: { name: "player1" } };
+            const roundId = "round123";
+            const bet = {
+                uid: "user123",
+                name: "player1",
+                rate: 1.5,
+                result: [],
+                save: jest.fn(),
+            };
+            const result = {};
+            const settlementResult = { winningPaylines: [] };
+            const bonusChests = [];
+            const betResult = { totalWin: 100, bigWin: true };
+            const collectRoundResultReturn = { finish: { roundId, result: { betWin: 100, bigWin: true } } };
+
+            consumer.calculateBonusAmount = jest.fn().mockReturnValue(0);
+            consumer.calculatePaylineResult = jest.fn().mockReturnValue(betResult);
+            consumer.collectRoundResult = jest.fn().mockReturnValue(collectRoundResultReturn);
+            consumer.callEndGame = jest.fn().mockResolvedValue({ isOk: true });
+
+            // act
+            await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
+
+            // assert
+            expect(consumer.callEndGame).toHaveBeenCalledWith(bet, roundId, bet.endTime, betResult);
+            expect(consumer.collectRoundResult).toHaveBeenCalledWith({
+                player,
+                roundId,
+                betWin: bet.betWin,
+                bigWin: betResult.bigWin,
+            });
+            expect(consumer.userBetResultPublisher.publishToUser).toHaveBeenCalledWith(
+                bet.uid,
+                collectRoundResultReturn
+            );
+        });
+
+        it("when apiResult.isOk is false should NOT call publishToUser", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.gameData.ingame = { player1: {} };
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const player = { profile: { name: "player1" } };
+            const roundId = "round123";
+            const bet = {
+                uid: "user123",
+                name: "player1",
+                result: [],
+                save: jest.fn(),
+            };
+            const result = {};
+            const settlementResult = { winningPaylines: [] };
+            const bonusChests = [];
+            const betResult = { totalWin: 100, bigWin: true };
+
+            consumer.calculateBonusAmount = jest.fn().mockReturnValue(0);
+            consumer.calculatePaylineResult = jest.fn().mockReturnValue(betResult);
+            consumer.callEndGame = jest.fn().mockResolvedValue({ isOk: false });
+
+            // act
+            await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
+
+            // assert
+            expect(consumer.userBetResultPublisher.publishToUser).not.toHaveBeenCalled();
+        });
+
+        it("when betResult.totalWin > 0 and apiResult.isOk is true should call publishToAllUsersExcept", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.gameData.ingame = { player1: { avatarId: "avatar123" } };
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const player = { profile: { name: "player1" } };
+            const roundId = "round123";
+            const bet = {
+                uid: "user123",
+                name: "player1",
+                rate: 1.5,
+                result: [],
+                save: jest.fn(),
+            };
+            const result = {};
+            const settlementResult = { winningPaylines: [] };
+            const bonusChests = [];
+            const betResult = { totalWin: 100, bigWin: true };
+
+            consumer.calculateBonusAmount = jest.fn().mockReturnValue(0);
+            consumer.calculatePaylineResult = jest.fn().mockReturnValue(betResult);
+            consumer.collectRoundResult = jest.fn().mockReturnValue({});
+            consumer.callEndGame = jest.fn().mockResolvedValue({ isOk: true });
+
+            // act
+            await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
+
+            // assert
+            expect(consumer.userBetResultPublisher.publishToAllUsersExcept).toHaveBeenCalledWith(bet.uid, {
+                winner: {
+                    id: bet.uid,
+                    name: bet.name,
+                    avatarId: "avatar123",
+                    betWin: betResult.totalWin,
+                    bigWin: betResult.bigWin,
+                    rate: bet.rate,
+                },
+            });
+        });
+
+        it("when betResult.totalWin <= 0 should NOT call publishToAllUsersExcept", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.gameData.ingame = { player1: { avatarId: "avatar123" } };
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const player = { profile: { name: "player1" } };
+            const roundId = "round123";
+            const bet = {
+                uid: "user123",
+                name: "player1",
+                rate: 1.5,
+                result: [],
+                save: jest.fn(),
+            };
+            const result = {};
+            const settlementResult = { winningPaylines: [] };
+            const bonusChests = [];
+            const betResult = { totalWin: 0, bigWin: false };
+
+            consumer.calculateBonusAmount = jest.fn().mockReturnValue(0);
+            consumer.calculatePaylineResult = jest.fn().mockReturnValue(betResult);
+            consumer.collectRoundResult = jest.fn().mockReturnValue({});
+            consumer.callEndGame = jest.fn().mockResolvedValue({ isOk: true });
+
+            // act
+            await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
+
+            // assert
+            expect(consumer.userBetResultPublisher.publishToAllUsersExcept).not.toHaveBeenCalled();
+        });
+
+        it("when apiResult.isOk is false should NOT call publishToAllUsersExcept even if totalWin > 0", async () => {
+            // arrange
+            const dependencies = initDependencies();
+            dependencies.gameData.ingame = { player1: { avatarId: "avatar123" } };
+            const consumer = new SettleGameRoundConsumer(dependencies);
+            const player = { profile: { name: "player1" } };
+            const roundId = "round123";
+            const bet = {
+                uid: "user123",
+                name: "player1",
+                rate: 1.5,
+                result: [],
+                save: jest.fn(),
+            };
+            const result = {};
+            const settlementResult = { winningPaylines: [] };
+            const bonusChests = [];
+            const betResult = { totalWin: 100, bigWin: true };
+
+            consumer.calculateBonusAmount = jest.fn().mockReturnValue(0);
+            consumer.calculatePaylineResult = jest.fn().mockReturnValue(betResult);
+            consumer.callEndGame = jest.fn().mockResolvedValue({ isOk: false });
+
+            // act
+            await consumer.settleBets(player, { result, settlementResult, roundId }, bet, bonusChests);
+
+            // assert
+            expect(consumer.userBetResultPublisher.publishToAllUsersExcept).not.toHaveBeenCalled();
         });
     });
 

@@ -236,20 +236,22 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 bet.endTime = new Date();
 
                 await bet.save();
-                await this.callEndGame(bet, roundId, bet.endTime, betResult);
-
-                await this.userBetResultPublisher.publishToUser(
-                    bet.uid,
-                    this.collectRoundResult({
-                        player,
-                        roundId,
-                        betWin: bet.betWin,
-                        bigWin: betResult.bigWin,
-                    })
-                );
+                const apiResult = await this.callEndGame(bet, roundId, bet.endTime, betResult);
+                if (apiResult.isOk) {
+                    await this.userBetResultPublisher.publishToUser(
+                        bet.uid,
+                        this.collectRoundResult({
+                            player,
+                            roundId,
+                            betWin: bet.betWin,
+                            bigWin: betResult.bigWin,
+                        })
+                    );
+                }
 
                 const ingame = this.gameData.ingame[bet.name];
                 betResult.totalWin > 0 &&
+                    apiResult.isOk &&
                     this.userBetResultPublisher.publishToAllUsersExcept(bet.uid, {
                         winner: {
                             id: bet.uid,
@@ -302,8 +304,8 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
 
         betResult.totalBetAmount = bet.totalAmount;
         betResult.bigWin = (betResult.totalWin + bonus) / bigWinRatio >= betResult.totalBetAmount;
-        betResult.totalWin = parseFloat((betResult.totalWin + bonus).toFixed(2));
-        betResult.netWin = parseFloat((betResult.totalWin + bonus - betResult.totalBetAmount).toFixed(2));
+        betResult.totalWin = parseFloat((betResult.totalWin + bonus).toFixed(4));
+        betResult.netWin = parseFloat((betResult.totalWin + bonus - betResult.totalBetAmount).toFixed(4));
         betResult.totalLost = betResult.totalBetAmount - betResult.totalWin > 0 ? betResult.totalBetAmount - betResult.totalWin : 0;
 
         return betResult;
@@ -384,5 +386,16 @@ export default class SettleGameRoundConsumer extends Core.BaseEventConsumers.Set
                 symbol: this.boardDefinition.specialSymbols.jackpot,
             },
         };
+    }
+
+    async callEndGame(bet, roundId, time, betResult) {
+        const { gameInfo, settlementInfo } = this.formatEndGameInfo(bet, roundId, time, betResult);
+
+        const apiResult = await this.endGame(bet.uid, gameInfo, settlementInfo);
+
+        if (!apiResult.isOk) {
+            this.userBetResultPublisher.publishApiError(bet.uid, apiResult.response);
+        }
+        return apiResult;
     }
 }
